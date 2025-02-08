@@ -2,9 +2,41 @@ package routes
 
 import (
 	"backend/internal/adminpanel/models"
+	"backend/internal/adminpanel/services/utils"
+	"errors"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"log"
 	"net/http"
 )
+
+func LoginHandler(ctx *gin.Context) {
+	var loginRequest = models.LoginRequest{}
+	if err := ctx.ShouldBindJSON(&loginRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid login request"})
+		return
+	}
+	user, err := models.GetUserByEmail(loginRequest.Email)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if !utils.ComparePasswords(loginRequest.Password, user.Password) {
+		log.Println("Password mismatch for user:", user.Email)
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+	token, err := utils.GenerateJWTToken(user.Email, user.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"token": token})
+}
 
 func CreateUser(ctx *gin.Context) {
 	user := new(models.User)

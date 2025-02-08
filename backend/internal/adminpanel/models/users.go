@@ -32,6 +32,11 @@ type UserResponse struct {
 	IsSuperUser bool      `json:"isSuperUser"`
 }
 
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 // BeforeCreate - хук для автоматичної генерації UUID перед створенням запису
 func (user *User) BeforeCreate(*gorm.DB) error {
 	user.ID = uuid.New()
@@ -72,4 +77,28 @@ func CreateUser(user *User) (*UserResponse, error) {
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
 	}, err
+}
+
+func GetUserById(id uuid.UUID) (*User, error) {
+	var user User
+	result := db.Where("id = ?", id).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return &user, nil
+}
+
+func GetUserByEmail(email string) (*User, error) {
+	var user User
+	result := db.Where("email = ?", email).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return &user, nil
 }

@@ -26,6 +26,7 @@ func main() {
 		})
 	})
 	r.POST("/user/create", routes.CreateUser)
+	r.POST("/user/login", routes.LoginHandler)
 
 	if err := r.Run(port); err != nil {
 		fmt.Println("Failed to run server", err)
