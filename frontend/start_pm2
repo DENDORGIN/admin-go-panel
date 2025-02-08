@@ -1,0 +1,47 @@
+#!/bin/bash
+
+#if [ -z "$SSH_AUTH_SOCK" ]; then
+#  eval "$(ssh-agent -s)"
+#fi
+#
+#if ! ssh-add -l | grep -q "git_fabriq_key"; then
+#  echo "Activating SSH key..."
+#  ssh-add ~/.ssh/git_fabriq_key
+#  if [ $? -ne 0 ]; then
+#    echo "Failed to add SSH key"
+#    exit 1
+#  fi
+#fi
+#
+#
+#echo "Pulling the latest code from GitHub..."
+#git pull origin master
+#if [ $? -ne 0 ]; then
+#  echo "Git pull failed"
+#  exit 1
+#fi
+
+
+echo "Installing npm dependencies..."
+npm install
+if [ $? -ne 0 ]; then
+  echo "npm install failed"
+  exit 1
+fi
+
+echo "Building the project..."
+npm run build
+if [ $? -ne 0 ]; then
+  echo "npm run build failed"
+  exit 1
+fi
+
+echo "Restarting the application with PM2..."
+pm2 restart fabriq-app
+if [ $? -ne 0 ]; then
+  echo "PM2 restart failed"
+  exit 1
+fi
+
+echo "Deployment completed successfully."
+#pm2 start npm --name "fabriq-app" -- run preview
