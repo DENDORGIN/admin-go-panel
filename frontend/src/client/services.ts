@@ -51,8 +51,8 @@ export class LoginService {
     return __request(OpenAPI, {
       method: "POST",
       url: "/api/v1/login/access-token",
-      formData: formData,
-      mediaType: "application/x-www-form-urlencoded",
+      body: formData,
+      mediaType: "application/json",
       errors: {
         422: "Validation Error",
       },

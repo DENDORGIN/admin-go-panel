@@ -35,7 +35,8 @@ func LoginHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"token": token})
+	ctx.JSON(http.StatusOK, gin.H{"access_token": token, "token_type": "bearer"})
+	log.Println("Login successful")
 }
 
 func CreateUser(ctx *gin.Context) {
