@@ -18,15 +18,22 @@ func main() {
 
 	r := gin.New()
 	r.Use(redirectFromWWW())
-	r.Use(cors.Default())
+	r.Use(CustomCors())
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Healthy",
 		})
 	})
-	r.POST("/api/v1/users/", routes.CreateUser)
+
+	//Auth
 	r.POST("/api/v1/login/access-token", routes.LoginHandler)
+
+	//Users
+	r.POST("/api/v1/users/", routes.CreateUser)
+
+	r.Use(routes.AuthMiddleware())
+	r.GET("/api/v1/users/me", routes.ReadUserMe)
 
 	if err := r.Run(port); err != nil {
 		fmt.Println("Failed to run server", err)
@@ -45,4 +52,17 @@ func redirectFromWWW() gin.HandlerFunc {
 		}
 		c.Next()
 	}
+}
+
+func CustomCors() gin.HandlerFunc {
+	config := cors.New(
+		cors.Config{
+			AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173"},
+			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+			ExposeHeaders:    []string{"Content-Length"},
+			AllowCredentials: true,
+			MaxAge:           12 * 60 * 60, // 12 hours
+		})
+	return config
 }

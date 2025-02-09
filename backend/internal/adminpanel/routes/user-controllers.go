@@ -5,6 +5,7 @@ import (
 	"backend/internal/adminpanel/services/utils"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"log"
 	"net/http"
@@ -51,4 +52,30 @@ func CreateUser(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusCreated, newUser)
+}
+
+func ReadUserMe(ctx *gin.Context) {
+	idValue, exists := ctx.Get("id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	id, ok := idValue.(uuid.UUID)
+	if !ok {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	user, err := models.GetUserById(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
 }
