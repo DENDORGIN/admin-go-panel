@@ -126,7 +126,7 @@ export type UserPublic = {
 export type UserRegister = {
   email: string
   password: string
-  fullName?: string | null
+  fullName: string
 }
 
 export type UserUpdate = {

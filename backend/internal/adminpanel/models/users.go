@@ -3,6 +3,7 @@ package models
 import (
 	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/services/utils"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -138,4 +139,15 @@ func TransformUsers(users []*User) []*UserResponse {
 		userResponses = append(userResponses, userResponse)
 	}
 	return userResponses
+}
+
+func DeleteUserById(id string) error {
+	result := db.Where("id = ?", id).Delete(&User{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New("user not found")
+	}
+	return nil
 }

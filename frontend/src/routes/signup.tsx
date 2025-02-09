@@ -49,7 +49,7 @@ function SignUp() {
     criteriaMode: "all",
     defaultValues: {
       email: "",
-      full_name: "",
+      fullName: "",
       password: "",
       confirm_password: "",
     },
@@ -80,19 +80,19 @@ function SignUp() {
             alignSelf="center"
             mb={4}
           />
-          <FormControl id="full_name" isInvalid={!!errors.full_name}>
-            <FormLabel htmlFor="full_name" srOnly>
+          <FormControl id="full_name" isInvalid={!!errors.fullName}>
+            <FormLabel htmlFor="fullName" srOnly>
               Full Name
             </FormLabel>
             <Input
-              id="full_name"
+              id="fullName"
               minLength={3}
-              {...register("full_name", { required: "Full Name is required" })}
+              {...register("fullName", { required: "Full Name is required" })}
               placeholder="Full Name"
               type="text"
             />
-            {errors.full_name && (
-              <FormErrorMessage>{errors.full_name.message}</FormErrorMessage>
+            {errors.fullName && (
+              <FormErrorMessage>{errors.fullName.message}</FormErrorMessage>
             )}
           </FormControl>
           <FormControl id="email" isInvalid={!!errors.email}>

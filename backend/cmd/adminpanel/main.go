@@ -30,12 +30,17 @@ func main() {
 	r.POST("/api/v1/login/access-token", routes.LoginHandler)
 
 	//Users
-	r.POST("/api/v1/users/", routes.CreateUser)
+	r.POST("/api/v1/users/signup", routes.CreateUser)
 
+	//Protecting routes with JWT middleware
 	r.Use(routes.AuthMiddleware())
 	r.GET("/api/v1/users/me", routes.ReadUserMe)
 	r.GET("/api/v1/users/", routes.ReadAllUsers)
+	r.POST("/api/v1/users/", routes.CreateUser)
 
+	r.DELETE("/api/v1/users/:id", routes.DeleteUser)
+
+	// Run the server
 	if err := r.Run(port); err != nil {
 		fmt.Println("Failed to run server", err)
 		os.Exit(1)
