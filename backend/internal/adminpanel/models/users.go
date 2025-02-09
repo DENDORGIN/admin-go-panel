@@ -49,6 +49,11 @@ type UpdateUser struct {
 	Email    string `json:"email,omitempty"`
 }
 
+type UpdatePassword struct {
+	CurrentPassword string `json:"currentPassword"`
+	NewPassword     string `json:"newPassword"`
+}
+
 // BeforeCreate - хук для автоматичної генерації UUID перед створенням запису
 func (user *User) BeforeCreate(*gorm.DB) error {
 	user.ID = uuid.New()
@@ -149,6 +154,36 @@ func UpdateUserById(id uuid.UUID, updateUser *UpdateUser) (*UserResponse, error)
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
 	}, nil
+}
+
+func UpdateCurrentUserPassword(id uuid.UUID, password *UpdatePassword) (string, error) {
+	user, err := GetUserById(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", errors.New("user not found")
+		}
+		return "", err
+	}
+
+	if !utils.ComparePasswords(password.CurrentPassword, user.Password) {
+		return "", errors.New("current password is incorrect")
+	}
+	if password.CurrentPassword == password.NewPassword {
+		return "", errors.New("new password cannot be the same as the current one")
+	}
+
+	hashedPassword, err := utils.HashPassword(password.NewPassword)
+	if err != nil {
+		return "", err
+	}
+
+	user.Password = hashedPassword
+
+	if err = db.Save(&user).Error; err != nil {
+		return "", err
+	}
+
+	return "update password successfully", nil
 }
 
 func DeleteUserById(id string) error {

@@ -61,34 +61,34 @@ const ChangePassword = () => {
           as="form"
           onSubmit={handleSubmit(onSubmit)}
         >
-          <FormControl isRequired isInvalid={!!errors.current_password}>
-            <FormLabel color={color} htmlFor="current_password">
+          <FormControl isRequired isInvalid={!!errors.currentPassword}>
+            <FormLabel color={color} htmlFor="currentPassword">
               Current Password
             </FormLabel>
             <Input
               id="current_password"
-              {...register("current_password")}
+              {...register("currentPassword")}
               placeholder="Password"
               type="password"
               w="auto"
             />
-            {errors.current_password && (
+            {errors.currentPassword && (
               <FormErrorMessage>
-                {errors.current_password.message}
+                {errors.currentPassword.message}
               </FormErrorMessage>
             )}
           </FormControl>
-          <FormControl mt={4} isRequired isInvalid={!!errors.new_password}>
+          <FormControl mt={4} isRequired isInvalid={!!errors.newPassword}>
             <FormLabel htmlFor="password">Set Password</FormLabel>
             <Input
               id="password"
-              {...register("new_password", passwordRules())}
+              {...register("newPassword", passwordRules())}
               placeholder="Password"
               type="password"
               w="auto"
             />
-            {errors.new_password && (
-              <FormErrorMessage>{errors.new_password.message}</FormErrorMessage>
+            {errors.newPassword && (
+              <FormErrorMessage>{errors.newPassword.message}</FormErrorMessage>
             )}
           </FormControl>
           <FormControl mt={4} isRequired isInvalid={!!errors.confirm_password}>

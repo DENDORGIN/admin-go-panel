@@ -43,7 +43,7 @@ function ResetPassword() {
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
-      new_password: "",
+      newPassword: "",
     },
   })
   const showToast = useCustomToast()
@@ -53,7 +53,7 @@ function ResetPassword() {
     const token = new URLSearchParams(window.location.search).get("token")
     if (!token) return
     await LoginService.resetPassword({
-      requestBody: { new_password: data.new_password, token: token },
+      requestBody: { newPassword: data.newPassword, token: token },
     })
   }
 
@@ -90,16 +90,16 @@ function ResetPassword() {
       <Text textAlign="center">
         Please enter your new password and confirm it to reset your password.
       </Text>
-      <FormControl mt={4} isInvalid={!!errors.new_password}>
+      <FormControl mt={4} isInvalid={!!errors.newPassword}>
         <FormLabel htmlFor="password">Set Password</FormLabel>
         <Input
           id="password"
-          {...register("new_password", passwordRules())}
+          {...register("newPassword", passwordRules())}
           placeholder="Password"
           type="password"
         />
-        {errors.new_password && (
-          <FormErrorMessage>{errors.new_password.message}</FormErrorMessage>
+        {errors.newPassword && (
+          <FormErrorMessage>{errors.newPassword.message}</FormErrorMessage>
         )}
       </FormControl>
       <FormControl mt={4} isInvalid={!!errors.confirm_password}>

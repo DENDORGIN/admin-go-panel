@@ -94,7 +94,7 @@ export type Message = {
 
 export type NewPassword = {
   token: string
-  new_password: string
+  newPassword: string
 }
 
 export type Token = {
@@ -103,8 +103,8 @@ export type Token = {
 }
 
 export type UpdatePassword = {
-  current_password: string
-  new_password: string
+  currentPassword: string
+  newPassword: string
 }
 
 export type UserCreate = {
