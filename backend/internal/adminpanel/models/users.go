@@ -4,6 +4,7 @@ import (
 	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/services/utils"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"log"
@@ -30,6 +31,11 @@ type UserResponse struct {
 	Email       string    `json:"email"`
 	IsActive    bool      `json:"isActive"`
 	IsSuperUser bool      `json:"isSuperUser"`
+}
+
+type AllUsers struct {
+	Data  []*UserResponse `json:"data"`
+	Count int             `json:"count"`
 }
 
 type LoginRequest struct {
@@ -79,6 +85,14 @@ func CreateUser(user *User) (*UserResponse, error) {
 	}, err
 }
 
+func GetAllUsers(ctx *gin.Context, limit int, skip int) ([]*User, error) {
+	var users []*User
+	if err := db.Limit(limit).Offset(skip).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
 func GetUserById(id uuid.UUID) (*User, error) {
 	var user User
 	result := db.Where("id = ?", id).First(&user)
@@ -101,4 +115,27 @@ func GetUserByEmail(email string) (*User, error) {
 		return nil, gorm.ErrRecordNotFound
 	}
 	return &user, nil
+}
+
+func GetCurrentUserIsSuperUser(email string) (bool, error) {
+	user, err := GetUserByEmail(email)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return user.IsSuperUser, nil
+}
+
+func TransformUsers(users []*User) []*UserResponse {
+	var userResponses []*UserResponse
+	for _, user := range users {
+		userResponse := &UserResponse{
+			ID:          user.ID,
+			FullName:    user.FullName,
+			Email:       user.Email,
+			IsActive:    user.IsActive,
+			IsSuperUser: user.IsSuperUser,
+		}
+		userResponses = append(userResponses, userResponse)
+	}
+	return userResponses
 }

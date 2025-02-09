@@ -41,7 +41,7 @@ const UserInformation = () => {
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
-      full_name: currentUser?.full_name,
+      fullName: currentUser?.fullName,
       email: currentUser?.email,
     },
   })
@@ -91,7 +91,7 @@ const UserInformation = () => {
             {editMode ? (
               <Input
                 id="name"
-                {...register("full_name", { maxLength: 30 })}
+                {...register("fullName", { maxLength: 30 })}
                 type="text"
                 size="md"
                 w="auto"
@@ -100,11 +100,11 @@ const UserInformation = () => {
               <Text
                 size="md"
                 py={2}
-                color={!currentUser?.full_name ? "ui.dim" : "inherit"}
+                color={!currentUser?.fullName ? "ui.dim" : "inherit"}
                 isTruncated
                 maxWidth="250px"
               >
-                {currentUser?.full_name || "N/A"}
+                {currentUser?.fullName || "N/A"}
               </Text>
             )}
           </FormControl>

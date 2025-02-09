@@ -34,6 +34,7 @@ func main() {
 
 	r.Use(routes.AuthMiddleware())
 	r.GET("/api/v1/users/me", routes.ReadUserMe)
+	r.GET("/api/v1/users/", routes.ReadAllUsers)
 
 	if err := r.Run(port); err != nil {
 		fmt.Println("Failed to run server", err)

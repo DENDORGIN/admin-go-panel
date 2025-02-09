@@ -109,7 +109,7 @@ const EditUser = ({ user, isOpen, onClose }: EditUserProps) => {
             </FormControl>
             <FormControl mt={4}>
               <FormLabel htmlFor="name">Full name</FormLabel>
-              <Input id="name" {...register("full_name")} type="text" />
+              <Input id="name" {...register("fullName")} type="text" />
             </FormControl>
             <FormControl mt={4} isInvalid={!!errors.password}>
               <FormLabel htmlFor="password">Set Password</FormLabel>
@@ -148,12 +148,12 @@ const EditUser = ({ user, isOpen, onClose }: EditUserProps) => {
             </FormControl>
             <Flex>
               <FormControl mt={4}>
-                <Checkbox {...register("is_superuser")} colorScheme="teal">
+                <Checkbox {...register("isSuperUser")} colorScheme="teal">
                   Is superuser?
                 </Checkbox>
               </FormControl>
               <FormControl mt={4}>
-                <Checkbox {...register("is_active")} colorScheme="teal">
+                <Checkbox {...register("isActive")} colorScheme="teal">
                   Is active?
                 </Checkbox>
               </FormControl>

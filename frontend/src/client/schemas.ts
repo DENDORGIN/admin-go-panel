@@ -224,15 +224,15 @@ export const $UserCreate = {
       format: "email",
       maxLength: 255,
     },
-    is_active: {
+    isActive: {
       type: "boolean",
       default: true,
     },
-    is_superuser: {
+    isSuperUser: {
       type: "boolean",
       default: false,
     },
-    full_name: {
+    fullName: {
       type: "any-of",
       contains: [
         {
@@ -261,15 +261,15 @@ export const $UserPublic = {
       format: "email",
       maxLength: 255,
     },
-    is_active: {
+    isActive: {
       type: "boolean",
       default: true,
     },
-    is_superuser: {
+    isSuperUser: {
       type: "boolean",
       default: false,
     },
-    full_name: {
+    fullName: {
       type: "any-of",
       contains: [
         {
@@ -303,7 +303,7 @@ export const $UserRegister = {
       maxLength: 40,
       minLength: 8,
     },
-    full_name: {
+    fullName: {
       type: "any-of",
       contains: [
         {
@@ -333,15 +333,15 @@ export const $UserUpdate = {
         },
       ],
     },
-    is_active: {
+    isActive: {
       type: "boolean",
       default: true,
     },
-    is_superuser: {
+    isSuperUser: {
       type: "boolean",
       default: false,
     },
-    full_name: {
+    fullName: {
       type: "any-of",
       contains: [
         {
@@ -371,7 +371,7 @@ export const $UserUpdate = {
 
 export const $UserUpdateMe = {
   properties: {
-    full_name: {
+    fullName: {
       type: "any-of",
       contains: [
         {

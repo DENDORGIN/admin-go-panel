@@ -99,11 +99,11 @@ function UsersTable() {
               {users?.data.map((user) => (
                 <Tr key={user.id}>
                   <Td
-                    color={!user.full_name ? "ui.dim" : "inherit"}
+                    color={!user.fullName ? "ui.dim" : "inherit"}
                     isTruncated
                     maxWidth="150px"
                   >
-                    {user.full_name || "N/A"}
+                    {user.fullName || "N/A"}
                     {currentUser?.id === user.id && (
                       <Badge ml="1" colorScheme="teal">
                         You
@@ -113,17 +113,17 @@ function UsersTable() {
                   <Td isTruncated maxWidth="150px">
                     {user.email}
                   </Td>
-                  <Td>{user.is_superuser ? "Superuser" : "User"}</Td>
+                  <Td>{user.isSuperUser ? "Superuser" : "User"}</Td>
                   <Td>
                     <Flex gap={2}>
                       <Box
                         w="2"
                         h="2"
                         borderRadius="50%"
-                        bg={user.is_active ? "ui.success" : "ui.danger"}
+                        bg={user.isActive ? "ui.success" : "ui.danger"}
                         alignSelf="center"
                       />
-                      {user.is_active ? "Active" : "Inactive"}
+                      {user.isActive ? "Active" : "Inactive"}
                     </Flex>
                   </Td>
                   <Td>

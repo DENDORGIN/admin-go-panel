@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func LoginHandler(ctx *gin.Context) {
@@ -78,4 +79,31 @@ func ReadUserMe(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, user)
+}
+
+func ReadAllUsers(ctx *gin.Context) {
+	limitParam := ctx.DefaultQuery("limit", "100")
+	skipParam := ctx.DefaultQuery("skip", "0")
+
+	limit, err := strconv.Atoi(limitParam)
+	if err != nil || limit < 0 {
+		limit = 100
+	}
+
+	skip, err := strconv.Atoi(skipParam)
+	if err != nil || skip < 0 {
+		skip = 0
+	}
+
+	users, err := models.GetAllUsers(ctx, limit, skip)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	userResponses := models.TransformUsers(users)
+	response := models.AllUsers{
+		Data:  userResponses,
+		Count: len(userResponses),
+	}
+	ctx.JSON(http.StatusOK, response)
 }
