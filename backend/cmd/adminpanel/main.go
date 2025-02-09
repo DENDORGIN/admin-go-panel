@@ -37,6 +37,7 @@ func main() {
 	r.GET("/api/v1/users/me", routes.ReadUserMe)
 	r.GET("/api/v1/users/", routes.ReadAllUsers)
 	r.POST("/api/v1/users/", routes.CreateUser)
+	r.PATCH("/api/v1/users/me", routes.UpdateCurrentUser)
 
 	r.DELETE("/api/v1/users/:id", routes.DeleteUser)
 

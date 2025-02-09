@@ -44,6 +44,11 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
+type UpdateUser struct {
+	FullName string `json:"fullName,omitempty"`
+	Email    string `json:"email,omitempty"`
+}
+
 // BeforeCreate - хук для автоматичної генерації UUID перед створенням запису
 func (user *User) BeforeCreate(*gorm.DB) error {
 	user.ID = uuid.New()
@@ -118,6 +123,45 @@ func GetUserByEmail(email string) (*User, error) {
 	return &user, nil
 }
 
+func UpdateUserById(id uuid.UUID, updateUser *UpdateUser) (*UserResponse, error) {
+	user, err := GetUserById(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+
+	if updateUser.FullName != "" {
+		user.FullName = updateUser.FullName
+	}
+	if updateUser.Email != "" {
+		user.Email = updateUser.Email
+	}
+
+	if err = db.Save(&user).Error; err != nil {
+		return nil, err
+	}
+	return &UserResponse{
+		ID:          user.ID,
+		FullName:    user.FullName,
+		Email:       user.Email,
+		IsActive:    user.IsActive,
+		IsSuperUser: user.IsSuperUser,
+	}, nil
+}
+
+func DeleteUserById(id string) error {
+	result := db.Where("id = ?", id).Delete(&User{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New("user not found")
+	}
+	return nil
+}
+
 func GetCurrentUserIsSuperUser(email string) (bool, error) {
 	user, err := GetUserByEmail(email)
 	if err != nil {
@@ -139,15 +183,4 @@ func TransformUsers(users []*User) []*UserResponse {
 		userResponses = append(userResponses, userResponse)
 	}
 	return userResponses
-}
-
-func DeleteUserById(id string) error {
-	result := db.Where("id = ?", id).Delete(&User{})
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return errors.New("user not found")
-	}
-	return nil
 }

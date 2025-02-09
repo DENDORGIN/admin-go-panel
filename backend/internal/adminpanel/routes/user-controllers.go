@@ -108,6 +108,41 @@ func ReadAllUsers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+func UpdateCurrentUser(ctx *gin.Context) {
+	// Отримуємо ID користувача з контексту
+	idValue, exists := ctx.Get("id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	id, ok := idValue.(uuid.UUID)
+	if !ok {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	// Отримуємо дані для оновлення з тіла запиту
+	var updateUser models.UpdateUser
+	if err := ctx.ShouldBindJSON(&updateUser); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Оновлюємо дані користувача
+	updatedUser, err := models.UpdateUserById(id, &updateUser)
+	if err != nil {
+		if err.Error() == "user not found" {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, updatedUser)
+}
+
 func DeleteUser(ctx *gin.Context) {
 	id := ctx.Param("id")
 
