@@ -5,10 +5,18 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"net/http"
 	"os"
 	"strings"
 )
+
+func init() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		_ = fmt.Errorf("error loading .env file: %v", err)
+	}
+}
 
 func main() {
 
@@ -28,6 +36,9 @@ func main() {
 
 	//Auth
 	r.POST("/api/v1/login/access-token", routes.LoginHandler)
+
+	// Password recovery
+	r.POST("/api/v1/password-recovery/", routes.RequestPasswordReset)
 
 	//Users
 	r.POST("/api/v1/users/signup", routes.CreateUser)

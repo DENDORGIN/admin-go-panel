@@ -14,9 +14,9 @@ var (
 
 func Connect() error {
 	// Завантаження .env файлу
-	err := godotenv.Load("../../.env")
+	err := godotenv.Load(".env")
 	if err != nil {
-		return fmt.Errorf("error loading .env file: %v", err)
+		return fmt.Errorf("error loading .env file database: %v", err)
 	}
 
 	// Логування для перевірки змінних середовища

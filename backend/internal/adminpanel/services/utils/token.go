@@ -42,3 +42,21 @@ func ParseJWTToken(tokenString string) (*Claims, error) {
 	}
 	return nil, errors.New("invalid token")
 }
+
+type ResetClaims struct {
+	Email string `json:"email"`
+	jwt.RegisteredClaims
+}
+
+func GenerateResetToken(email string) (string, error) {
+	claims := &ResetClaims{
+		Email: email,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)), // Токен дійсний 1 годину
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtSecret)
+}
