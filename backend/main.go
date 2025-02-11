@@ -38,7 +38,8 @@ func main() {
 	r.POST("/api/v1/login/access-token", routes.LoginHandler)
 
 	// Password recovery
-	r.POST("/api/v1/password-recovery/", routes.RequestPasswordReset)
+	r.POST("/api/v1/password-recovery/:email", routes.RequestPasswordRecover)
+	r.POST("/api/v1/reset-password/", routes.ResetPassword)
 
 	//Users
 	r.POST("/api/v1/users/signup", routes.CreateUser)
@@ -49,7 +50,7 @@ func main() {
 	r.GET("/api/v1/users/", routes.ReadAllUsers)
 	r.POST("/api/v1/users/", routes.CreateUser)
 	r.PATCH("/api/v1/users/me", routes.UpdateCurrentUser)
-	r.PATCH("/api/v1/users/me/password", routes.UpdatePasswordCurrentUser)
+	r.PATCH("/api/v1/users/me/password/", routes.UpdatePasswordCurrentUser)
 
 	r.DELETE("/api/v1/users/:id", routes.DeleteUser)
 

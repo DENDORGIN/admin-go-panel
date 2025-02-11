@@ -186,6 +186,29 @@ func UpdateCurrentUserPassword(id uuid.UUID, password *UpdatePassword) (string, 
 	return "update password successfully", nil
 }
 
+func ResetCurrentUserPassword(email string, password string) (string, error) {
+	user, err := GetUserByEmail(email)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", errors.New("user not found")
+		}
+		return "", err
+	}
+
+	hashedPassword, err := utils.HashPassword(password)
+	if err != nil {
+		return "", err
+	}
+
+	user.Password = hashedPassword
+
+	if err = db.Save(&user).Error; err != nil {
+		return "", err
+	}
+
+	return "update password successfully", nil
+}
+
 func DeleteUserById(id string) error {
 	result := db.Where("id = ?", id).Delete(&User{})
 	if result.Error != nil {

@@ -7,20 +7,16 @@ import (
 	"net/http"
 )
 
-type PasswordResetRequest struct {
-	Email string `json:"email" binding:"required,email"`
+type ResetPasswordRequest struct {
+	Token       string `json:"token"`
+	NewPassword string `json:"newPassword"`
 }
 
-func RequestPasswordReset(ctx *gin.Context) {
-	var req PasswordResetRequest
-
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
-		return
-	}
+func RequestPasswordRecover(ctx *gin.Context) {
+	email := ctx.Param("email")
 
 	// Перевірка чи існує користувач з таким email
-	user, err := models.GetUserByEmail(req.Email)
+	user, err := models.GetUserByEmail(email)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
@@ -40,4 +36,35 @@ func RequestPasswordReset(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Password reset email sent successfully"})
+}
+
+func ResetPassword(ctx *gin.Context) {
+	var req ResetPasswordRequest
+
+	// Отримуємо токен і новий пароль із тіла запиту
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	if req.Token == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Token is required"})
+		return
+	}
+
+	// Перевірка токена
+	claims, err := utils.VerifyResetToken(req.Token)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Зміна пароля
+	_, err = models.ResetCurrentUserPassword(claims.Email, req.NewPassword)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
 }

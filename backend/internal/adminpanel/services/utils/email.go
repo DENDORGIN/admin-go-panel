@@ -54,7 +54,7 @@ func SendEmail(to string, subject string, body string, isHTML bool) error {
 }
 
 func SendPasswordResetEmail(to string, resetToken string) error {
-	resetLink := fmt.Sprintf("https://yourfrontend.com/reset-password?token=%s", resetToken)
+	resetLink := fmt.Sprintf("http://localhost:5173/reset-password?token=%s", resetToken)
 
 	htmlBody := fmt.Sprintf(`
 		<h2>Password Reset Request</h2>
