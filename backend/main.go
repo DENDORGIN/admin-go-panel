@@ -1,6 +1,7 @@
 package main
 
 import (
+	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/routes"
 	"fmt"
 	"github.com/gin-contrib/cors"
@@ -19,6 +20,8 @@ func init() {
 }
 
 func main() {
+
+	models.InitDB()
 
 	port := os.Getenv("APP_RUN_PORT")
 	fmt.Println(port)
@@ -53,6 +56,9 @@ func main() {
 	r.PATCH("/api/v1/users/me/password/", routes.UpdatePasswordCurrentUser)
 
 	r.DELETE("/api/v1/users/:id", routes.DeleteUser)
+
+	// Calendar
+	r.POST("/api/v1/calendar/events", routes.CreateEventHandler)
 
 	// Run the server
 	if err := r.Run(port); err != nil {

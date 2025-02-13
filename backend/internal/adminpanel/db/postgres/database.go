@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	db *gorm.DB
+	DB *gorm.DB
 )
 
 func Connect() error {
@@ -51,15 +51,15 @@ func Connect() error {
 		return fmt.Errorf("database ping failed: %v", err)
 	}
 
-	db = d
+	DB = d
 	fmt.Println("Database connected successfully")
 	return nil
 }
 
 // GetDB повертає підключення до бази даних
 func GetDB() *gorm.DB {
-	if db == nil {
+	if DB == nil {
 		fmt.Println("Database is not connected. Call Connect() first.")
 	}
-	return db
+	return DB
 }

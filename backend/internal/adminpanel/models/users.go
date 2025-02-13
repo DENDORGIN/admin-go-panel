@@ -12,8 +12,6 @@ import (
 	"time"
 )
 
-var db *gorm.DB
-
 // User - модель користувача з UUID як primary key
 type User struct {
 	ID          uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
@@ -32,6 +30,8 @@ type UserResponse struct {
 	Email       string    `json:"email"`
 	IsActive    bool      `json:"isActive"`
 	IsSuperUser bool      `json:"isSuperUser"`
+
+	Calendar []Calendar `gorm:"foreignKey:UserID" json:"calendars"`
 }
 
 type AllUsers struct {
@@ -60,23 +60,8 @@ func (user *User) BeforeCreate(*gorm.DB) error {
 	return nil
 }
 
-func init() {
-	var err error
-	err = postgres.Connect()
-	if err != nil {
-		log.Fatalf("Failed to connect to the database: %v", err)
-	}
-
-	log.Println("Successfully connected to the database")
-	db = postgres.GetDB()
-	err = db.AutoMigrate(&User{})
-	if err != nil {
-		log.Fatalf("Failed to migrate: %v", err)
-	}
-}
-
 func CreateUser(user *User) (*UserResponse, error) {
-	if db == nil {
+	if postgres.DB == nil {
 		return nil, fmt.Errorf("database connection is not initialized")
 	}
 	hashedPassword, err := utils.HashPassword(user.Password)
@@ -84,7 +69,7 @@ func CreateUser(user *User) (*UserResponse, error) {
 		return nil, err
 	}
 	user.Password = hashedPassword
-	if err = db.Create(user).Error; err != nil {
+	if err = postgres.DB.Create(user).Error; err != nil {
 		return nil, err
 	}
 	return &UserResponse{
@@ -98,7 +83,7 @@ func CreateUser(user *User) (*UserResponse, error) {
 
 func GetAllUsers(ctx *gin.Context, limit int, skip int) ([]*User, error) {
 	var users []*User
-	if err := db.Limit(limit).Offset(skip).Find(&users).Error; err != nil {
+	if err := postgres.DB.Limit(limit).Offset(skip).Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
@@ -106,7 +91,7 @@ func GetAllUsers(ctx *gin.Context, limit int, skip int) ([]*User, error) {
 
 func GetUserById(id uuid.UUID) (*User, error) {
 	var user User
-	result := db.Where("id = ?", id).First(&user)
+	result := postgres.DB.Where("id = ?", id).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -118,7 +103,7 @@ func GetUserById(id uuid.UUID) (*User, error) {
 
 func GetUserByEmail(email string) (*User, error) {
 	var user User
-	result := db.Where("email = ?", email).First(&user)
+	result := postgres.DB.Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -144,7 +129,7 @@ func UpdateUserById(id uuid.UUID, updateUser *UpdateUser) (*UserResponse, error)
 		user.Email = updateUser.Email
 	}
 
-	if err = db.Save(&user).Error; err != nil {
+	if err = postgres.DB.Save(&user).Error; err != nil {
 		return nil, err
 	}
 	return &UserResponse{
@@ -179,7 +164,7 @@ func UpdateCurrentUserPassword(id uuid.UUID, password *UpdatePassword) (string, 
 
 	user.Password = hashedPassword
 
-	if err = db.Save(&user).Error; err != nil {
+	if err = postgres.DB.Save(&user).Error; err != nil {
 		return "", err
 	}
 
@@ -202,7 +187,7 @@ func ResetCurrentUserPassword(email string, password string) (string, error) {
 
 	user.Password = hashedPassword
 
-	if err = db.Save(&user).Error; err != nil {
+	if err = postgres.DB.Save(&user).Error; err != nil {
 		return "", err
 	}
 
@@ -210,7 +195,7 @@ func ResetCurrentUserPassword(email string, password string) (string, error) {
 }
 
 func DeleteUserById(id string) error {
-	result := db.Where("id = ?", id).Delete(&User{})
+	result := postgres.DB.Where("id = ?", id).Delete(&User{})
 	if result.Error != nil {
 		return result.Error
 	}
