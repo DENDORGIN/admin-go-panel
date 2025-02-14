@@ -9,11 +9,13 @@ import { CalendarEventsService } from "../../client"
 import type { CalendarEventCreate, CalendarEventPublic } from "../../client"
 import AddEventModal from "./AddEventModal"
 import "./Calendar.css"
+import useCustomToast from "../../hooks/useCustomToast";
 
 const Calendar = () => {
   const [events, setEvents] = useState<CalendarEventPublic[]>([])
   const [selectedDate, setSelectedDate] = useState(null)
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const showToast = useCustomToast()
 
   // Fetching events from API
   const { data: fetchedEvents, isLoading, refetch } = useQuery<CalendarEventPublic[]>({
@@ -67,6 +69,7 @@ const Calendar = () => {
         prevEvents.filter((event) => event.ID !== eventId),
       )
       CalendarEventsService.deleteCalendarEvent(eventId).then(() => refetch())
+      showToast("Deleted!", "Event deleted successfully.", "success")
     }
   }
 

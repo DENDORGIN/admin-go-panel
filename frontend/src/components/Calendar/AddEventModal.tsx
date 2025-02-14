@@ -13,6 +13,7 @@ import {
   Select,
 } from "@chakra-ui/react"
 import { type SubmitHandler, useForm } from "react-hook-form"
+import useCustomToast from "../../hooks/useCustomToast";
 
 interface AddEventModalProps {
   isOpen: boolean
@@ -34,11 +35,13 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
 }) => {
   const { register, handleSubmit, reset } = useForm<EventFormValues>()
 
+  const showToast = useCustomToast()
+
   const onSubmit: SubmitHandler<EventFormValues> = (data) => {
     if (selectedDate) {
       const formatDateTime = (dateStr: string) => {
         const date = new Date(dateStr)
-        return date.toISOString() // Перетворює у формат "YYYY-MM-DDTHH:mm:ssZ"
+        return date.toISOString()
       }
 
       const newEvent = {
@@ -50,6 +53,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
       }
 
       onAddEvent(newEvent)
+      showToast("Create!", "Event created successfully.", "success")
       reset()
     }
   }
