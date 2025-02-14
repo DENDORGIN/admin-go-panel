@@ -155,17 +155,17 @@ export type ValidationError = {
 
 export type CalendarEventCreate = {
   title: string
-  start: string
-  end: string
+  startDate: string
+  endDate: string
   allDay: boolean
   color?: string | null
 }
 
 export type CalendarEventPublic = {
-  id: string
+  ID: string
   title: string
-  start: string
-  end: string
+  startDate: string
+  endDate: string
   allDay: boolean
   color?: string | null
   user_id: string

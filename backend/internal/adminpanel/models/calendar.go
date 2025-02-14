@@ -24,17 +24,17 @@ func (c *Calendar) BeforeCreate(*gorm.DB) error {
 	return nil
 }
 
-type CalendarEventCreate struct {
+type CalendarEvent struct {
 	ID        uuid.UUID
 	Title     string    `json:"title"`
 	StartDate time.Time `json:"startDate"`
 	EndDate   time.Time `json:"endDate"`
 	AllDay    bool      `json:"allDay"`
 	Color     string    `json:"color"`
-	UserID    uuid.UUID `json:"user"`
+	UserID    uuid.UUID `json:"user_id"`
 }
 
-func CreateEvent(c *Calendar) (*CalendarEventCreate, error) {
+func CreateEvent(c *Calendar) (*CalendarEvent, error) {
 	if c.Title == "" {
 		return nil, errors.New("the event name cannot be empty")
 	}
@@ -48,7 +48,7 @@ func CreateEvent(c *Calendar) (*CalendarEventCreate, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &CalendarEventCreate{
+	return &CalendarEvent{
 		ID:        c.ID,
 		Title:     c.Title,
 		StartDate: c.StartDate,
@@ -58,4 +58,31 @@ func CreateEvent(c *Calendar) (*CalendarEventCreate, error) {
 		UserID:    c.UserID,
 	}, nil
 
+}
+
+func GetAllEvents(userId uuid.UUID) ([]CalendarEvent, error) {
+	var events []Calendar
+	var response []CalendarEvent
+
+	err := postgres.DB.Where("user_id =?", userId).Find(&events).Error
+	if err != nil {
+		return nil, err
+	}
+
+	if len(events) == 0 {
+		return []CalendarEvent{}, nil
+	}
+
+	for _, event := range events {
+		response = append(response, CalendarEvent{
+			ID:        event.ID,
+			Title:     event.Title,
+			StartDate: event.StartDate,
+			EndDate:   event.EndDate,
+			AllDay:    event.AllDay,
+			Color:     event.Color,
+			UserID:    event.UserID,
+		})
+	}
+	return response, nil
 }

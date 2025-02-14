@@ -58,6 +58,7 @@ func main() {
 	r.DELETE("/api/v1/users/:id", routes.DeleteUser)
 
 	// Calendar
+	r.GET("/api/v1/calendar/events", routes.GetAllEventsHandler)
 	r.POST("/api/v1/calendar/events", routes.CreateEventHandler)
 
 	// Run the server

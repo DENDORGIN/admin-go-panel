@@ -2,22 +2,15 @@ package routes
 
 import (
 	"backend/internal/adminpanel/models"
+	"backend/internal/adminpanel/services/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"net/http"
 )
 
 func CreateEventHandler(ctx *gin.Context) {
 
-	userIDRaw, exists := ctx.Get("id")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
-		return
-	}
-
-	userID, ok := userIDRaw.(uuid.UUID)
+	userID, ok := utils.GetUserIDFromContext(ctx)
 	if !ok {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
 		return
 	}
 
@@ -36,4 +29,19 @@ func CreateEventHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, newEvent)
+}
+
+func GetAllEventsHandler(ctx *gin.Context) {
+	userID, ok := utils.GetUserIDFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	events, err := models.GetAllEvents(userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, events)
 }

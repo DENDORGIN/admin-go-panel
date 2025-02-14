@@ -36,13 +36,19 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
 
   const onSubmit: SubmitHandler<EventFormValues> = (data) => {
     if (selectedDate) {
+      const formatDateTime = (dateStr: string) => {
+        const date = new Date(dateStr)
+        return date.toISOString() // Перетворює у формат "YYYY-MM-DDTHH:mm:ssZ"
+      }
+
       const newEvent = {
         title: data.title,
-        start: selectedDate.startStr,
-        end: selectedDate.endStr,
+        startDate: formatDateTime(selectedDate.startStr), // Форматуємо дату правильно
+        endDate: formatDateTime(selectedDate.endStr),
         allDay: selectedDate.allDay,
         color: data.color || "#3788d8",
       }
+
       onAddEvent(newEvent)
       reset()
     }

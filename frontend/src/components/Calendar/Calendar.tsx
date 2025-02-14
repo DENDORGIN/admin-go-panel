@@ -25,10 +25,10 @@ const Calendar = () => {
   useEffect(() => {
     if (fetchedEvents) {
       const formattedEvents = fetchedEvents.map((event) => ({
-        id: event.id,
+        id: event.ID,
         title: event.title,
-        start: event.start,
-        end: event.end,
+        start: event.startDate,
+        end: event.endDate,
         allDay: event.allDay,
         color: event.color,
       }))
@@ -63,7 +63,7 @@ const Calendar = () => {
     if (window.confirm(`Delete event '${clickInfo.event.title}'?`)) {
       const eventId = clickInfo.event.id
       setEvents((prevEvents) =>
-        prevEvents.filter((event) => event.id !== eventId),
+        prevEvents.filter((event) => event.ID !== eventId),
       )
       CalendarEventsService.deleteCalendarEvent(eventId)
     }
