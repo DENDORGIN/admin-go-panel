@@ -86,3 +86,35 @@ func GetAllEvents(userId uuid.UUID) ([]CalendarEvent, error) {
 	}
 	return response, nil
 }
+
+func GetEventById(eventId uuid.UUID) (*CalendarEvent, error) {
+	var calendar Calendar
+
+	err := postgres.DB.Where("id =?", eventId).First(&calendar).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("event not found")
+		}
+		return nil, err
+	}
+	return &CalendarEvent{
+		ID:        calendar.ID,
+		Title:     calendar.Title,
+		StartDate: calendar.StartDate,
+		EndDate:   calendar.EndDate,
+		AllDay:    calendar.AllDay,
+		Color:     calendar.Color,
+		UserID:    calendar.UserID,
+	}, nil
+}
+
+func DeleteEventById(eventId uuid.UUID) error {
+	result := postgres.DB.Where("id = ?", eventId).Delete(&Calendar{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New("event not found")
+	}
+	return nil
+}

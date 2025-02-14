@@ -60,6 +60,7 @@ func main() {
 	// Calendar
 	r.GET("/api/v1/calendar/events", routes.GetAllEventsHandler)
 	r.POST("/api/v1/calendar/events", routes.CreateEventHandler)
+	r.DELETE("/api/v1/calendar/events/:id", routes.DeleteEvent)
 
 	// Run the server
 	if err := r.Run(port); err != nil {

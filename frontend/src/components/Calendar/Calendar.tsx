@@ -16,7 +16,7 @@ const Calendar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure()
 
   // Fetching events from API
-  const { data: fetchedEvents, isLoading } = useQuery<CalendarEventPublic[]>({
+  const { data: fetchedEvents, isLoading, refetch } = useQuery<CalendarEventPublic[]>({
     queryKey: ["calendarEvents"],
     queryFn: CalendarEventsService.readCalendarEvents,
   })
@@ -43,6 +43,7 @@ const Calendar = () => {
       CalendarEventsService.createCalendarEvent(newEvent),
     onSuccess: (createdEvent: CalendarEventPublic) => {
       setEvents((prevEvents) => [...prevEvents, createdEvent])
+      refetch().then()
     },
   })
 
@@ -65,7 +66,7 @@ const Calendar = () => {
       setEvents((prevEvents) =>
         prevEvents.filter((event) => event.ID !== eventId),
       )
-      CalendarEventsService.deleteCalendarEvent(eventId)
+      CalendarEventsService.deleteCalendarEvent(eventId).then(() => refetch())
     }
   }
 
