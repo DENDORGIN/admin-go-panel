@@ -98,9 +98,9 @@ function PostTable() {
           ) : (
             <Tbody>
               {posts?.Data.map((post) => (
-                <Tr key={post.id} opacity={isPlaceholderData ? 0.5 : 1}>
+                <Tr key={post.ID} opacity={isPlaceholderData ? 0.5 : 1}>
                   <Td>{post.position}</Td>
-                  <Td>{post.id}</Td>
+                  <Td>{post.ID}</Td>
                   <Td isTruncated maxWidth="150px">
                     {post.title}
                   </Td>

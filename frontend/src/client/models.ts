@@ -62,7 +62,7 @@ export type PostPublic = {
   title: string
   content: string
   status: boolean
-  id: string
+  ID: string
   position: number
   autor_id: string
 }
