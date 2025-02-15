@@ -34,6 +34,11 @@ type BlogPost struct {
 	AuthorID uuid.UUID `json:"author_id"`
 }
 
+type BlogGetAll struct {
+	Data  []*BlogPost
+	Count int
+}
+
 func CreateBlog(b *Blog) (*BlogPost, error) {
 	if b.Title == "" {
 		return nil, errors.New("the event name cannot be empty")
@@ -51,4 +56,28 @@ func CreateBlog(b *Blog) (*BlogPost, error) {
 		Status:   b.Status,
 		AuthorID: b.AuthorID,
 	}, nil
+}
+
+func GetAllBlogs(userId uuid.UUID) (*BlogGetAll, error) {
+	var blogPosts []*Blog
+	response := &BlogGetAll{}
+
+	err := postgres.DB.Where("author_id =?", userId).Order("position ASC").Find(&blogPosts).Error
+	if err != nil {
+		return nil, err
+	}
+
+	for _, blog := range blogPosts {
+		response.Data = append(response.Data, &BlogPost{
+			ID:       blog.ID,
+			Title:    blog.Title,
+			Content:  blog.Content,
+			Position: blog.Position,
+			Status:   blog.Status,
+			AuthorID: blog.AuthorID,
+		})
+	}
+
+	response.Count = len(blogPosts)
+	return response, nil
 }

@@ -60,32 +60,32 @@ export type ItemsPublic = {
 export type PostPublic = {
   images: string | null
   title: string
-  description?: string | null
+  content: string
   status: boolean
   id: string
   position: number
-  owner_id: string
+  autor_id: string
 }
 
 export type PostCreate = {
   position: number
   title: string
-  description?: string | null
+  content?: string | null
   images?: File[]
   status: boolean
 }
 
 export type PostUpdate = {
   title?: string | null
-  description?: string | null
+  content?: string | null
   images?: File[] | null
   position: number
   status: boolean
 }
 
 export type PostsPublic = {
-  data: Array<PostPublic>
-  count: number
+  Data: Array<PostPublic>
+  Count: number
 }
 
 export type Message = {

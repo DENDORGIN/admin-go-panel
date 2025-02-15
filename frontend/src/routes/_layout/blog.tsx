@@ -61,7 +61,7 @@ function PostTable() {
     placeholderData: (prevData) => prevData,
   })
 
-  const hasNextPage = !isPlaceholderData && posts?.data.length === PER_PAGE
+  const hasNextPage = !isPlaceholderData && posts?.Data.length === PER_PAGE
   const hasPreviousPage = page > 1
 
   useEffect(() => {
@@ -79,7 +79,7 @@ function PostTable() {
               <Th>Position</Th>
               <Th>ID</Th>
               <Th>Title</Th>
-              <Th>Description</Th>
+              <Th>Content</Th>
               <Th>Images</Th>
               <Th>Status</Th>
               <Th>Actions</Th>
@@ -97,7 +97,7 @@ function PostTable() {
             </Tbody>
           ) : (
             <Tbody>
-              {posts?.data.map((post) => (
+              {posts?.Data.map((post) => (
                 <Tr key={post.id} opacity={isPlaceholderData ? 0.5 : 1}>
                   <Td>{post.position}</Td>
                   <Td>{post.id}</Td>
@@ -105,11 +105,11 @@ function PostTable() {
                     {post.title}
                   </Td>
                   <Td
-                    color={!post.description ? "ui.dim" : "inherit"}
+                    color={!post.content ? "ui.dim" : "inherit"}
                     isTruncated
                     maxWidth="150px"
                   >
-                    {post.description || "N/A"}
+                    {post.content || "N/A"}
                   </Td>
                   <Td>
                     <ImageGallery

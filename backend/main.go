@@ -66,6 +66,7 @@ func main() {
 
 	// Blogs routes
 	r.POST("/api/v1/blog/", routes.CreateBlogHandler)
+	r.GET("/api/v1/blog/", routes.GetAllBlogsHandler)
 
 	// Run the server
 	if err := r.Run(port); err != nil {
