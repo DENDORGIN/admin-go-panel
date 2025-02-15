@@ -56,19 +56,12 @@ func CreateUser(ctx *gin.Context) {
 }
 
 func ReadUserMe(ctx *gin.Context) {
-	idValue, exists := ctx.Get("id")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
-		return
-	}
-
-	id, ok := idValue.(uuid.UUID)
+	userID, ok := utils.GetUserIDFromContext(ctx)
 	if !ok {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
 		return
 	}
 
-	user, err := models.GetUserById(id)
+	user, err := models.GetUserById(userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -109,28 +102,18 @@ func ReadAllUsers(ctx *gin.Context) {
 }
 
 func UpdateCurrentUser(ctx *gin.Context) {
-	// Отримуємо ID користувача з контексту
-	idValue, exists := ctx.Get("id")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
-		return
-	}
-
-	id, ok := idValue.(uuid.UUID)
+	userID, ok := utils.GetUserIDFromContext(ctx)
 	if !ok {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
 		return
 	}
 
-	// Отримуємо дані для оновлення з тіла запиту
 	var updateUser models.UpdateUser
 	if err := ctx.ShouldBindJSON(&updateUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Оновлюємо дані користувача
-	updatedUser, err := models.UpdateUserById(id, &updateUser)
+	updatedUser, err := models.UpdateUserById(userID, &updateUser)
 	if err != nil {
 		if err.Error() == "user not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -144,24 +127,17 @@ func UpdateCurrentUser(ctx *gin.Context) {
 }
 
 func UpdatePasswordCurrentUser(ctx *gin.Context) {
-	// Отримуємо ID користувача з контексту
-	idValue, exists := ctx.Get("id")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+	userID, ok := utils.GetUserIDFromContext(ctx)
+	if !ok {
 		return
 	}
 
-	id, ok := idValue.(uuid.UUID)
-	if !ok {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
-		return
-	}
 	var updatePassword models.UpdatePassword
 	if err := ctx.ShouldBindJSON(&updatePassword); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	message, err := models.UpdateCurrentUserPassword(id, &updatePassword)
+	message, err := models.UpdateCurrentUserPassword(userID, &updatePassword)
 	if err != nil {
 		if err.Error() == "user not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -176,9 +152,41 @@ func UpdatePasswordCurrentUser(ctx *gin.Context) {
 }
 
 func DeleteUser(ctx *gin.Context) {
-	id := ctx.Param("id")
+	userID, ok := utils.GetUserIDFromContext(ctx)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	userIDRaw := ctx.Param("id")
+	id, err := uuid.Parse(userIDRaw)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
 
-	err := models.DeleteUserById(id)
+	isSuperUser, err := models.GetCurrentUserIsSuperUser(userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	isTargetSuperUser, err := models.GetCurrentUserIsSuperUser(id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if isTargetSuperUser && isSuperUser {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "Cannot delete a superuser"})
+		return
+	}
+
+	if !isSuperUser && id != userID {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "Unauthorized to delete this user"})
+		return
+	}
+
+	err = models.DeleteUserById(id)
 	if err != nil {
 		if err.Error() == "user not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})

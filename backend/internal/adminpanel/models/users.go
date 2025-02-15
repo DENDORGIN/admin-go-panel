@@ -194,7 +194,7 @@ func ResetCurrentUserPassword(email string, password string) (string, error) {
 	return "update password successfully", nil
 }
 
-func DeleteUserById(id string) error {
+func DeleteUserById(id uuid.UUID) error {
 	result := postgres.DB.Where("id = ?", id).Delete(&User{})
 	if result.Error != nil {
 		return result.Error
@@ -205,8 +205,8 @@ func DeleteUserById(id string) error {
 	return nil
 }
 
-func GetCurrentUserIsSuperUser(email string) (bool, error) {
-	user, err := GetUserByEmail(email)
+func GetCurrentUserIsSuperUser(id uuid.UUID) (bool, error) {
+	user, err := GetUserById(id)
 	if err != nil {
 		log.Fatal(err)
 	}
