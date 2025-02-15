@@ -7,6 +7,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -49,12 +50,13 @@ func main() {
 
 	//Protecting routes with JWT middleware
 	r.Use(routes.AuthMiddleware())
+
+	// User routes
 	r.GET("/api/v1/users/me", routes.ReadUserMe)
 	r.GET("/api/v1/users/", routes.ReadAllUsers)
 	r.POST("/api/v1/users/", routes.CreateUser)
 	r.PATCH("/api/v1/users/me", routes.UpdateCurrentUser)
 	r.PATCH("/api/v1/users/me/password/", routes.UpdatePasswordCurrentUser)
-
 	r.DELETE("/api/v1/users/:id", routes.DeleteUser)
 
 	// Calendar
@@ -62,12 +64,15 @@ func main() {
 	r.POST("/api/v1/calendar/events", routes.CreateEventHandler)
 	r.DELETE("/api/v1/calendar/events/:id", routes.DeleteEvent)
 
+	// Blogs routes
+	r.POST("/api/v1/blog/", routes.CreateBlogHandler)
+
 	// Run the server
 	if err := r.Run(port); err != nil {
 		fmt.Println("Failed to run server", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Server started on port %s\n", port)
+	log.Printf("Server started on port %s\n", port)
 
 }
 
