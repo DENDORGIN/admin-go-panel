@@ -72,3 +72,38 @@ func GetBlogByIdHandler(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, blog)
 }
+
+func DeleteBlogByIdHandler(ctx *gin.Context) {
+	userID, ok := utils.GetUserIDFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	id, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
+		return
+	}
+
+	blog, err := models.GetBlogById(id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	isSuperUser, err := models.GetCurrentUserIsSuperUser(userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if blog.AuthorID != userID || !isSuperUser {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
+		return
+	}
+	err = models.DeleteBlogById(id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.Status(http.StatusOK)
+}

@@ -69,6 +69,8 @@ func main() {
 	r.GET("/api/v1/blog/", routes.GetAllBlogsHandler)
 	r.GET("/api/v1/blog/:id", routes.GetBlogByIdHandler)
 
+	r.DELETE("/api/v1/blog/:id", routes.DeleteBlogByIdHandler)
+
 	// Download files
 	r.POST("/api/v1/blog/:postId/images", routes.DownloadMediaHandler)
 

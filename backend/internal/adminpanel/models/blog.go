@@ -144,3 +144,19 @@ func GetBlogById(id uuid.UUID) (*BlogGet, error) {
 		Images:   mediaMap[blog.ID],
 	}, nil
 }
+
+func DeleteBlogById(id uuid.UUID) error {
+	var blog Blog
+	var media Media
+
+	err := postgres.DB.Where("id =?", id).Delete(&blog).Error
+	if err != nil {
+		return err
+	}
+	err = postgres.DB.Where("content_id", id).Delete(&media).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

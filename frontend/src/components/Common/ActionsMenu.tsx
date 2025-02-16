@@ -79,7 +79,8 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
       {/* Модальне вікно для видалення */}
       <Delete
         type={type}
-        id={value.id}
+        // @ts-ignore
+        id={"ID" in value ? value.ID : undefined}
         isOpen={deleteModal.isOpen}
         onClose={deleteModal.onClose}
       />

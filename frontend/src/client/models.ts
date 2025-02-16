@@ -30,7 +30,7 @@ export type ItemPublic = {
   description?: string | null
   description_second?: string | null
   status: boolean
-  id: string
+  ID: string
   position: number
   language: string
   item_url: string
