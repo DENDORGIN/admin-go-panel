@@ -81,7 +81,7 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
 
     setValue(
         "images",
-        [...watch("images"), ...selectedFiles.map((f) => f.file)], // Додаємо нові файли
+        [...(watch("images") || []), ...selectedFiles.map((f) => f.file)],
         { shouldValidate: true }
     );
   };
@@ -103,6 +103,7 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
   const mutation = useMutation({
     mutationFn: async (jsonPayload: PostCreateExtended) => {
       // Створюємо пост
+      // @ts-ignore
       const postResponse = await BlogService.createPost(jsonPayload);
       const postId = postResponse.ID;
 
