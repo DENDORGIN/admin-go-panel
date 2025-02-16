@@ -4,6 +4,7 @@ import (
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"net/http"
 )
 
@@ -44,5 +45,30 @@ func GetAllBlogsHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, blogs)
+}
 
+func GetBlogByIdHandler(ctx *gin.Context) {
+	userID, ok := utils.GetUserIDFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	id, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
+		return
+	}
+
+	blog, err := models.GetBlogById(id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if blog.AuthorID != userID {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, blog)
 }

@@ -67,6 +67,7 @@ func main() {
 	// Blogs routes
 	r.POST("/api/v1/blog/", routes.CreateBlogHandler)
 	r.GET("/api/v1/blog/", routes.GetAllBlogsHandler)
+	r.GET("/api/v1/blog/:id", routes.GetBlogByIdHandler)
 
 	// Download files
 	r.POST("/api/v1/blog/:postId/images", routes.DownloadMediaHandler)

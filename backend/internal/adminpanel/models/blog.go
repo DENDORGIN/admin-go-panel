@@ -114,3 +114,33 @@ func GetAllBlogs(userId uuid.UUID) (*BlogGetAll, error) {
 	response.Count = len(blogs)
 	return response, nil
 }
+
+func GetBlogById(id uuid.UUID) (*BlogGet, error) {
+	var blog Blog
+	var media []*Media
+
+	err := postgres.DB.Where("id =?", id).First(&blog).Error
+	if err != nil {
+		return nil, err
+	}
+
+	err = postgres.DB.Where("content_id =?", id).Find(&media).Error
+	if err != nil {
+		return nil, err
+	}
+
+	mediaMap := make(map[uuid.UUID][]string)
+	for _, m := range media {
+		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
+	}
+
+	return &BlogGet{
+		ID:       blog.ID,
+		Title:    blog.Title,
+		Content:  blog.Content,
+		Position: blog.Position,
+		Status:   blog.Status,
+		AuthorID: blog.AuthorID,
+		Images:   mediaMap[blog.ID],
+	}, nil
+}
