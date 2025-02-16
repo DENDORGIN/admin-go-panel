@@ -614,13 +614,13 @@ export class BlogService {
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
-  public static createPost(data: FormData): CancelablePromise<PostPublic> {
+  public static createPost(data: JSON): CancelablePromise<PostPublic> {
     return __request(OpenAPI, {
       method: "POST",
       url: "/api/v1/blog/",
-      body: data, // Відправлення FormData
+      body: data,
       headers: {
-        "Content-Type": "multipart/form-data", // Видаліть це, якщо браузер повинен встановити це автоматично
+        "Content-Type": "multipart/form-data",
       },
     })
   }

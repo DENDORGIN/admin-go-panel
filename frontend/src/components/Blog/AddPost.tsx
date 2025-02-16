@@ -57,7 +57,7 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
     criteriaMode: "all",
     defaultValues: {
       title: "",
-      description: "",
+      content: "",
       status: false,
     },
   })
@@ -91,7 +91,7 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
   }
 
   const mutation = useMutation({
-    mutationFn: async (formData: FormData) => BlogService.createPost(formData),
+    mutationFn: async (jsonPayload: JSON) => BlogService.createPost(jsonPayload),
     onSuccess: () => {
       showToast("Success!", "Post created successfully.", "success")
       reset()
@@ -106,19 +106,24 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
   })
 
   const onSubmit: SubmitHandler<PostCreate> = async (data) => {
-    const formData = new FormData()
-    formData.append("title", data.title)
-    if (data.description) formData.append("description", data.description)
-    formData.append("status", String(data.status))
-    formData.append("position", String(data.position))
-    const images = watch("images")
-    if (images && images.length > 0) {
-      Array.from(images).forEach((file) => {
-        formData.append("images", file)
-      })
+    const payload = {
+      title: data.title,
+      position: data.position,
+      content: data.content,
+      status: data.status,
     }
-
-    await mutation.mutateAsync(formData)
+    // formData.append("title", data.title)
+    // if (data.content) formData.append("description", data.content)
+    // formData.append("status", String(data.status))
+    // formData.append("position", String(data.position))
+    // const images = watch("images")
+    // if (images && images.length > 0) {
+    //   Array.from(images).forEach((file) => {
+    //     formData.append("images", file)
+    //   })
+    // }
+    const jsonPayload = JSON.parse(JSON.stringify(payload))
+    await mutation.mutateAsync(jsonPayload)
   }
 
   return (
@@ -145,11 +150,11 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
               <FormErrorMessage>{errors.title.message}</FormErrorMessage>
             )}
           </FormControl>
-          <FormControl mt={4} isInvalid={!!errors.description}>
+          <FormControl mt={4} isInvalid={!!errors.content}>
             <FormLabel htmlFor="description">Description</FormLabel>
             <Textarea
               id="description"
-              {...register("description")}
+              {...register("content")}
               placeholder="Description"
             />
           </FormControl>
