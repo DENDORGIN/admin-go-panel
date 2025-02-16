@@ -68,6 +68,9 @@ func main() {
 	r.POST("/api/v1/blog/", routes.CreateBlogHandler)
 	r.GET("/api/v1/blog/", routes.GetAllBlogsHandler)
 
+	// Download files
+	r.POST("/api/v1/blog/:postId/images", routes.DownloadMediaHandler)
+
 	// Run the server
 	if err := r.Run(port); err != nil {
 		fmt.Println("Failed to run server", err)

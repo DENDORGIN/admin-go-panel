@@ -18,7 +18,7 @@ func InitDB() {
 	db := postgres.GetDB()
 
 	// Виконання міграцій для всіх таблиць
-	err = db.AutoMigrate(&User{}, &Calendar{}, &Blog{})
+	err = db.AutoMigrate(&User{}, &Calendar{}, &Blog{}, &Media{})
 	if err != nil {
 		log.Fatalf("Failed to migrate: %v", err)
 	}

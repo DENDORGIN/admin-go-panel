@@ -625,6 +625,18 @@ export class BlogService {
     })
   }
 
+  public static downloadImages(postId: string, data: FormData): CancelablePromise<void> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: `/api/v1/blog/${postId}/images`,
+      body: data,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+  }
+
+
   /**
    * Read Item
    * Get item by ID.

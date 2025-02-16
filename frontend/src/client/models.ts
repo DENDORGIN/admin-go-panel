@@ -67,6 +67,10 @@ export type PostPublic = {
   autor_id: string
 }
 
+export type DownloadImage = {
+  images: File[] | null
+}
+
 export type PostCreate = {
   position: number
   title: string
