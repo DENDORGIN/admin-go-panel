@@ -34,8 +34,18 @@ type BlogPost struct {
 	AuthorID uuid.UUID `json:"author_id"`
 }
 
+type BlogGet struct {
+	ID       uuid.UUID
+	Title    string    `json:"title"`
+	Content  string    `json:"content"`
+	Position int       `json:"position"`
+	Status   bool      `json:"status"`
+	AuthorID uuid.UUID `json:"author_id"`
+	Images   []string  `json:"images"`
+}
+
 type BlogGetAll struct {
-	Data  []*BlogPost
+	Data  []*BlogGet
 	Count int
 }
 
@@ -59,25 +69,48 @@ func CreateBlog(b *Blog) (*BlogPost, error) {
 }
 
 func GetAllBlogs(userId uuid.UUID) (*BlogGetAll, error) {
-	var blogPosts []*Blog
+	var blogs []*Blog
+	var media []*Media
 	response := &BlogGetAll{}
 
-	err := postgres.DB.Where("author_id =?", userId).Order("position ASC").Find(&blogPosts).Error
+	// Отримуємо всі блоги автора
+	err := postgres.DB.Where("author_id = ?", userId).Order("position ASC").Find(&blogs).Error
 	if err != nil {
 		return nil, err
 	}
 
-	for _, blog := range blogPosts {
-		response.Data = append(response.Data, &BlogPost{
+	// Отримуємо всі медіафайли, пов'язані з блогами цього автора
+	var blogIDs []uuid.UUID
+	for _, blog := range blogs {
+		blogIDs = append(blogIDs, blog.ID)
+	}
+
+	if len(blogIDs) > 0 {
+		err = postgres.DB.Where("content_id IN (?)", blogIDs).Find(&media).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Групуємо медіафайли за ID блогу
+	mediaMap := make(map[uuid.UUID][]string)
+	for _, m := range media {
+		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
+	}
+
+	// Формуємо фінальну структуру з блогами та відповідними медіафайлами
+	for _, blog := range blogs {
+		response.Data = append(response.Data, &BlogGet{
 			ID:       blog.ID,
 			Title:    blog.Title,
 			Content:  blog.Content,
 			Position: blog.Position,
 			Status:   blog.Status,
 			AuthorID: blog.AuthorID,
+			Images:   mediaMap[blog.ID],
 		})
 	}
 
-	response.Count = len(blogPosts)
+	response.Count = len(blogs)
 	return response, nil
 }

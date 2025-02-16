@@ -20,21 +20,21 @@ func (c *Media) BeforeCreate(*gorm.DB) error {
 	return nil
 }
 
-type MediaPost struct {
+type MediaPublic struct {
 	ID        uuid.UUID `json:"id"`
 	Url       string    `json:"url"`
 	Type      string    `json:"type"`
 	ContentID uuid.UUID `json:"content_id"`
 }
 
-func DownloadFiles(media *Media) (*MediaPost, error) {
+func DownloadFiles(media *Media) (*MediaPublic, error) {
 	media.ID = uuid.New()
 
 	if err := postgres.DB.Create(&media).Error; err != nil {
 		return nil, err
 	}
 
-	return &MediaPost{
+	return &MediaPublic{
 		ID:        media.ID,
 		Url:       media.Url,
 		Type:      media.Type,
