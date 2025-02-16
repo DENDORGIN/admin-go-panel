@@ -61,7 +61,7 @@ function PostTable() {
     placeholderData: (prevData) => prevData,
   })
 
-  const hasNextPage = !isPlaceholderData && posts?.Data.length === PER_PAGE
+  const hasNextPage = !isPlaceholderData && Array.isArray(posts?.Data) && posts.Data.length === PER_PAGE;
   const hasPreviousPage = page > 1
 
   useEffect(() => {
@@ -96,50 +96,38 @@ function PostTable() {
               </Tr>
             </Tbody>
           ) : (
-            <Tbody>
-              {posts?.Data.map((post) => (
-                <Tr key={post.ID} opacity={isPlaceholderData ? 0.5 : 1}>
-                  <Td>{post.position}</Td>
-                  <Td>{post.ID}</Td>
-                  <Td isTruncated maxWidth="150px">
-                    {post.title}
-                  </Td>
-                  <Td
-                    color={!post.content ? "ui.dim" : "inherit"}
-                    isTruncated
-                    maxWidth="150px"
-                  >
-                    {post.content || "N/A"}
-                  </Td>
-                  <Td>
-                    <ImageGallery
-                      images={
-                        Array.isArray(post.images)
-                          ? post.images
-                          : post.images
-                            ? [post.images]
-                            : []
-                      }
-                      title={post.title}
-                    />
-                  </Td>
-                  <Td>
-                    <Flex gap={2}>
-                      <Box
-                        width="12px"
-                        height="12px"
-                        borderRadius="full"
-                        bg={post.status ? "green.500" : "red.500"}
-                      />
-                      {post.status ? "Active" : "Inactive"}
-                    </Flex>
-                  </Td>
-                  <Td>
-                    <ActionsMenu type={"Post"} value={post} />
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
+              <Tbody>
+                {Array.isArray(posts?.Data) && posts.Data.length > 0 ? (
+                    posts.Data.map((post) => (
+                        <Tr key={post.ID} opacity={isPlaceholderData ? 0.5 : 1}>
+                          <Td>{post.position}</Td>
+                          <Td>{post.ID}</Td>
+                          <Td isTruncated maxWidth="150px">{post.title}</Td>
+                          <Td color={!post.content ? "ui.dim" : "inherit"} isTruncated maxWidth="150px">
+                            {post.content || "N/A"}
+                          </Td>
+                          <Td>
+                            <ImageGallery images={Array.isArray(post.images) ? post.images : post.images ? [post.images] : []} title={post.title} />
+                          </Td>
+                          <Td>
+                            <Flex gap={2}>
+                              <Box width="12px" height="12px" borderRadius="full" bg={post.status ? "green.500" : "red.500"} />
+                              {post.status ? "Active" : "Inactive"}
+                            </Flex>
+                          </Td>
+                          <Td>
+                            <ActionsMenu type={"Post"} value={post} />
+                          </Td>
+                        </Tr>
+                    ))
+                ) : (
+                    <Tr>
+                      <Td colSpan={7} textAlign="center">
+                        No posts available.
+                      </Td>
+                    </Tr>
+                )}
+              </Tbody>
           )}
         </Table>
       </TableContainer>
