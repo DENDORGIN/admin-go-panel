@@ -16,6 +16,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect } from "react"
 import { z } from "zod"
+import DOMPurify from 'dompurify';
 
 import { BlogService } from "../../client"
 import AddPost from "../../components/Blog/AddPost"
@@ -103,8 +104,12 @@ function PostTable() {
                           <Td>{post.position}</Td>
                           <Td>{post.ID}</Td>
                           <Td isTruncated maxWidth="150px">{post.title}</Td>
-                          <Td color={!post.content ? "ui.dim" : "inherit"} isTruncated maxWidth="150px">
-                            {post.content || "N/A"}
+                          <Td
+                              color={!post.content ? "ui.dim" : "inherit"}
+                              isTruncated
+                              maxWidth="150px"
+                          >
+                            <SafeHtmlComponent htmlContent={post.content || 'N/A'} />
                           </Td>
                           <Td>
                             <ImageGallery images={Array.isArray(post.images) ? post.images : post.images ? [post.images] : []} title={post.title} />
@@ -152,4 +157,8 @@ function Post() {
       <PostTable />
     </Container>
   )
+}
+// @ts-ignore
+function SafeHtmlComponent({ htmlContent }) {
+  return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }} />;
 }

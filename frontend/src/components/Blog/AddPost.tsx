@@ -19,9 +19,10 @@ import {
   ModalHeader,
   ModalOverlay,
   Switch,
-  Textarea,
+
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
+import ReactQuill from "react-quill";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type SubmitHandler, useForm } from "react-hook-form";
@@ -171,10 +172,20 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
               />
               {errors.title && <FormErrorMessage>{errors.title.message}</FormErrorMessage>}
             </FormControl>
+
             <FormControl mt={4} isInvalid={!!errors.content}>
-              <FormLabel htmlFor="content">Content</FormLabel>
-              <Textarea id="content" {...register("content")} placeholder="Content" />
-            </FormControl>
+              <FormLabel htmlFor="description">Description</FormLabel>
+              <ReactQuill
+                  theme="snow"
+                  value={watch('content')  || ''}
+                  onChange={(_, __, ___, editor) => {
+                    setValue('content', editor.getHTML()); // Update form state with HTML content
+                  }}
+              />
+              {errors.content && (
+                  <FormErrorMessage>{errors.content.message}</FormErrorMessage>
+              )}
+            </FormControl >
 
             <FormControl mt={4}>
               <FormLabel htmlFor="images">Images</FormLabel>

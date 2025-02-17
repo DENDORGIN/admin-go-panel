@@ -93,7 +93,7 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
   const onSubmit: SubmitHandler<PostUpdate> = async (data) => {
     const formData = new FormData()
     formData.append("title", data.title || "")
-    formData.append("description", data.description || "")
+    formData.append("description", data.content || "")
     formData.append("position", String(data.position))
     formData.append("status", String(data.status))
 
@@ -105,7 +105,7 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
     }
 
     try {
-      await BlogService.updatePost(post.id, formData)
+      await BlogService.updatePost(post.ID, formData)
       showToast("Success!", "Post updated successfully.", "success")
       queryClient.invalidateQueries({ queryKey: ["posts"] })
       onClose()
@@ -144,11 +144,11 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
             )}
           </FormControl>
           <FormControl mt={4}>
-            <FormLabel htmlFor="description">Description</FormLabel>
+            <FormLabel htmlFor="content">Content</FormLabel>
             <Textarea
-              id="description"
-              {...register("description")}
-              placeholder="Description"
+              id="content"
+              {...register("content")}
+              placeholder="Content"
             />
           </FormControl>
 
