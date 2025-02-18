@@ -18,9 +18,8 @@ import {
   ModalHeader,
   ModalOverlay,
   Switch,
-  Textarea,
 } from "@chakra-ui/react"
-import { useQueryClient } from "@tanstack/react-query"
+import {useMutation, useQueryClient} from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
 import { CloseIcon } from "@chakra-ui/icons"
@@ -33,6 +32,7 @@ import {
 } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 import { handleError } from "../../utils"
+import ReactQuill from "react-quill";
 
 interface EditPostProps {
   post: PostPublic
@@ -41,8 +41,13 @@ interface EditPostProps {
 }
 
 interface FileDetail {
-  name: string
-  size: string
+  name: string;
+  size: string;
+  file: File;
+}
+
+interface PostUpdateExtended extends PostUpdate {
+  images?: File[];
 }
 
 const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
@@ -57,67 +62,90 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
     setValue,
     watch,
     formState: { isSubmitting, errors, isDirty },
-  } = useForm<PostUpdate>({
+  } = useForm<PostUpdateExtended>({
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: { ...post, images: undefined },
   })
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(event.target.files || []).map(
-      (file: File) => ({
-        name: file.name,
-        size: `${(file.size / 1024 / 1024).toFixed(2)} MB`, // Convert size to MB
-      }),
-    )
-    setFiles([...files, ...selectedFiles]) // Append new files to the existing array
-    setFiles([...files, ...selectedFiles]) // Append new files to the existing array
-    setValue(
-      "images",
-      event.target.files ? Array.from(event.target.files) : undefined,
-      { shouldValidate: true },
-    )
-  }
+    if (!event.target.files) return;
 
-  const handleFileButtonClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click()
-    }
-  }
+    const selectedFiles = Array.from(event.target.files).map((file) => ({
+      name: file.name,
+      size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+      file,
+    }));
+
+    setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+
+    setValue(
+        "images",
+        [...(watch("images") || []), ...selectedFiles.map((f) => f.file)],
+        { shouldValidate: true }
+    );
+  };
+
 
   const handleRemoveFile = (index: number) => {
     const updatedFiles = files.filter((_, idx) => idx !== index)
     setFiles(updatedFiles)
   }
 
-  const onSubmit: SubmitHandler<PostUpdate> = async (data) => {
-    const formData = new FormData()
-    formData.append("title", data.title || "")
-    formData.append("description", data.content || "")
-    formData.append("position", String(data.position))
-    formData.append("status", String(data.status))
+  const mutation = useMutation({
+    mutationFn: async (jsonPayload: PostUpdateExtended) => {
+      // Створюємо пост
+      // @ts-ignore
+      const postResponse = await BlogService.updatePost(post.ID, jsonPayload);
+      const postId = postResponse.ID;
 
-    const images = watch("images") as FileList | null
-    if (images && images.length > 0) {
-      Array.from(images).forEach((file) => {
-        formData.append("images", file)
-      })
+      // Отримуємо файли
+      const images = jsonPayload.images;
+      if (postId && images && images.length > 0) {
+        const formData = new FormData();
+
+        images.forEach((file) => {
+          formData.append("files", file);
+        });
+
+        console.log("Uploading images:", formData.getAll("images")); // Дебаг
+
+        await BlogService.downloadImages(postId, formData);
+      } else {
+        console.warn("No images to upload.");
+      }
+    },
+    onSuccess: () => {
+      showToast("Success!", "Post created successfully.", "success");
+      reset();
+      onClose();
+    },
+    onError: (err: ApiError) => {
+      handleError(err, showToast);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
+
+  const handleFileButtonClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
     }
+  };
 
-    try {
-      await BlogService.updatePost(post.ID, formData)
-      showToast("Success!", "Post updated successfully.", "success")
-      queryClient.invalidateQueries({ queryKey: ["posts"] })
-      onClose()
-    } catch (err) {
-      handleError(err as ApiError, showToast)
-    }
-  }
+  const onSubmit: SubmitHandler<PostUpdateExtended> = async (data) => {
+    const payload: PostUpdateExtended = {
+      title: data.title,
+      position: data.position,
+      content: data.content,
+      status: data.status,
+      images: files.map((f) => f.file), // Передаємо файли
+    };
 
-  const onCancel = () => {
-    reset({ ...post, images: undefined })
-    onClose()
-  }
+    await mutation.mutateAsync(payload);
+  };
+
 
   return (
     <Modal
@@ -143,14 +171,19 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
               <FormErrorMessage>{errors.title.message}</FormErrorMessage>
             )}
           </FormControl>
-          <FormControl mt={4}>
-            <FormLabel htmlFor="content">Content</FormLabel>
-            <Textarea
-              id="content"
-              {...register("content")}
-              placeholder="Content"
+          <FormControl mt={4} isInvalid={!!errors.content}>
+            <FormLabel htmlFor="description">Description</FormLabel>
+            <ReactQuill
+                theme="snow"
+                value={watch('content')  || ''}
+                onChange={(_, __, ___, editor) => {
+                  setValue('content', editor.getHTML()); // Update form state with HTML content
+                }}
             />
-          </FormControl>
+            {errors.content && (
+                <FormErrorMessage>{errors.content.message}</FormErrorMessage>
+            )}
+          </FormControl >
 
           <FormControl mt={4}>
             <FormLabel htmlFor="images">Images</FormLabel>
@@ -241,7 +274,7 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
           >
             Save
           </Button>
-          <Button onClick={onCancel}>Cancel</Button>
+          <Button onClick={onClose}>Cancel</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

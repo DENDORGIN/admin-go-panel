@@ -665,12 +665,12 @@ export class BlogService {
    */
   public static updatePost(
     id: string,
-    data: FormData,
+    data: JSON,
   ): CancelablePromise<PostPublic> {
     return __request(OpenAPI, {
       method: "PUT",
       url: `/api/v1/blog/${id}`,
-      body: data, // Відправлення FormData
+      body: data,
       errors: {
         422: "Validation Error",
       },

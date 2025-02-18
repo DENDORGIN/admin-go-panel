@@ -44,6 +44,14 @@ type BlogGet struct {
 	Images   []string  `json:"images"`
 }
 
+type BlogUpdate struct {
+	Title    string `json:"title"`
+	Content  string `json:"content"`
+	Position int    `json:"position"`
+	Status   bool   `json:"status"`
+	//Images   []string `json:"images"`
+}
+
 type BlogGetAll struct {
 	Data  []*BlogGet
 	Count int
@@ -143,6 +151,28 @@ func GetBlogById(id uuid.UUID) (*BlogGet, error) {
 		AuthorID: blog.AuthorID,
 		Images:   mediaMap[blog.ID],
 	}, nil
+}
+
+func UpdateBlogById(id uuid.UUID, updateBlog *BlogUpdate) (*BlogGet, error) {
+	var blog Blog
+
+	err := postgres.DB.Where("id =?", id).First(&blog).Error
+	if err != nil {
+		return nil, err
+	}
+
+	blog.Title = updateBlog.Title
+	blog.Content = updateBlog.Content
+	blog.Position = updateBlog.Position
+	blog.Status = updateBlog.Status
+
+	err = postgres.DB.Save(&blog).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return GetBlogById(id)
+
 }
 
 func DeleteBlogById(id uuid.UUID) error {

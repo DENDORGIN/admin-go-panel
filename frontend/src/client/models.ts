@@ -80,9 +80,9 @@ export type PostCreate = {
 }
 
 export type PostUpdate = {
-  title?: string | null
-  content?: string | null
-  images?: File[] | null
+  title?: string
+  content?: string
+  images?: File[]
   position: number
   status: boolean
 }
