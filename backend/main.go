@@ -73,6 +73,8 @@ func main() {
 
 	// Download files
 	r.POST("/api/v1/blog/:postId/images", routes.DownloadMediaHandler)
+	r.GET("/api/v1/blog/images/:postId", routes.GetAllMediaByBlogIdHandler)
+	r.DELETE("/api/v1/blog/images/:postId", routes.DeleteMediaHandler)
 
 	// Run the server
 	if err := r.Run(port); err != nil {

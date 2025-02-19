@@ -55,6 +55,14 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
   const showToast = useCustomToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<FileDetail[]>([])
+
+  const [existingImages, setExistingImages] = useState<string[]>(
+      Array.isArray(post.images) ? post.images : post.images ? post.images.split(',') : []
+  );
+
+  // const [newFiles, setNewFiles] = useState<FileDetail[]>([]);
+
+
   const {
     register,
     handleSubmit,
@@ -133,6 +141,15 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
       fileInputRef.current.click();
     }
   };
+
+  const handleRemoveExistingImage = (index: number) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // const handleRemoveNewFile = (index: number) => {
+  //   setNewFiles((prev) => prev.filter((_, i) => i !== index));
+  // };
+
 
   const onSubmit: SubmitHandler<PostUpdateExtended> = async (data) => {
     const payload: PostUpdateExtended = {
@@ -230,6 +247,25 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
               </CardBody>
             </Card>
           </FormControl>
+
+          {existingImages.length > 0 && (
+              <Box mt={4}>
+                <FormLabel>Existing Images</FormLabel>
+                <List spacing={2}>
+                  {existingImages.map((image, index) => (
+                      <ListItem key={index} display="flex" alignItems="center" justifyContent="space-between">
+                        <img src={image} alt={`Uploaded ${index}`} width="100" style={{ borderRadius: "5px" }} />
+                        <IconButton
+                            icon={<CloseIcon />}
+                            aria-label="Remove existing image"
+                            onClick={() => handleRemoveExistingImage(index)}
+                        />
+                      </ListItem>
+                  ))}
+                </List>
+              </Box>
+          )}
+
 
           <FormControl mt={4} isInvalid={!!errors.position}>
             <FormLabel htmlFor="position">Position</FormLabel>

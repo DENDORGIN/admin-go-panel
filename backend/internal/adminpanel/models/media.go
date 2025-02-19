@@ -2,6 +2,7 @@ package models
 
 import (
 	"backend/internal/adminpanel/db/postgres"
+	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"time"
@@ -40,4 +41,54 @@ func DownloadFiles(media *Media) (*MediaPublic, error) {
 		Type:      media.Type,
 		ContentID: media.ContentId,
 	}, nil
+}
+
+func GetAllMediaByBlogId(blogID uuid.UUID) ([]MediaPublic, error) {
+	var media []Media
+	var listMedia []MediaPublic
+	result := postgres.DB.Where("content_id =?", blogID).Find(&media)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+
+	for _, item := range media {
+		listMedia = append(listMedia, MediaPublic{
+			ID:        item.ID,
+			Url:       item.Url,
+			Type:      item.Type,
+			ContentID: item.ContentId,
+		})
+	}
+	return listMedia, nil
+}
+
+func GetMediaByUrl(url string) (*MediaPublic, error) {
+	var media Media
+	result := postgres.DB.Where("url =?", url).First(&media)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return &MediaPublic{
+		ID:        media.ID,
+		Url:       media.Url,
+		Type:      media.Type,
+		ContentID: media.ContentId,
+	}, nil
+}
+
+func DeleteFiles(id uuid.UUID) error {
+	result := postgres.DB.Where("id = ?", id).Delete(&Media{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New("user not found")
+	}
+	return nil
 }
