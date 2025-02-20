@@ -124,6 +124,7 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
     onSuccess: () => {
       showToast("Success!", "Post created successfully.", "success");
       reset();
+      setFiles([]);
       onClose();
     },
     onError: (err: ApiError) => {

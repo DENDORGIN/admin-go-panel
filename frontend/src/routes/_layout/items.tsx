@@ -134,7 +134,7 @@ function ItemsTable({ region }: ItemsTableProps) {
           ) : (
             <Tbody>
               {items?.data.map((item) => (
-                <Tr key={item.id} opacity={isPlaceholderData ? 0.5 : 1}>
+                <Tr key={item.ID} opacity={isPlaceholderData ? 0.5 : 1}>
                   <Td>{item.position}</Td>
                   <Td isTruncated maxWidth="150px">
                     {item.title}

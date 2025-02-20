@@ -125,7 +125,7 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
     }
 
     try {
-      await ItemsService.updateItem(item.id, formData)
+      await ItemsService.updateItem(item.ID, formData)
       showToast("Success!", "Item updated successfully.", "success")
       queryClient.invalidateQueries({ queryKey: ["items"] })
       onClose()
