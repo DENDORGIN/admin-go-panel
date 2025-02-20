@@ -44,6 +44,7 @@ interface FileDetail {
   name: string;
   size: string;
   file: File;
+  preview?: string;
 }
 
 interface PostUpdateExtended extends PostUpdate {
@@ -60,8 +61,22 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
       Array.isArray(post.images) ? post.images : post.images ? post.images.split(',') : []
   );
 
-  // const [newFiles, setNewFiles] = useState<FileDetail[]>([]);
+  // const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
 
+
+  const handleDeleteImage = async (imageUrl: string) => {
+    try {
+      await BlogService.deleteImage(post.ID, imageUrl);
+
+      // Видаляємо зображення зі стану тільки якщо API повернув успіх
+      setExistingImages((prev) => prev.filter((img) => img !== imageUrl));
+
+      showToast("Success!", "Image deleted successfully.", "success");
+    } catch (err) {
+      // @ts-ignore
+      handleError(err, showToast);
+    }
+  };
 
   const {
     register,
@@ -73,16 +88,21 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
   } = useForm<PostUpdateExtended>({
     mode: "onBlur",
     criteriaMode: "all",
-    defaultValues: { ...post, images: undefined },
-  })
+    defaultValues: {
+      ...post,
+      images: undefined, // Гарантуємо початкове значення
+    },
+  });
+
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
 
-    const selectedFiles = Array.from(event.target.files).map((file) => ({
+    const selectedFiles: FileDetail[] = Array.from(event.target.files).map((file) => ({
       name: file.name,
       size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
       file,
+      preview: URL.createObjectURL(file), // Генеруємо URL для прев’ю
     }));
 
     setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
@@ -90,15 +110,24 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
     setValue(
         "images",
         [...(watch("images") || []), ...selectedFiles.map((f) => f.file)],
-        { shouldValidate: true }
+        { shouldValidate: true, shouldDirty: true, }
     );
   };
 
 
+
+
   const handleRemoveFile = (index: number) => {
-    const updatedFiles = files.filter((_, idx) => idx !== index)
-    setFiles(updatedFiles)
-  }
+    const updatedFiles = [...files];
+
+    // Очищаємо URL для запобігання витоку пам’яті
+    URL.revokeObjectURL(updatedFiles[index].preview!);
+
+    updatedFiles.splice(index, 1);
+    setFiles(updatedFiles);
+  };
+
+
 
   const mutation = useMutation({
     mutationFn: async (jsonPayload: PostUpdateExtended) => {
@@ -125,6 +154,10 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
     },
     onSuccess: () => {
       showToast("Success!", "Post created successfully.", "success");
+      setTimeout(() => {
+        onClose();
+      }, 500);
+      setFiles([]);
       reset();
       onClose();
     },
@@ -142,13 +175,6 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
     }
   };
 
-  const handleRemoveExistingImage = (index: number) => {
-    setExistingImages((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  // const handleRemoveNewFile = (index: number) => {
-  //   setNewFiles((prev) => prev.filter((_, i) => i !== index));
-  // };
 
 
   const onSubmit: SubmitHandler<PostUpdateExtended> = async (data) => {
@@ -157,7 +183,7 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
       position: data.position,
       content: data.content,
       status: data.status,
-      images: files.map((f) => f.file), // Передаємо файли
+      images: files.map((f) => f.file),
     };
 
     await mutation.mutateAsync(payload);
@@ -226,45 +252,56 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
             <Card>
               <CardBody>
                 {files.length > 0 && (
-                  <List spacing={2} mt={2}>
-                    {files.map((file, index) => (
-                      <ListItem
-                        key={index}
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="space-between"
-                      >
-                        {file.name} - {file.size}
-                        <IconButton
-                          icon={<CloseIcon />}
-                          aria-label="Remove file"
-                          onClick={() => handleRemoveFile(index)}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
+                    <List spacing={2} mt={2}>
+                      {files.map((file, index) => (
+                          <ListItem
+                              key={index}
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="space-between"
+                          >
+                            <Box display="flex" alignItems="center" gap={3}>
+                              <img src={file.preview} alt={file.name} width="50" height="50" style={{ borderRadius: "5px" }} />
+                              {file.name} - {file.size}
+                            </Box>
+                            <IconButton
+                                icon={<CloseIcon />}
+                                aria-label="Remove file"
+                                onClick={() => handleRemoveFile(index)}
+                            />
+                          </ListItem>
+                      ))}
+                    </List>
                 )}
               </CardBody>
             </Card>
+
           </FormControl>
 
           {existingImages.length > 0 && (
               <Box mt={4}>
                 <FormLabel>Existing Images</FormLabel>
-                <List spacing={2}>
+                <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(100px, 1fr))" gap={4}>
                   {existingImages.map((image, index) => (
-                      <ListItem key={index} display="flex" alignItems="center" justifyContent="space-between">
-                        <img src={image} alt={`Uploaded ${index}`} width="100" style={{ borderRadius: "5px" }} />
+                      <Box key={index} position="relative">
+                        <img src={image} alt={`Uploaded ${index}`} width="100" height="100" style={{ borderRadius: "5px" }} />
                         <IconButton
                             icon={<CloseIcon />}
                             aria-label="Remove existing image"
-                            onClick={() => handleRemoveExistingImage(index)}
+                            position="absolute"
+                            top="5px"
+                            right="5px"
+                            size="xs"
+                            onClick={() => handleDeleteImage(image)}
+                            isLoading={isSubmitting}
                         />
-                      </ListItem>
+                      </Box>
                   ))}
-                </List>
+                </Box>
               </Box>
           )}
+
+
 
 
           <FormControl mt={4} isInvalid={!!errors.position}>
@@ -306,7 +343,7 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
             variant="primary"
             type="submit"
             isLoading={isSubmitting}
-            isDisabled={!isDirty}
+            isDisabled={!isDirty && files.length === 0}
           >
             Save
           </Button>
