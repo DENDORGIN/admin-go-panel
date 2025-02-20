@@ -86,7 +86,6 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
       }),
     )
     setFiles([...files, ...selectedFiles]) // Append new files to the existing array
-    setFiles([...files, ...selectedFiles]) // Append new files to the existing array
     setValue(
       "images",
       event.target.files ? Array.from(event.target.files) : undefined,

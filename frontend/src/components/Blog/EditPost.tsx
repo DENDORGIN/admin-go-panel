@@ -22,7 +22,7 @@ import {useMutation, useQueryClient} from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
 import { CloseIcon } from "@chakra-ui/icons"
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import {
   type ApiError,
   BlogService,
@@ -60,29 +60,13 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
       Array.isArray(post.images) ? post.images : post.images ? post.images.split(',') : []
   );
 
-  // const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
-
-
-  const handleDeleteImage = async (imageUrl: string) => {
-    try {
-      await BlogService.deleteImage(post.ID, imageUrl);
-
-      // Видаляємо зображення зі стану тільки якщо API повернув успіх
-      setExistingImages((prev) => prev.filter((img) => img !== imageUrl));
-
-      showToast("Success!", "Image deleted successfully.", "success");
-    } catch (err) {
-      // @ts-ignore
-      handleError(err, showToast);
-    }
-  };
-
   const {
     register,
     handleSubmit,
     reset,
     setValue,
     watch,
+    trigger,
     formState: { isSubmitting, errors, isDirty },
   } = useForm<PostUpdateExtended>({
     mode: "onBlur",
@@ -92,6 +76,45 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
       images: undefined,
     },
   });
+
+  // Оновлюємо значення форми при відкритті модального вікна
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        ...post,
+        images: undefined, // Очищаємо список файлів
+      });
+
+      // Оновлюємо список існуючих зображень
+      setExistingImages(
+          Array.isArray(post.images) ? post.images : post.images ? post.images.split(",") : []
+      );
+
+      setFiles([]); // Очищаємо нові завантажені файли
+    }
+  }, [isOpen, post, reset]);
+
+
+  const handleDeleteImage = async (imageUrl: string) => {
+    try {
+      await BlogService.deleteImage(post.ID, imageUrl);
+
+      setExistingImages((prev) => prev.filter((img) => img !== imageUrl));
+
+      // Примушуємо форму розпізнати зміни
+      setValue("images", files.length > 0 || existingImages.length > 1 ? files.map(f => f.file) : undefined, {
+        shouldDirty: true,
+      });
+
+      trigger("images"); // Викликаємо перевірку змін
+      showToast("Success!", "Image deleted successfully.", "success");
+    } catch (err) {
+      handleError(err as ApiError, showToast);
+    }
+  };
+
+
+
 
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,7 +147,15 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
 
     updatedFiles.splice(index, 1);
     setFiles(updatedFiles);
+
+    // Оновлюємо значення у react-hook-form, щоб змусити форму вважати себе зміненою
+    setValue("images", updatedFiles.length > 0 ? updatedFiles.map(f => f.file) : undefined, {
+      shouldDirty: true,
+    });
+
+    trigger("images"); // Перевіряємо валідацію
   };
+
 
 
 
@@ -338,7 +369,7 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
             variant="primary"
             type="submit"
             isLoading={isSubmitting}
-            isDisabled={!isDirty && files.length === 0}
+            isDisabled={!isDirty && files.length === 0 && existingImages.length === 0}
           >
             Save
           </Button>
