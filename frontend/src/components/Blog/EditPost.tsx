@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   Card,
-  CardBody,
   FormControl,
   FormErrorMessage,
   FormLabel,
@@ -90,7 +89,7 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
     criteriaMode: "all",
     defaultValues: {
       ...post,
-      images: undefined, // Гарантуємо початкове значення
+      images: undefined,
     },
   });
 
@@ -250,30 +249,28 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
               Upload Images
             </Button>
             <Card>
-              <CardBody>
-                {files.length > 0 && (
-                    <List spacing={2} mt={2}>
-                      {files.map((file, index) => (
-                          <ListItem
-                              key={index}
-                              display="flex"
-                              alignItems="center"
-                              justifyContent="space-between"
-                          >
-                            <Box display="flex" alignItems="center" gap={3}>
-                              <img src={file.preview} alt={file.name} width="50" height="50" style={{ borderRadius: "5px" }} />
-                              {file.name} - {file.size}
-                            </Box>
-                            <IconButton
-                                icon={<CloseIcon />}
-                                aria-label="Remove file"
-                                onClick={() => handleRemoveFile(index)}
-                            />
-                          </ListItem>
-                      ))}
-                    </List>
-                )}
-              </CardBody>
+              {files.length > 0 && (
+                  <List spacing={2} mt={2}>
+                    {files.map((file, index) => (
+                        <ListItem
+                            key={index}
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="space-between"
+                        >
+                          <Box display="flex" alignItems="center" gap={3}>
+                            <img src={file.preview} alt={file.name} width="50" height="50" style={{ borderRadius: "5px" }} />
+                            {file.name} - {file.size}
+                          </Box>
+                          <IconButton
+                              icon={<CloseIcon />}
+                              aria-label="Remove file"
+                              onClick={() => handleRemoveFile(index)}
+                          />
+                        </ListItem>
+                    ))}
+                  </List>
+              )}
             </Card>
 
           </FormControl>
@@ -300,8 +297,6 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
                 </Box>
               </Box>
           )}
-
-
 
 
           <FormControl mt={4} isInvalid={!!errors.position}>
