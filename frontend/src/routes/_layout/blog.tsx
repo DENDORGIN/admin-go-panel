@@ -16,7 +16,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect } from "react"
 import { z } from "zod"
-import DOMPurify from 'dompurify';
 
 import { BlogService } from "../../client"
 import AddPost from "../../components/Blog/AddPost"
@@ -24,6 +23,8 @@ import ActionsMenu from "../../components/Common/ActionsMenu.tsx"
 import Navbar from "../../components/Common/Navbar"
 import { PaginationFooter } from "../../components/Common/PaginationFooter.tsx"
 import ImageGallery from "../../components/Modals/ModalImageGallery"
+import ExpandableTd from "../../components/Modals/ModalContent";
+
 
 const postsSearchSchema = z.object({
   page: z.number().catch(1),
@@ -78,7 +79,7 @@ function PostTable() {
           <Thead>
             <Tr>
               <Th>Position</Th>
-              <Th>ID</Th>
+              {/*<Th>ID</Th>*/}
               <Th>Title</Th>
               <Th>Content</Th>
               <Th>Images</Th>
@@ -102,15 +103,10 @@ function PostTable() {
                     posts.Data.map((post) => (
                         <Tr key={post.ID} opacity={isPlaceholderData ? 0.5 : 1}>
                           <Td>{post.position}</Td>
-                          <Td>{post.ID}</Td>
+                          {/*<Td>{post.ID}</Td>*/}
                           <Td isTruncated maxWidth="150px">{post.title}</Td>
-                          <Td
-                              color={!post.content ? "ui.dim" : "inherit"}
-                              isTruncated
-                              maxWidth="150px"
-                          >
-                            <SafeHtmlComponent htmlContent={post.content || 'N/A'} />
-                          </Td>
+                          <ExpandableTd content={post.content} />
+
                           <Td>
                             <ImageGallery images={Array.isArray(post.images) ? post.images : post.images ? [post.images] : []} title={post.title} />
                           </Td>
@@ -157,8 +153,4 @@ function Post() {
       <PostTable />
     </Container>
   )
-}
-// @ts-ignore
-function SafeHtmlComponent({ htmlContent }) {
-  return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }} />;
 }

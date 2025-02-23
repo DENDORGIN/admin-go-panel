@@ -33,14 +33,14 @@ const ModalImageGallery = ({
   }
 
   return (
-    <Box display="flex" flexWrap="wrap" justifyContent="center" gap="10px">
+    <Box display="flex" flexWrap="wrap" justifyContent="left" gap="10px">
       {images.slice(0, 3).map((src, index) => (
         <Image
           key={src}
           src={src}
           alt={title || `Image ${index + 1}`}
-          maxW="100px"
-          maxH="100px"
+          maxW="80x"
+          maxH="80px"
           cursor="pointer"
           onClick={() => openLightbox(index)}
           onError={(e) => {
