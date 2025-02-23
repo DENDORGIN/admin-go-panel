@@ -158,23 +158,34 @@ func GetBlogById(id uuid.UUID) (*BlogGet, error) {
 func UpdateBlogById(id uuid.UUID, updateBlog *BlogUpdate) (*BlogGet, error) {
 	var blog Blog
 
-	err := postgres.DB.Where("id =?", id).First(&blog).Error
+	// Знаходимо блог за ID
+	err := postgres.DB.Where("id = ?", id).First(&blog).Error
 	if err != nil {
 		return nil, err
 	}
 
+	// Якщо позиція змінилася - зсуваємо інші блоги
+	if updateBlog.Position != blog.Position {
+		err = ShiftPositions(postgres.DB, updateBlog.Position) // Передаємо тільки число
+		if err != nil {
+			return nil, err
+		}
+		blog.Position = updateBlog.Position
+	}
+
+	// Оновлюємо поля блогу
 	blog.Title = updateBlog.Title
 	blog.Content = updateBlog.Content
-	blog.Position = updateBlog.Position
 	blog.Status = updateBlog.Status
 
+	// Зберігаємо оновлений блог
 	err = postgres.DB.Save(&blog).Error
 	if err != nil {
 		return nil, err
 	}
 
+	// Повертаємо оновлені дані блогу
 	return GetBlogById(id)
-
 }
 
 func DeleteBlogById(id uuid.UUID) error {
@@ -202,6 +213,27 @@ func DeleteBlogById(id uuid.UUID) error {
 	err = postgres.DB.Where("content_id", id).Delete(&Media{}).Error
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func ShiftPositions(db *gorm.DB, newPosition int) error {
+	// Отримуємо всі блоги, у яких позиція >= newPosition (зміщуємо вперед)
+	var blogs []Blog
+
+	err := db.Where("position >= ?", newPosition).Order("position ASC").Find(&blogs).Error
+	if err != nil {
+		return fmt.Errorf("failed to fetch items: %v", err)
+	}
+
+	// Перевіряємо, чи є дублікати позицій та зміщуємо їх
+	for i := range blogs {
+		blogs[i].Position++ // Зсуваємо позицію вперед
+
+		if err := db.Save(&blogs[i]).Error; err != nil {
+			return fmt.Errorf("failed to update position for ID %v: %v", blogs[i].ID, err)
+		}
 	}
 
 	return nil
