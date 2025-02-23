@@ -23,12 +23,15 @@ func UploadFile(ctx *gin.Context, fileHeader *multipart.FileHeader) (string, err
 		return "", fmt.Errorf("failed to open file: %v", err)
 	}
 	defer func(file multipart.File) {
-		err := file.Close()
+		err = file.Close()
 		if err != nil {
 
 		}
 	}(file)
 
+	// Генеруємо унікальне ім'я файлу
+	uniqueFileName := GenerateUniqueFileName(fileHeader.Filename)
+	fmt.Println(uniqueFileName)
 	// Створюємо клієнт Backblaze B2
 	b2Client, err := b2.NewClient(context.Background(), accountID, applicationKey)
 	if err != nil {
@@ -42,7 +45,7 @@ func UploadFile(ctx *gin.Context, fileHeader *multipart.FileHeader) (string, err
 	}
 
 	// Завантажуємо файл у Backblaze B2
-	obj := bucket.Object(fileHeader.Filename)
+	obj := bucket.Object(uniqueFileName)
 	w := obj.NewWriter(context.Background())
 	if _, err := w.ReadFrom(file); err != nil {
 		return "", fmt.Errorf("failed to upload file: %v", err)
@@ -52,8 +55,42 @@ func UploadFile(ctx *gin.Context, fileHeader *multipart.FileHeader) (string, err
 	}
 
 	// Формуємо публічний URL
-	publicURL := fmt.Sprintf("https://f003.backblazeb2.com/file/%s/%s", bucketName, fileHeader.Filename)
+	publicURL := fmt.Sprintf("https://f003.backblazeb2.com/file/%s/%s", bucketName, uniqueFileName)
 
 	return publicURL, nil
 
+}
+
+// DeleteFile видаляє файл з Backblaze B2
+func DeleteFile(fileName string) error {
+	accountID := os.Getenv("BACKBLAZE_ID")
+	applicationKey := os.Getenv("BACKBLAZE_KEY")
+	bucketName := os.Getenv("BUCKET_NAME_ITEMS")
+
+	if accountID == "" || applicationKey == "" || bucketName == "" {
+		return fmt.Errorf("backblaze credentials are not set")
+	}
+
+	// Створюємо клієнт Backblaze B2
+	b2Client, err := b2.NewClient(context.Background(), accountID, applicationKey)
+	if err != nil {
+		return fmt.Errorf("failed to create B2 client: %v", err)
+	}
+
+	// Отримуємо бакет
+	bucket, err := b2Client.Bucket(context.Background(), bucketName)
+	if err != nil {
+		return fmt.Errorf("failed to get bucket: %v", err)
+	}
+
+	// Отримуємо об'єкт
+	obj := bucket.Object(fileName)
+
+	// Видаляємо об'єкт
+	err = obj.Delete(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed to delete file: %v", err)
+	}
+
+	return nil
 }

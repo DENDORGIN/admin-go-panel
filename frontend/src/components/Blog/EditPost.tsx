@@ -56,6 +56,29 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<FileDetail[]>([])
 
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      [{ 'font': [] }],
+      [{ 'color': [] }, { 'background': [] }], // Колір тексту та фону
+      [{ 'align': [] }], // Вирівнювання
+      ['bold', 'italic', 'underline', 'strike'], // Стилізація тексту
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }], // Списки
+      [{ 'indent': '-1' }, { 'indent': '+1' }], // Відступи
+      ['link', 'image', 'video'], // Додавання медіа
+      ['clean'], // Очищення форматування
+    ],
+  };
+
+  const formats = [
+    'header', 'font', 'color', 'background', 'align',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'video'
+  ];
+
+
+
   const [existingImages, setExistingImages] = useState<string[]>(
       Array.isArray(post.images) ? post.images : post.images ? post.images.split(',') : []
   );
@@ -112,9 +135,6 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
       handleError(err as ApiError, showToast);
     }
   };
-
-
-
 
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,15 +268,17 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
             <FormLabel htmlFor="description">Description</FormLabel>
             <ReactQuill
                 theme="snow"
-                value={watch('content')  || ''}
+                value={watch('content') || ''}
                 onChange={(_, __, ___, editor) => {
-                  setValue('content', editor.getHTML()); // Update form state with HTML content
+                  setValue('content', editor.getHTML());
                 }}
+                modules={modules}
+                formats={formats}
             />
             {errors.content && (
                 <FormErrorMessage>{errors.content.message}</FormErrorMessage>
             )}
-          </FormControl >
+          </FormControl>
 
           <FormControl mt={4}>
             <FormLabel htmlFor="images">Images</FormLabel>

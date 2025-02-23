@@ -9,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"strings"
 )
@@ -21,6 +22,12 @@ func init() {
 }
 
 func main() {
+
+	go func() {
+		log.Println("Starting profiling server on :6060...")
+		//http://localhost:6060/debug/pprof/
+		log.Fatal(http.ListenAndServe(":6060", nil))
+	}()
 
 	models.InitDB()
 

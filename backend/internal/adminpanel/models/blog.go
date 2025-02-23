@@ -2,7 +2,9 @@ package models
 
 import (
 	"backend/internal/adminpanel/db/postgres"
+	"backend/internal/adminpanel/services/utils"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"time"
@@ -177,13 +179,27 @@ func UpdateBlogById(id uuid.UUID, updateBlog *BlogUpdate) (*BlogGet, error) {
 
 func DeleteBlogById(id uuid.UUID) error {
 	var blog Blog
-	var media Media
+	var mediaList []Media
 
 	err := postgres.DB.Where("id =?", id).Delete(&blog).Error
 	if err != nil {
 		return err
 	}
-	err = postgres.DB.Where("content_id", id).Delete(&media).Error
+
+	err = postgres.DB.Where("content_id = ?", id).Find(&mediaList).Error
+	if err != nil {
+		return err
+	}
+	for _, media := range mediaList {
+		fileName := utils.ExtractFileNameFromURL(media.Url)
+		fmt.Println("Deleted file:", fileName)
+		err = utils.DeleteFile(fileName)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = postgres.DB.Where("content_id", id).Delete(&Media{}).Error
 	if err != nil {
 		return err
 	}
