@@ -4,7 +4,6 @@ import (
 	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/services/utils"
 	"errors"
-	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"time"
@@ -108,7 +107,7 @@ func DeleteInBucket(id uuid.UUID) error {
 		return err
 	}
 	fileName := utils.ExtractFileNameFromURL(media.Url)
-	fmt.Println(fileName)
+	//fmt.Println(fileName)
 	err = utils.DeleteFile(fileName)
 	if err != nil {
 		return err

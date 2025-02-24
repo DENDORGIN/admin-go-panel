@@ -2,6 +2,7 @@ package models
 
 import (
 	"backend/internal/adminpanel/db/postgres"
+	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
 	"errors"
 	"fmt"
@@ -92,13 +93,12 @@ func GetAllUsers(ctx *gin.Context, limit int, skip int) ([]*User, error) {
 
 func GetUserById(id uuid.UUID) (*User, error) {
 	var user User
-	result := postgres.DB.Where("id = ?", id).First(&user)
-	if result.Error != nil {
-		return nil, result.Error
+	err := repository.GetByID(postgres.DB, id, &user)
+
+	if err != nil {
+		return nil, err
 	}
-	if result.RowsAffected == 0 {
-		return nil, gorm.ErrRecordNotFound
-	}
+
 	return &user, nil
 }
 
@@ -196,12 +196,12 @@ func ResetCurrentUserPassword(email string, password string) (string, error) {
 }
 
 func DeleteUserById(id uuid.UUID) error {
-	result := postgres.DB.Where("id = ?", id).Delete(&User{})
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return errors.New("user not found")
+
+	err := repository.DeleteByID(postgres.DB, id, &User{})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("user not found")
+		}
 	}
 	return nil
 }

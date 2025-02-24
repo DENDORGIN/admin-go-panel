@@ -2,6 +2,7 @@ package models
 
 import (
 	"backend/internal/adminpanel/db/postgres"
+	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
 	"errors"
 	"fmt"
@@ -129,12 +130,12 @@ func GetBlogById(id uuid.UUID) (*BlogGet, error) {
 	var blog Blog
 	var media []*Media
 
-	err := postgres.DB.Where("id =?", id).First(&blog).Error
+	err := repository.GetByID(postgres.DB, id, &blog)
 	if err != nil {
 		return nil, err
 	}
 
-	err = postgres.DB.Where("content_id =?", id).Find(&media).Error
+	err = repository.GetAllMediaByID(postgres.DB, id, &media)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func UpdateBlogById(id uuid.UUID, updateBlog *BlogUpdate) (*BlogGet, error) {
 	var blog Blog
 
 	// Знаходимо блог за ID
-	err := postgres.DB.Where("id = ?", id).First(&blog).Error
+	err := repository.GetByID(postgres.DB, id, &blog)
 	if err != nil {
 		return nil, err
 	}
@@ -192,12 +193,12 @@ func DeleteBlogById(id uuid.UUID) error {
 	var blog Blog
 	var mediaList []Media
 
-	err := postgres.DB.Where("id =?", id).Delete(&blog).Error
+	err := repository.DeleteByID(postgres.DB, id, &blog)
 	if err != nil {
 		return err
 	}
 
-	err = postgres.DB.Where("content_id = ?", id).Find(&mediaList).Error
+	err = repository.GetAllMediaByID(postgres.DB, id, &mediaList)
 	if err != nil {
 		return err
 	}
@@ -210,7 +211,7 @@ func DeleteBlogById(id uuid.UUID) error {
 		}
 	}
 
-	err = postgres.DB.Where("content_id", id).Delete(&Media{}).Error
+	err = repository.DeleteMediaByID(postgres.DB, id, &Media{})
 	if err != nil {
 		return err
 	}

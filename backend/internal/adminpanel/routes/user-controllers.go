@@ -4,6 +4,7 @@ import (
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -158,6 +159,7 @@ func DeleteUser(ctx *gin.Context) {
 		return
 	}
 	userIDRaw := ctx.Param("id")
+	fmt.Println(userIDRaw)
 	id, err := uuid.Parse(userIDRaw)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})

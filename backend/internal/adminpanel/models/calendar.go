@@ -2,6 +2,7 @@ package models
 
 import (
 	"backend/internal/adminpanel/db/postgres"
+	"backend/internal/adminpanel/repository"
 	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -90,7 +91,7 @@ func GetAllEvents(userId uuid.UUID) ([]CalendarEvent, error) {
 func GetEventById(eventId uuid.UUID) (*CalendarEvent, error) {
 	var calendar Calendar
 
-	err := postgres.DB.Where("id =?", eventId).First(&calendar).Error
+	err := repository.GetByID(postgres.DB, eventId, &calendar)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("event not found")
@@ -109,12 +110,12 @@ func GetEventById(eventId uuid.UUID) (*CalendarEvent, error) {
 }
 
 func DeleteEventById(eventId uuid.UUID) error {
-	result := postgres.DB.Where("id = ?", eventId).Delete(&Calendar{})
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected == 0 {
-		return errors.New("event not found")
+	err := repository.DeleteByID(postgres.DB, eventId, &Calendar{})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("event not found")
+		}
+		return err
 	}
 	return nil
 }
