@@ -124,7 +124,7 @@ export type UserPublic = {
   isActive?: boolean
   isSuperUser?: boolean
   fullName?: string | null
-  id: string
+  ID: string
 }
 
 export type UserRegister = {

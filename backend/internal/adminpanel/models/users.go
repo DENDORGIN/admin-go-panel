@@ -26,11 +26,11 @@ type User struct {
 }
 
 type UserResponse struct {
-	ID          uuid.UUID `json:"id"`
-	FullName    string    `json:"fullName"`
-	Email       string    `json:"email"`
-	IsActive    bool      `json:"isActive"`
-	IsSuperUser bool      `json:"isSuperUser"`
+	ID          uuid.UUID
+	FullName    string `json:"fullName"`
+	Email       string `json:"email"`
+	IsActive    bool   `json:"isActive"`
+	IsSuperUser bool   `json:"isSuperUser"`
 
 	Calendar []Calendar `gorm:"foreignKey:UserID" json:"calendars"`
 	Blog     []Blog     `gorm:"foreignKey:AutorID" json:"blogs"`
@@ -91,7 +91,40 @@ func GetAllUsers(ctx *gin.Context, limit int, skip int) ([]*User, error) {
 	return users, nil
 }
 
-func GetUserById(id uuid.UUID) (*User, error) {
+func GetUserById(id uuid.UUID) (*UserResponse, error) {
+	var user User
+	err := repository.GetByID(postgres.DB, id, &user)
+	if err != nil {
+		return nil, err
+	}
+
+	//// Отримуємо зв’язані дані (Calendar, Blog)
+	//var calendars []Calendar
+	//var blogs []Blog
+	//err = postgres.DB.Where("user_id = ?", id).Find(&calendars).Error
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//err = postgres.DB.Where("author_id = ?", id).Find(&blogs).Error
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	// Формуємо структуру UserResponse
+	userResponse := &UserResponse{
+		ID:          user.ID,
+		FullName:    user.FullName,
+		Email:       user.Email,
+		IsActive:    user.IsActive,
+		IsSuperUser: user.IsSuperUser,
+		//Calendar:    calendars,
+		//Blog:        blogs,
+	}
+	return userResponse, nil
+}
+
+func GetUserByIdFull(id uuid.UUID) (*User, error) {
 	var user User
 	err := repository.GetByID(postgres.DB, id, &user)
 
@@ -143,7 +176,7 @@ func UpdateUserById(id uuid.UUID, updateUser *UpdateUser) (*UserResponse, error)
 }
 
 func UpdateCurrentUserPassword(id uuid.UUID, password *UpdatePassword) (string, error) {
-	user, err := GetUserById(id)
+	user, err := GetUserByIdFull(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return "", errors.New("user not found")
