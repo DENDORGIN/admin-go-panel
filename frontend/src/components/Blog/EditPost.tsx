@@ -254,11 +254,14 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
         <ModalBody pb={6}>
           <FormControl isRequired isInvalid={!!errors.title}>
             <FormLabel htmlFor="title">Title</FormLabel>
-            <Input
-              id="title"
-              {...register("title", { required: "Title is required" })}
-              placeholder="Title"
-              type="text"
+            <ReactQuill
+                theme="snow"
+                value={watch('title') || ''}
+                onChange={(_, __, ___, editor) => {
+                  setValue('title', editor.getHTML());
+                }}
+                modules={modules}
+                formats={formats}
             />
             {errors.title && (
               <FormErrorMessage>{errors.title.message}</FormErrorMessage>

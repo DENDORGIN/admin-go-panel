@@ -55,13 +55,13 @@ const ExpandableTd: React.FC<ExpandableTdProps> = ({ content }) => {
 
     return (
         <>
-            <Td maxWidth="250px" padding="8px" onClick={onOpen} cursor="pointer">
+            <Td maxWidth="200px" padding="8px" onClick={onOpen} cursor="pointer">
                 <Box
-                    maxHeight="100px"
-                    overflowY="auto"
+                    maxHeight="120px"
+                    overflowY="hidden"
                     whiteSpace="normal"
                     padding="4px"
-                    border="1px solid #ccc"
+                    // border="1px solid #ccc"
                     borderRadius="md"
                 >
                     <SafeHtmlComponent htmlContent={content || "N/A"} />

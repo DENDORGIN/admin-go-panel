@@ -104,7 +104,7 @@ function PostTable() {
                         <Tr key={post.ID} opacity={isPlaceholderData ? 0.5 : 1}>
                           <Td>{post.position}</Td>
                           {/*<Td>{post.ID}</Td>*/}
-                          <Td isTruncated maxWidth="150px">{post.title}</Td>
+                          <ExpandableTd content={post.title} />
                           <ExpandableTd content={post.content} />
 
                           <Td>
@@ -146,7 +146,7 @@ function Post() {
   return (
     <Container maxW="full">
       <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={12}>
-        Post Management
+        Blog Management
       </Heading>
 
       <Navbar type={"Post"} addModalAs={AddPost} />

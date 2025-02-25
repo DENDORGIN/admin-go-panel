@@ -26,11 +26,11 @@ type User struct {
 }
 
 type UserResponse struct {
-	ID          uuid.UUID
-	FullName    string `json:"fullName"`
-	Email       string `json:"email"`
-	IsActive    bool   `json:"isActive"`
-	IsSuperUser bool   `json:"isSuperUser"`
+	ID          uuid.UUID `json:"ID"`
+	FullName    string    `json:"fullName"`
+	Email       string    `json:"email"`
+	IsActive    bool      `json:"isActive"`
+	IsSuperUser bool      `json:"isSuperUser"`
 
 	Calendar []Calendar `gorm:"foreignKey:UserID" json:"calendars"`
 	Blog     []Blog     `gorm:"foreignKey:AutorID" json:"blogs"`
@@ -148,7 +148,7 @@ func GetUserByEmail(email string) (*User, error) {
 }
 
 func UpdateUserById(id uuid.UUID, updateUser *UpdateUser) (*UserResponse, error) {
-	user, err := GetUserById(id)
+	user, err := GetUserByIdFull(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
@@ -240,7 +240,7 @@ func DeleteUserById(id uuid.UUID) error {
 }
 
 func GetCurrentUserIsSuperUser(id uuid.UUID) (bool, error) {
-	user, err := GetUserById(id)
+	user, err := GetUserByIdFull(id)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -69,6 +69,27 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
     },
   });
 
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      [{ 'font': [] }],
+      [{ 'color': [] }, { 'background': [] }], // Колір тексту та фону
+      [{ 'align': [] }], // Вирівнювання
+      ['bold', 'italic', 'underline', 'strike'], // Стилізація тексту
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }], // Списки
+      [{ 'indent': '-1' }, { 'indent': '+1' }], // Відступи
+      ['link', 'image', 'video'], // Додавання медіа
+      ['clean'], // Очищення форматування
+    ],
+  };
+
+  const formats = [
+    'header', 'font', 'color', 'background', 'align',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'video'
+  ];
+
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
 
@@ -162,11 +183,14 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
           <ModalBody pb={6}>
             <FormControl isRequired isInvalid={!!errors.title}>
               <FormLabel htmlFor="title">Title</FormLabel>
-              <Input
-                  id="title"
-                  {...register("title", { required: "Title is required." })}
-                  placeholder="Title"
-                  type="text"
+              <ReactQuill
+                  theme="snow"
+                  value={watch('title')  || ''}
+                  onChange={(_, __, ___, editor) => {
+                    setValue('title', editor.getHTML()); // Update form state with HTML content
+                  }}
+                  modules={modules}
+                  formats={formats}
               />
               {errors.title && <FormErrorMessage>{errors.title.message}</FormErrorMessage>}
             </FormControl>
@@ -179,6 +203,8 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
                   onChange={(_, __, ___, editor) => {
                     setValue('content', editor.getHTML()); // Update form state with HTML content
                   }}
+                  modules={modules}
+                  formats={formats}
               />
               {errors.content && (
                   <FormErrorMessage>{errors.content.message}</FormErrorMessage>
