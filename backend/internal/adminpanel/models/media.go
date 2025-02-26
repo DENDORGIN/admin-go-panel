@@ -48,7 +48,7 @@ func DownloadFiles(media *Media) (*MediaPublic, error) {
 func GetAllMediaByBlogId(blogID uuid.UUID) ([]MediaPublic, error) {
 	var media []Media
 	var listMedia []MediaPublic
-	//result := postgres.DB.Where("content_id =?", blogID).Find(&media)
+
 	err := repository.GetAllMediaByID(postgres.DB, blogID, &media)
 	if err != nil {
 		return nil, gorm.ErrRecordNotFound
@@ -88,7 +88,6 @@ func DeleteFiles(id uuid.UUID) error {
 		return err
 	}
 
-	//result := postgres.DB.Where("id = ?", id).Delete(&Media{})
 	err = repository.DeleteByID(postgres.DB, id, &Media{})
 
 	if err != nil {
@@ -100,13 +99,12 @@ func DeleteFiles(id uuid.UUID) error {
 func DeleteInBucket(id uuid.UUID) error {
 	var media *Media
 
-	//err := postgres.DB.Where("id", id).First(&media).Error
 	err := repository.GetByID(postgres.DB, id, &media)
 	if err != nil {
 		return err
 	}
 	fileName := utils.ExtractFileNameFromURL(media.Url)
-	//fmt.Println(fileName)
+
 	err = utils.DeleteFile(fileName)
 	if err != nil {
 		return err
