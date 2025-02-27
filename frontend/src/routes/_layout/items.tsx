@@ -15,7 +15,6 @@ import {
 } from "@chakra-ui/react"
 
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from "@chakra-ui/react"
-import DOMPurify from 'dompurify';
 
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
@@ -231,9 +230,4 @@ function formatUrl(url: string) {
   } catch (error) {
     return url || "No URL" // Fallback if the URL is invalid or empty
   }
-}
-
-// @ts-ignore
-function SafeHtmlComponent({ htmlContent }) {
-  return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(htmlContent) }} />;
 }
