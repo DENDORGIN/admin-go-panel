@@ -406,7 +406,7 @@ export class UtilsService {
 export type TDataReadItems = {
   limit?: number
   skip?: number
-  region?: string
+  language?: string
 }
 export type TDataCreateItem = {
   requestBody: ItemCreate
@@ -435,12 +435,12 @@ export class ItemsService {
   public static readItems(
     data: TDataReadItems = {},
   ): CancelablePromise<ItemsPublic> {
-    const { region = null, limit = 100, skip = 0 } = data
+    const { language = null, limit = 100, skip = 0 } = data
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/v1/items/",
       query: {
-        region,
+        language,
         skip,
         limit,
       },
@@ -462,7 +462,7 @@ export class ItemsService {
       url: "/api/v1/items/",
       body: data, // Відправлення FormData
       headers: {
-        "Content-Type": "multipart/form-data", // Видаліть це, якщо браузер повинен встановити це автоматично
+        "Content-Type": "multipart/form-data",
       },
     })
   }

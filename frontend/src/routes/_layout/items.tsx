@@ -28,6 +28,7 @@ import Navbar from "../../components/Common/Navbar"
 import { PaginationFooter } from "../../components/Common/PaginationFooter.tsx"
 import AddItem from "../../components/Items/AddItem"
 import ImageGallery from "../../components/Modals/ModalImageGallery.tsx"
+import ExpandableTd from "../../components/Modals/ModalContent";
 
 const itemsSearchSchema = z.object({
   page: z.number().catch(1),
@@ -44,27 +45,27 @@ const ENGLISH = "en"
 const GERMAN = "de"
 
 interface ItemsTableProps {
-  region: string // Визначення типу для 'region'
+  language: string // Визначення типу для 'language'
 }
 
 interface ItemsQueryOptions {
   page: number
-  region: string
+  language: string
 }
 
-function getItemsQueryOptions({ page, region }: ItemsQueryOptions) {
+function getItemsQueryOptions({ page, language }: ItemsQueryOptions) {
   return {
     queryFn: () =>
       ItemsService.readItems({
-        region,
+        language,
         skip: (page - 1) * PER_PAGE,
         limit: PER_PAGE,
       }),
-    queryKey: ["items", region, { page }],
+    queryKey: ["items", language, { page }],
   }
 }
 
-function ItemsTable({ region }: ItemsTableProps) {
+function ItemsTable({ language }: ItemsTableProps) {
   const queryClient = useQueryClient()
   const { page } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
@@ -78,23 +79,24 @@ function ItemsTable({ region }: ItemsTableProps) {
     isPending,
     isPlaceholderData,
   } = useQuery({
-    ...getItemsQueryOptions({ page, region }),
+    ...getItemsQueryOptions({ page, language }),
     placeholderData: (prevData) => prevData,
   })
 
-  const hasNextPage = !isPlaceholderData && items?.data.length === PER_PAGE
+  const hasNextPage = !isPlaceholderData && Array.isArray(items?.Data) && items.Data.length === PER_PAGE
   const hasPreviousPage = page > 1
 
   useEffect(() => {
-    if (items?.data) {
-      console.log("Loaded items data:", items.data)
+    if (Array.isArray(items?.Data)) {
+      console.log("Loaded items Data:", items.Data);
     }
     if (hasNextPage) {
       queryClient.prefetchQuery(
-        getItemsQueryOptions({ page: page + 1, region }),
-      )
+          getItemsQueryOptions({ page: page + 1, language }),
+      );
     }
-  }, [page, queryClient, hasNextPage, region])
+  }, [page, queryClient, hasNextPage, language]);
+
 
   return (
     <>
@@ -105,13 +107,13 @@ function ItemsTable({ region }: ItemsTableProps) {
               {/*<Th>ID</Th>*/}
               <Th>Position</Th>
               <Th>Title</Th>
-              <Th>Description</Th>
-              {/*<Th>Description Second</Th>*/}
+              <Th>Content</Th>
               <Th>Images</Th>
               <Th>Category</Th>
-              <Th>Properties</Th>
+              {/*<Th>Properties</Th>*/}
               <Th>URL</Th>
               <Th>Language</Th>
+              <Th>Price</Th>
               <Th>Status</Th>
               <Th>Actions</Th>
             </Tr>
@@ -133,40 +135,22 @@ function ItemsTable({ region }: ItemsTableProps) {
             </Tbody>
           ) : (
             <Tbody>
-              {items?.data.map((item) => (
-                <Tr key={item.ID} opacity={isPlaceholderData ? 0.5 : 1}>
+              {(items?.Data || []).map((item) => (
+                  <Tr key={item.ID} opacity={isPlaceholderData ? 0.5 : 1}>
                   <Td>{item.position}</Td>
-                  <Td isTruncated maxWidth="150px">
-                    {item.title}
-                  </Td>
-                  <Td
-                    color={!item.description ? "ui.dim" : "inherit"}
-                    isTruncated
-                    maxWidth="150px"
-                  >
-                    <SafeHtmlComponent htmlContent={item.description || 'N/A'} />
-                  </Td>
-                  {/*<Td color={!item.description_second ? "ui.dim" : "inherit"} isTruncated maxWidth="150px">{item.description_second || "N/A"}</Td>*/}
+                    <ExpandableTd content={item.title} />
+                    <ExpandableTd content={item.content} />
                   <Td>
-                    <ImageGallery
-                      images={
-                        Array.isArray(item.images)
-                          ? item.images
-                          : item.images
-                            ? [item.images]
-                            : []
-                      }
-                      title={item.title}
-                    />
+                    <ImageGallery images={Array.isArray(item.images) ? item.images : item.images ? [item.images] : []} title={item.title} />
                   </Td>
                   <Td>{item.category || "No Category"}</Td>
-                  <Td>
-                    {Object.entries(item.properties).map(([key, value]) => (
-                      <Box key={key}>
-                        <strong>{key}:</strong> {value}
-                      </Box>
-                    ))}
-                  </Td>
+                  {/*<Td>*/}
+                  {/*  {Object.entries(item.properties).map(([key, value]) => (*/}
+                  {/*    <Box key={key}>*/}
+                  {/*      <strong>{key}:</strong> {value}*/}
+                  {/*    </Box>*/}
+                  {/*  ))}*/}
+                  {/*</Td>*/}
 
                   <Td>
                     <Link
@@ -179,6 +163,7 @@ function ItemsTable({ region }: ItemsTableProps) {
                     </Link>
                   </Td>
                   <Td>{item.language || "No Language"}</Td>
+                  <Td>{item.price}</Td>
                   <Td>
                     <Flex gap={2}>
                       <Box
@@ -225,13 +210,13 @@ function Items() {
         </TabList>
         <TabPanels>
           <TabPanel>
-            <ItemsTable region={POLAND} />
+            <ItemsTable language={POLAND} />
           </TabPanel>
           <TabPanel>
-            <ItemsTable region={ENGLISH} />
+            <ItemsTable language={ENGLISH} />
           </TabPanel>
           <TabPanel>
-            <ItemsTable region={GERMAN} />
+            <ItemsTable language={GERMAN} />
           </TabPanel>
         </TabPanels>
       </Tabs>

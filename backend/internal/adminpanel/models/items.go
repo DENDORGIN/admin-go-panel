@@ -104,18 +104,50 @@ func CreateItem(i *Items) (*ItemsPost, error) {
 	}, nil
 }
 
-func GetAllItems(userId uuid.UUID) (*ItemGetAll, error) {
+type Parameters struct {
+	Language string
+	Skip     int
+	Limit    int
+}
+
+func GetAllItems(userId uuid.UUID, parameters *Parameters) (*ItemGetAll, error) {
+	if parameters == nil {
+		parameters = &Parameters{}
+	}
+
+	// Значення за замовчуванням
+	if parameters.Language == "" {
+		parameters.Language = "pl"
+	}
+	if parameters.Skip < 0 {
+		parameters.Skip = 0
+	}
+	if parameters.Limit <= 0 {
+		parameters.Limit = 100
+	}
+
 	var items []*Items
 	var media []*Media
 	response := &ItemGetAll{}
 
-	// Отримуємо всі блоги автора
-	err := postgres.DB.Where("owner_id = ?", userId).Order("position ASC").Find(&items).Error
+	// Формуємо запит
+	query := postgres.DB.Where("owner_id = ?", userId)
+
+	// Фільтр за регіоном
+	if parameters.Language != "" {
+		query = query.Where("language = ?", parameters.Language)
+	}
+
+	// Пагінація
+	query = query.Order("position ASC").Offset(parameters.Skip).Limit(parameters.Limit)
+
+	// Виконання запиту
+	err := query.Find(&items).Error
 	if err != nil {
 		return nil, err
 	}
 
-	// Отримуємо всі медіафайли, пов'язані з блогами цього автора
+	// Отримуємо всі медіафайли, пов'язані з блогами
 	var itemIDs []uuid.UUID
 	for _, item := range items {
 		itemIDs = append(itemIDs, item.ID)
@@ -128,13 +160,13 @@ func GetAllItems(userId uuid.UUID) (*ItemGetAll, error) {
 		}
 	}
 
-	// Групуємо медіафайли за ID блогу
+	// Групуємо медіафайли
 	mediaMap := make(map[uuid.UUID][]string)
 	for _, m := range media {
 		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
 	}
 
-	// Формуємо фінальну структуру з блогами та відповідними медіафайлами
+	// Формуємо відповідь
 	for _, item := range items {
 		response.Data = append(response.Data, &ItemGet{
 			ID:           item.ID,

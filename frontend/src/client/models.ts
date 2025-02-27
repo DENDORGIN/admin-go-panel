@@ -25,17 +25,17 @@ export type ItemCreate = {
 }
 
 export type ItemPublic = {
-  images: string | null
-  title: string
-  description?: string | null
-  description_second?: string | null
-  status: boolean
   ID: string
   position: number
-  language: string
-  item_url: string
+  title: string
+  content: string
+  images: string | null
   category: string
-  properties: Record<string, any>
+  property_id: string
+  item_url: string
+  language: string
+  price: number
+  status: boolean
   owner_id: string
 }
 
@@ -53,8 +53,8 @@ export type ItemUpdate = {
 }
 
 export type ItemsPublic = {
-  data: Array<ItemPublic>
-  count: number
+  Data: Array<ItemPublic>
+  Count: number
 }
 
 export type PostPublic = {
