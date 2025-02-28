@@ -2,7 +2,10 @@ package models
 
 import (
 	"backend/internal/adminpanel/db/postgres"
+	"backend/internal/adminpanel/entities"
+	"backend/internal/adminpanel/repository"
 	"errors"
+
 	//"backend/internal/adminpanel/db/postgres"
 	//"backend/internal/adminpanel/repository"
 	//"backend/internal/adminpanel/services/utils"
@@ -82,11 +85,22 @@ type ItemGetAll struct {
 
 func CreateItem(i *Items) (*ItemsPost, error) {
 	if i.Title == "" {
-		return nil, errors.New("the event name cannot be empty")
+		return nil, errors.New("the item title cannot be empty")
+	}
+	err := repository.GetPosition(postgres.DB, i.Position, &Items{})
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
 	}
 
-	i.ID = uuid.New()
-	if err := postgres.DB.Create(i).Error; err != nil {
+	// Якщо позиція існує, зсуваємо всі наступні
+	if err == nil {
+		if shiftErr := repository.ShiftPositions[Items](postgres.DB, i.Position); shiftErr != nil {
+			return nil, shiftErr
+		}
+	}
+
+	err = repository.CreateEssence(postgres.DB, i)
+	if err != nil {
 		return nil, err
 	}
 	return &ItemsPost{
@@ -104,15 +118,9 @@ func CreateItem(i *Items) (*ItemsPost, error) {
 	}, nil
 }
 
-type Parameters struct {
-	Language string
-	Skip     int
-	Limit    int
-}
-
-func GetAllItems(userId uuid.UUID, parameters *Parameters) (*ItemGetAll, error) {
+func GetAllItems(userId uuid.UUID, parameters *entities.Parameters) (*ItemGetAll, error) {
 	if parameters == nil {
-		parameters = &Parameters{}
+		parameters = &entities.Parameters{}
 	}
 
 	// Значення за замовчуванням

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
 	"github.com/gin-gonic/gin"
@@ -23,13 +24,13 @@ func CreateItemHandler(ctx *gin.Context) {
 
 	item.OwnerID = userID
 
-	newBlog, err := models.CreateItem(&item)
+	newItem, err := models.CreateItem(&item)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, newBlog)
+	ctx.JSON(http.StatusCreated, newItem)
 }
 
 func GetAllItemsHandler(ctx *gin.Context) {
@@ -53,7 +54,7 @@ func GetAllItemsHandler(ctx *gin.Context) {
 	}
 
 	// Формуємо структуру параметрів
-	params := &models.Parameters{
+	params := &entities.Parameters{
 		Language: language,
 		Skip:     skip,
 		Limit:    limit,
