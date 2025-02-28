@@ -52,7 +52,6 @@ type BlogUpdate struct {
 	Content  string `json:"content"`
 	Position int    `json:"position"`
 	Status   bool   `json:"status"`
-	//Images   []string `json:"images"`
 }
 
 type BlogGetAll struct {
@@ -230,24 +229,3 @@ func DeleteBlogById(id uuid.UUID) error {
 
 	return nil
 }
-
-//func ShiftPositions(db *gorm.DB, newPosition int) error {
-//	// Отримуємо всі блоги, у яких позиція >= newPosition (зміщуємо вперед)
-//	var blogs []Blog
-//
-//	err := db.Where("position >= ?", newPosition).Order("position ASC").Find(&blogs).Error
-//	if err != nil {
-//		return fmt.Errorf("failed to fetch items: %v", err)
-//	}
-//
-//	// Перевіряємо, чи є дублікати позицій та зміщуємо їх
-//	for i := range blogs {
-//		blogs[i].Position++ // Зсуваємо позицію вперед
-//
-//		if err := db.Save(&blogs[i]).Error; err != nil {
-//			return fmt.Errorf("failed to update position for ID %v: %v", blogs[i].ID, err)
-//		}
-//	}
-//
-//	return nil
-//}

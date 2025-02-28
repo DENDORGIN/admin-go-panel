@@ -87,6 +87,13 @@ func main() {
 	r.GET("/api/v1/blog/images/:postId", routes.GetAllMediaByBlogIdHandler)
 	r.DELETE("/api/v1/blog/images/:postId", routes.DeleteMediaHandler)
 
+	// Properties routes
+	r.POST("/api/v1/properties/", routes.CreatePropertiesHandler)
+	//r.GET("/api/v1/properties/", routes.GetAllPropertiesHandler)
+	r.GET("/api/v1/properties/:id", routes.GetPropertyByIDHandler)
+	r.PUT("/api/v1/properties/:id", routes.UpdatePropertyHandler)
+	r.DELETE("/api/v1/properties/:id", routes.DeletePropertyHandler)
+
 	// Run the server
 	if err := r.Run(port); err != nil {
 		fmt.Println("Failed to run server", err)

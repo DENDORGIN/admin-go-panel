@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -34,10 +35,10 @@ func GetPosition[T any](db *gorm.DB, position int, model *T) error {
 
 func DeleteByID[T any](db *gorm.DB, id uuid.UUID, model *T) error {
 	err := db.Where("id = ?", id).Delete(model).Error
-	if err != nil {
-		return err
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil
 	}
-	return nil
+	return err
 }
 
 func GetAllMediaByID[T any](db *gorm.DB, id uuid.UUID, model *T) error {
