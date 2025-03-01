@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -9,7 +10,7 @@ import (
 
 func CreatePropertiesHandler(ctx *gin.Context) {
 
-	var property models.Property
+	var property entities.Property
 	if err := ctx.ShouldBindJSON(&property); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -31,7 +32,7 @@ func GetPropertyByIDHandler(ctx *gin.Context) {
 		return
 	}
 
-	property, err := models.GetPropertyByItemId(id)
+	property, err := models.GetPropertyById(id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return

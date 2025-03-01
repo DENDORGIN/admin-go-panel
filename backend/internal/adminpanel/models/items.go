@@ -13,30 +13,30 @@ import (
 	//"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
+	//"time"
 )
 
-type Items struct {
-	ID           uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	Title        string    `gorm:"not null" json:"title"`
-	Content      string    `gorm:"not null" json:"content"`
-	Price        float64   `gorm:"not null" json:"price"`
-	Position     int       `gorm:"not null" json:"position"`
-	Language     string    `gorm:"not null" json:"language"`
-	ItemUrl      string    `gorm:"default:null" json:"item_url"`
-	Category     string    `gorm:"default:null" json:"category"`
-	Status       bool      `gorm:"default:false" json:"status"`
-	PropertiesId uuid.UUID `gorm:"not null;index" json:"property_id"`
-	OwnerID      uuid.UUID `gorm:"not null;index" json:"-"`
-	User         User      `gorm:"foreignKey:OwnerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-}
+//type Items struct {
+//	ID           uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+//	Title        string    `gorm:"not null" json:"title"`
+//	Content      string    `gorm:"not null" json:"content"`
+//	Price        float64   `gorm:"not null" json:"price"`
+//	Position     int       `gorm:"not null" json:"position"`
+//	Language     string    `gorm:"not null" json:"language"`
+//	ItemUrl      string    `gorm:"default:null" json:"item_url"`
+//	Category     string    `gorm:"default:null" json:"category"`
+//	Status       bool      `gorm:"default:false" json:"status"`
+//	PropertiesId uuid.UUID `gorm:"not null;index" json:"property_id"`
+//	OwnerID      uuid.UUID `gorm:"not null;index" json:"-"`
+//	User         User      `gorm:"foreignKey:OwnerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
+//	CreatedAt    time.Time
+//	UpdatedAt    time.Time
+//}
 
-func (c *Items) BeforeCreate(*gorm.DB) error {
-	c.ID = uuid.New()
-	return nil
-}
+//func (c *Items) BeforeCreate(*gorm.DB) error {
+//	c.ID = uuid.New()
+//	return nil
+//}
 
 type ItemsPost struct {
 	ID           uuid.UUID
@@ -54,17 +54,18 @@ type ItemsPost struct {
 
 type ItemGet struct {
 	ID           uuid.UUID
-	Title        string    `json:"title"`
-	Content      string    `json:"content"`
-	Price        float64   `json:"price"`
-	Position     int       `json:"position"`
-	Language     string    `json:"language"`
-	ItemUrl      string    `json:"item_url"`
-	Category     string    `json:"category"`
-	Status       bool      `json:"status"`
-	PropertiesId uuid.UUID `json:"property_id"`
-	OwnerID      uuid.UUID `json:"owner_id"`
-	Images       []string  `json:"images"`
+	Title        string      `json:"title"`
+	Content      string      `json:"content"`
+	Price        float64     `json:"price"`
+	Position     int         `json:"position"`
+	Language     string      `json:"language"`
+	ItemUrl      string      `json:"item_url"`
+	Category     string      `json:"category"`
+	Status       bool        `json:"status"`
+	PropertiesId uuid.UUID   `json:"property_id"`
+	Property     PropertyGet `json:"property"`
+	OwnerID      uuid.UUID   `json:"owner_id"`
+	Images       []string    `json:"images"`
 }
 
 type ItemUpdate struct {
@@ -83,18 +84,18 @@ type ItemGetAll struct {
 	Count int
 }
 
-func CreateItem(i *Items) (*ItemsPost, error) {
+func CreateItem(i *entities.Items) (*ItemsPost, error) {
 	if i.Title == "" {
 		return nil, errors.New("the item title cannot be empty")
 	}
-	err := repository.GetPosition(postgres.DB, i.Position, &Items{})
+	err := repository.GetPosition(postgres.DB, i.Position, &entities.Items{})
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 
 	// Якщо позиція існує, зсуваємо всі наступні
 	if err == nil {
-		if shiftErr := repository.ShiftPositions[Items](postgres.DB, i.Position); shiftErr != nil {
+		if shiftErr := repository.ShiftPositions[entities.Items](postgres.DB, i.Position); shiftErr != nil {
 			return nil, shiftErr
 		}
 	}
@@ -134,8 +135,9 @@ func GetAllItems(userId uuid.UUID, parameters *entities.Parameters) (*ItemGetAll
 		parameters.Limit = 100
 	}
 
-	var items []*Items
-	var media []*Media
+	var items []*entities.Items
+	var media []*entities.Media
+
 	response := &ItemGetAll{}
 
 	// Формуємо запит
@@ -155,7 +157,7 @@ func GetAllItems(userId uuid.UUID, parameters *entities.Parameters) (*ItemGetAll
 		return nil, err
 	}
 
-	// Отримуємо всі медіафайли, пов'язані з блогами
+	// Отримуємо всі медіафайли, пов'язані з товарами
 	var itemIDs []uuid.UUID
 	for _, item := range items {
 		itemIDs = append(itemIDs, item.ID)
@@ -174,6 +176,18 @@ func GetAllItems(userId uuid.UUID, parameters *entities.Parameters) (*ItemGetAll
 		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
 	}
 
+	// Отримуємо всі властивості товарів
+	propertyMap := make(map[uuid.UUID]PropertyGet)
+	for _, item := range items {
+		property, err := GetPropertyById(item.PropertiesId)
+		if err != nil {
+			return nil, err
+		}
+		if property != nil {
+			propertyMap[item.ID] = *property
+		}
+	}
+
 	// Формуємо відповідь
 	for _, item := range items {
 		response.Data = append(response.Data, &ItemGet{
@@ -187,6 +201,7 @@ func GetAllItems(userId uuid.UUID, parameters *entities.Parameters) (*ItemGetAll
 			Category:     item.Category,
 			Status:       item.Status,
 			PropertiesId: item.PropertiesId,
+			Property:     propertyMap[item.ID],
 			OwnerID:      item.OwnerID,
 			Images:       mediaMap[item.ID],
 		})

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
 	"github.com/gin-gonic/gin"
@@ -15,7 +16,7 @@ func CreateEventHandler(ctx *gin.Context) {
 		return
 	}
 
-	var event models.Calendar
+	var event entities.Calendar
 	if err := ctx.ShouldBindJSON(&event); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

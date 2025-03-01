@@ -16,7 +16,7 @@ func CreateItemHandler(ctx *gin.Context) {
 		return
 	}
 
-	var item models.Items
+	var item entities.Items
 	if err := ctx.ShouldBindJSON(&item); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

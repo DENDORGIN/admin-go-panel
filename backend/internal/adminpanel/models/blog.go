@@ -2,31 +2,31 @@ package models
 
 import (
 	"backend/internal/adminpanel/db/postgres"
+	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
-type Blog struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	Title     string    `gorm:"not null" json:"title"`
-	Content   string    `gorm:"not null" json:"content"`
-	Position  int       `gorm:"not null" json:"position"`
-	Status    bool      `gorm:"default:false" json:"status"`
-	AuthorID  uuid.UUID `gorm:"not null;index" json:"-"`
-	User      User      `gorm:"foreignKey:AuthorID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
-func (c *Blog) BeforeCreate(*gorm.DB) error {
-	c.ID = uuid.New()
-	return nil
-}
+//type Blog struct {
+//	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+//	Title     string    `gorm:"not null" json:"title"`
+//	Content   string    `gorm:"not null" json:"content"`
+//	Position  int       `gorm:"not null" json:"position"`
+//	Status    bool      `gorm:"default:false" json:"status"`
+//	AuthorID  uuid.UUID `gorm:"not null;index" json:"-"`
+//	User      User      `gorm:"foreignKey:AuthorID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
+//	CreatedAt time.Time
+//	UpdatedAt time.Time
+//}
+//
+//func (c *Blog) BeforeCreate(*gorm.DB) error {
+//	c.ID = uuid.New()
+//	return nil
+//}
 
 type BlogPost struct {
 	ID       uuid.UUID
@@ -59,19 +59,19 @@ type BlogGetAll struct {
 	Count int
 }
 
-func CreateBlog(b *Blog) (*BlogPost, error) {
+func CreateBlog(b *entities.Blog) (*BlogPost, error) {
 	if b.Title == "" {
 		return nil, errors.New("the item title cannot be empty")
 	}
 
-	err := repository.GetPosition(postgres.DB, b.Position, &Blog{})
+	err := repository.GetPosition(postgres.DB, b.Position, &entities.Blog{})
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 
 	// Якщо позиція існує, зсуваємо всі наступні
 	if err == nil {
-		if shiftErr := repository.ShiftPositions[Blog](postgres.DB, b.Position); shiftErr != nil {
+		if shiftErr := repository.ShiftPositions[entities.Blog](postgres.DB, b.Position); shiftErr != nil {
 			return nil, shiftErr
 		}
 	}
@@ -91,8 +91,8 @@ func CreateBlog(b *Blog) (*BlogPost, error) {
 }
 
 func GetAllBlogs(userId uuid.UUID) (*BlogGetAll, error) {
-	var blogs []*Blog
-	var media []*Media
+	var blogs []*entities.Blog
+	var media []*entities.Media
 	response := &BlogGetAll{}
 
 	// Отримуємо всі блоги автора
@@ -138,8 +138,8 @@ func GetAllBlogs(userId uuid.UUID) (*BlogGetAll, error) {
 }
 
 func GetBlogById(id uuid.UUID) (*BlogGet, error) {
-	var blog Blog
-	var media []*Media
+	var blog entities.Blog
+	var media []*entities.Media
 
 	err := repository.GetByID(postgres.DB, id, &blog)
 	if err != nil {
@@ -168,7 +168,7 @@ func GetBlogById(id uuid.UUID) (*BlogGet, error) {
 }
 
 func UpdateBlogById(id uuid.UUID, updateBlog *BlogUpdate) (*BlogGet, error) {
-	var blog Blog
+	var blog entities.Blog
 
 	// Знаходимо блог за ID
 	err := repository.GetByID(postgres.DB, id, &blog)
@@ -178,7 +178,7 @@ func UpdateBlogById(id uuid.UUID, updateBlog *BlogUpdate) (*BlogGet, error) {
 
 	// Якщо позиція змінилася - зсуваємо інші блоги
 	if updateBlog.Position != blog.Position {
-		err = repository.ShiftPositions[Blog](postgres.DB, updateBlog.Position) // Передаємо тільки число
+		err = repository.ShiftPositions[entities.Blog](postgres.DB, updateBlog.Position) // Передаємо тільки число
 		if err != nil {
 			return nil, err
 		}
@@ -201,8 +201,8 @@ func UpdateBlogById(id uuid.UUID, updateBlog *BlogUpdate) (*BlogGet, error) {
 }
 
 func DeleteBlogById(id uuid.UUID) error {
-	var blog Blog
-	var mediaList []Media
+	var blog entities.Blog
+	var mediaList []entities.Media
 
 	err := repository.DeleteByID(postgres.DB, id, &blog)
 	if err != nil {
@@ -222,7 +222,7 @@ func DeleteBlogById(id uuid.UUID) error {
 		}
 	}
 
-	err = repository.DeleteMediaByID(postgres.DB, id, &Media{})
+	err = repository.DeleteMediaByID(postgres.DB, id, &entities.Media{})
 	if err != nil {
 		return err
 	}

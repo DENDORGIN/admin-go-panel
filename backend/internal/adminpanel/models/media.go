@@ -2,26 +2,26 @@ package models
 
 import (
 	"backend/internal/adminpanel/db/postgres"
+	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
 	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
-type Media struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	ContentId uuid.UUID `gorm:"type:uuid;" json:"content_id"`
-	Url       string    `gorm:"type:string" json:"url"`
-	Type      string    `gorm:"type:string" json:"type"`
-	CreatedAt time.Time `gorm:"type:time" json:"created_at"`
-}
-
-func (c *Media) BeforeCreate(*gorm.DB) error {
-	c.ID = uuid.New()
-	return nil
-}
+//type Media struct {
+//	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+//	ContentId uuid.UUID `gorm:"type:uuid;" json:"content_id"`
+//	Url       string    `gorm:"type:string" json:"url"`
+//	Type      string    `gorm:"type:string" json:"type"`
+//	CreatedAt time.Time `gorm:"type:time" json:"created_at"`
+//}
+//
+//func (c *Media) BeforeCreate(*gorm.DB) error {
+//	c.ID = uuid.New()
+//	return nil
+//}
 
 type MediaPublic struct {
 	ID        uuid.UUID `json:"id"`
@@ -30,7 +30,7 @@ type MediaPublic struct {
 	ContentID uuid.UUID `json:"content_id"`
 }
 
-func DownloadFiles(media *Media) (*MediaPublic, error) {
+func DownloadFiles(media *entities.Media) (*MediaPublic, error) {
 	media.ID = uuid.New()
 
 	if err := postgres.DB.Create(&media).Error; err != nil {
@@ -46,7 +46,7 @@ func DownloadFiles(media *Media) (*MediaPublic, error) {
 }
 
 func GetAllMediaByBlogId(blogID uuid.UUID) ([]MediaPublic, error) {
-	var media []Media
+	var media []entities.Media
 	var listMedia []MediaPublic
 
 	err := repository.GetAllMediaByID(postgres.DB, blogID, &media)
@@ -65,22 +65,22 @@ func GetAllMediaByBlogId(blogID uuid.UUID) ([]MediaPublic, error) {
 	return listMedia, nil
 }
 
-func GetMediaByUrl(url string) (*MediaPublic, error) {
-	var media Media
-	result := postgres.DB.Where("url =?", url).First(&media)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	if result.RowsAffected == 0 {
-		return nil, gorm.ErrRecordNotFound
-	}
-	return &MediaPublic{
-		ID:        media.ID,
-		Url:       media.Url,
-		Type:      media.Type,
-		ContentID: media.ContentId,
-	}, nil
-}
+//func GetMediaByUrl(url string) (*MediaPublic, error) {
+//	var media entities.Media
+//	result := postgres.DB.Where("url =?", url).First(&media)
+//	if result.Error != nil {
+//		return nil, result.Error
+//	}
+//	if result.RowsAffected == 0 {
+//		return nil, gorm.ErrRecordNotFound
+//	}
+//	return &MediaPublic{
+//		ID:        media.ID,
+//		Url:       media.Url,
+//		Type:      media.Type,
+//		ContentID: media.ContentId,
+//	}, nil
+//}
 
 func DeleteFiles(id uuid.UUID) error {
 	err := DeleteInBucket(id)
@@ -88,7 +88,7 @@ func DeleteFiles(id uuid.UUID) error {
 		return err
 	}
 
-	err = repository.DeleteByID(postgres.DB, id, &Media{})
+	err = repository.DeleteByID(postgres.DB, id, &entities.Media{})
 
 	if err != nil {
 		return errors.New("user not found")
@@ -97,7 +97,7 @@ func DeleteFiles(id uuid.UUID) error {
 }
 
 func DeleteInBucket(id uuid.UUID) error {
-	var media *Media
+	var media *entities.Media
 
 	err := repository.GetByID(postgres.DB, id, &media)
 	if err != nil {

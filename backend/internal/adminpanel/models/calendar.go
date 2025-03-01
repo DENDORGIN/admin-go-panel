@@ -2,6 +2,7 @@ package models
 
 import (
 	"backend/internal/adminpanel/db/postgres"
+	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"errors"
 	"github.com/google/uuid"
@@ -9,21 +10,21 @@ import (
 	"time"
 )
 
-type Calendar struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	Title     string    `gorm:"not null" json:"title"`
-	StartDate time.Time `gorm:"not null" json:"startDate"`
-	EndDate   time.Time `gorm:"not null" json:"endDate"`
-	AllDay    bool      `gorm:"not null" json:"allDay"`
-	Color     string    `gorm:"not null" json:"color"`
-	UserID    uuid.UUID `gorm:"not null;index" json:"-"`
-	User      User      `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
-}
-
-func (c *Calendar) BeforeCreate(*gorm.DB) error {
-	c.ID = uuid.New()
-	return nil
-}
+//type Calendar struct {
+//	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+//	Title     string    `gorm:"not null" json:"title"`
+//	StartDate time.Time `gorm:"not null" json:"startDate"`
+//	EndDate   time.Time `gorm:"not null" json:"endDate"`
+//	AllDay    bool      `gorm:"not null" json:"allDay"`
+//	Color     string    `gorm:"not null" json:"color"`
+//	UserID    uuid.UUID `gorm:"not null;index" json:"-"`
+//	User      User      `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
+//}
+//
+//func (c *Calendar) BeforeCreate(*gorm.DB) error {
+//	c.ID = uuid.New()
+//	return nil
+//}
 
 type CalendarEvent struct {
 	ID        uuid.UUID
@@ -35,7 +36,7 @@ type CalendarEvent struct {
 	UserID    uuid.UUID `json:"user_id"`
 }
 
-func CreateEvent(c *Calendar) (*CalendarEvent, error) {
+func CreateEvent(c *entities.Calendar) (*CalendarEvent, error) {
 	if c.Title == "" {
 		return nil, errors.New("the event name cannot be empty")
 	}
@@ -62,7 +63,7 @@ func CreateEvent(c *Calendar) (*CalendarEvent, error) {
 }
 
 func GetAllEvents(userId uuid.UUID) ([]CalendarEvent, error) {
-	var events []Calendar
+	var events []entities.Calendar
 	var response []CalendarEvent
 
 	err := postgres.DB.Where("user_id =?", userId).Find(&events).Error
@@ -89,7 +90,7 @@ func GetAllEvents(userId uuid.UUID) ([]CalendarEvent, error) {
 }
 
 func GetEventById(eventId uuid.UUID) (*CalendarEvent, error) {
-	var calendar Calendar
+	var calendar entities.Calendar
 
 	err := repository.GetByID(postgres.DB, eventId, &calendar)
 	if err != nil {
@@ -110,7 +111,7 @@ func GetEventById(eventId uuid.UUID) (*CalendarEvent, error) {
 }
 
 func DeleteEventById(eventId uuid.UUID) error {
-	err := repository.DeleteByID(postgres.DB, eventId, &Calendar{})
+	err := repository.DeleteByID(postgres.DB, eventId, &entities.Calendar{})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("event not found")

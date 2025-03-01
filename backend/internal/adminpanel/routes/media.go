@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
 	"github.com/gin-gonic/gin"
@@ -48,7 +49,7 @@ func DownloadMediaHandler(ctx *gin.Context) {
 		fileUrls = append(fileUrls, fileUrl)
 
 		// Створюємо об'єкт Media для збереження в базі даних
-		media := models.Media{
+		media := entities.Media{
 			ContentId: postId,
 			Url:       fileUrl,                               // URL завантаженого файлу
 			Type:      fileHeader.Header.Get("Content-Type"), // Тип файлу

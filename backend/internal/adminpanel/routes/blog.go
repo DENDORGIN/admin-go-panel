@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
 	"github.com/gin-gonic/gin"
@@ -15,7 +16,7 @@ func CreateBlogHandler(ctx *gin.Context) {
 		return
 	}
 
-	var blog models.Blog
+	var blog entities.Blog
 	if err := ctx.ShouldBindJSON(&blog); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

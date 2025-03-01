@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
 	"errors"
@@ -43,7 +44,7 @@ func LoginHandler(ctx *gin.Context) {
 }
 
 func CreateUser(ctx *gin.Context) {
-	user := new(models.User)
+	user := new(entities.User)
 	if err := ctx.ShouldBindJSON(user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

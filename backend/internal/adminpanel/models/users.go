@@ -2,6 +2,7 @@ package models
 
 import (
 	"backend/internal/adminpanel/db/postgres"
+	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
 	"errors"
@@ -10,20 +11,19 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"log"
-	"time"
 )
 
 // User - модель користувача з UUID як primary key
-type User struct {
-	ID          uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	FullName    string    `gorm:"not null" json:"fullName"`
-	Email       string    `gorm:"unique;not null" json:"email"`
-	Password    string    `gorm:"not null" json:"password"`
-	IsActive    bool      `gorm:"default:true" json:"isActive"`
-	IsSuperUser bool      `gorm:"default:false" json:"isSuperUser"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-}
+//type User struct {
+//	ID          uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+//	FullName    string    `gorm:"not null" json:"fullName"`
+//	Email       string    `gorm:"unique;not null" json:"email"`
+//	Password    string    `gorm:"not null" json:"password"`
+//	IsActive    bool      `gorm:"default:true" json:"isActive"`
+//	IsSuperUser bool      `gorm:"default:false" json:"isSuperUser"`
+//	CreatedAt   time.Time
+//	UpdatedAt   time.Time
+//}
 
 type UserResponse struct {
 	ID          uuid.UUID `json:"ID"`
@@ -32,8 +32,8 @@ type UserResponse struct {
 	IsActive    bool      `json:"isActive"`
 	IsSuperUser bool      `json:"isSuperUser"`
 
-	Calendar []Calendar `gorm:"foreignKey:UserID" json:"calendars"`
-	Blog     []Blog     `gorm:"foreignKey:AutorID" json:"blogs"`
+	Calendar []entities.Calendar `gorm:"foreignKey:UserID" json:"calendars"`
+	Blog     []entities.Blog     `gorm:"foreignKey:AutorID" json:"blogs"`
 }
 
 type AllUsers struct {
@@ -57,12 +57,12 @@ type UpdatePassword struct {
 }
 
 // BeforeCreate - хук для автоматичної генерації UUID перед створенням запису
-func (user *User) BeforeCreate(*gorm.DB) error {
-	user.ID = uuid.New()
-	return nil
-}
+//func (user *User) BeforeCreate(*gorm.DB) error {
+//	user.ID = uuid.New()
+//	return nil
+//}
 
-func CreateUser(user *User) (*UserResponse, error) {
+func CreateUser(user *entities.User) (*UserResponse, error) {
 	if postgres.DB == nil {
 		return nil, fmt.Errorf("database connection is not initialized")
 	}
@@ -83,8 +83,8 @@ func CreateUser(user *User) (*UserResponse, error) {
 	}, err
 }
 
-func GetAllUsers(ctx *gin.Context, limit int, skip int) ([]*User, error) {
-	var users []*User
+func GetAllUsers(ctx *gin.Context, limit int, skip int) ([]*entities.User, error) {
+	var users []*entities.User
 	if err := postgres.DB.Limit(limit).Offset(skip).Find(&users).Error; err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func GetAllUsers(ctx *gin.Context, limit int, skip int) ([]*User, error) {
 }
 
 func GetUserById(id uuid.UUID) (*UserResponse, error) {
-	var user User
+	var user entities.User
 	err := repository.GetByID(postgres.DB, id, &user)
 	if err != nil {
 		return nil, err
@@ -124,8 +124,8 @@ func GetUserById(id uuid.UUID) (*UserResponse, error) {
 	return userResponse, nil
 }
 
-func GetUserByIdFull(id uuid.UUID) (*User, error) {
-	var user User
+func GetUserByIdFull(id uuid.UUID) (*entities.User, error) {
+	var user entities.User
 	err := repository.GetByID(postgres.DB, id, &user)
 
 	if err != nil {
@@ -135,8 +135,8 @@ func GetUserByIdFull(id uuid.UUID) (*User, error) {
 	return &user, nil
 }
 
-func GetUserByEmail(email string) (*User, error) {
-	var user User
+func GetUserByEmail(email string) (*entities.User, error) {
+	var user entities.User
 	result := postgres.DB.Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
@@ -230,7 +230,7 @@ func ResetCurrentUserPassword(email string, password string) (string, error) {
 
 func DeleteUserById(id uuid.UUID) error {
 
-	err := repository.DeleteByID(postgres.DB, id, &User{})
+	err := repository.DeleteByID(postgres.DB, id, &entities.User{})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("user not found")
@@ -247,7 +247,7 @@ func GetCurrentUserIsSuperUser(id uuid.UUID) (bool, error) {
 	return user.IsSuperUser, nil
 }
 
-func TransformUsers(users []*User) []*UserResponse {
+func TransformUsers(users []*entities.User) []*UserResponse {
 	var userResponses []*UserResponse
 	for _, user := range users {
 		userResponse := &UserResponse{
