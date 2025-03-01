@@ -84,7 +84,7 @@ type ItemGetAll struct {
 	Count int
 }
 
-func CreateItem(i *entities.Items) (*ItemsPost, error) {
+func CreateItem(i *entities.Items) (*ItemGet, error) {
 	if i.Title == "" {
 		return nil, errors.New("the item title cannot be empty")
 	}
@@ -104,7 +104,7 @@ func CreateItem(i *entities.Items) (*ItemsPost, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ItemsPost{
+	return &ItemGet{
 		ID:           i.ID,
 		Title:        i.Title,
 		Content:      i.Content,
@@ -115,7 +115,9 @@ func CreateItem(i *entities.Items) (*ItemsPost, error) {
 		Category:     i.Category,
 		Status:       i.Status,
 		PropertiesId: i.PropertiesId,
-		OwnerID:      i.OwnerID,
+		//Property:     propertyMap[item.ID],
+		OwnerID: i.OwnerID,
+		//Images:       mediaMap[item.ID],
 	}, nil
 }
 
