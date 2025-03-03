@@ -99,6 +99,11 @@ func CreateItem(i *entities.Items) (*ItemGet, error) {
 			return nil, shiftErr
 		}
 	}
+	// Отримуємо всі властивості товарів
+	property, err := GetPropertyById(i.PropertiesId)
+	if err != nil {
+		return nil, err
+	}
 
 	err = repository.CreateEssence(postgres.DB, i)
 	if err != nil {
@@ -115,9 +120,8 @@ func CreateItem(i *entities.Items) (*ItemGet, error) {
 		Category:     i.Category,
 		Status:       i.Status,
 		PropertiesId: i.PropertiesId,
-		//Property:     propertyMap[item.ID],
-		OwnerID: i.OwnerID,
-		//Images:       mediaMap[item.ID],
+		Property:     *property,
+		OwnerID:      i.OwnerID,
 	}, nil
 }
 

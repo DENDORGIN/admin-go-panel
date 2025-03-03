@@ -12,16 +12,15 @@ export type Body_login_login_access_token = {
 // }
 
 export type ItemCreate = {
-  position: number
   title: string
-  description?: string | null
-  description_second?: string | null
-  images?: File[]
+  content: string
+  price: number
+  position: number
   language: string
   item_url?: string | null
   category: string
-  properties: Record<string, any>
   status: boolean
+  properties_id: string
 }
 
 export type ItemPublic = {
