@@ -21,7 +21,7 @@ import type {
   UserRegister,
   UserUpdate,
   UserUpdateMe,
-  UsersPublic,
+  UsersPublic, Properties,
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -462,9 +462,27 @@ export class ItemsService {
       url: "/api/v1/items/",
       body: data,
       headers: {
-        "Content-Type": "multipart/form-data",
-      },
+        "Content-Type": "application/json",
+      }
+      ,
     })
+  }
+
+  /**
+   * Create Property
+   * Create new Property.
+   * @returns ItemPublic Successful Response
+   * @throws ApiError
+   */
+  public static createProperty(data: JSON): CancelablePromise<Properties> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/properties/",
+      body: data,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   }
 
   /**

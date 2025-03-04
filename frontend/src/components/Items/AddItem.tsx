@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   Card,
-  CardBody,
   FormControl,
   FormErrorMessage,
   FormLabel,
@@ -18,15 +17,14 @@ import {
   ModalHeader,
   ModalOverlay,
   Select,
-  Switch,
-  useDisclosure,
+  Switch, useDisclosure,
 } from "@chakra-ui/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
 import { CloseIcon } from "@chakra-ui/icons"
 import { useRef, useState } from "react"
-import { type ApiError, type ItemCreate, ItemsService } from "../../client"
+import {type ApiError, BlogService, type ItemCreate, ItemsService} from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 import { handleError } from "../../utils"
 import PropertiesModal from "../Modals/PropertiesModal"
@@ -36,32 +34,26 @@ import ReactQuill from 'react-quill'; // Import ReactQuill
 import 'react-quill/dist/quill.snow.css'; // Import Quill styles
 
 interface FileDetail {
-  name: string
-  size: string
+  name: string;
+  size: string;
+  file: File;
+  preview?: string;
+}
+
+interface ItemCreateExtended extends ItemCreate {
+  images?: File[];
 }
 
 interface AddItemProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 const AddItem = ({ isOpen, onClose }: AddItemProps) => {
-  const {
-    isOpen: isPropertiesOpen,
-    onOpen: onPropertiesOpen,
-    onClose: onPropertiesClose,
-  } = useDisclosure()
-  const [properties, setProperties] = useState({})
-
-  const handleSaveProperties = (props: any) => {
-    console.log(props)
-    setProperties(props)
-  }
-
-  const queryClient = useQueryClient()
-  const showToast = useCustomToast()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [files, setFiles] = useState<FileDetail[]>([]) // Typing the state with FileDetail[]
+  const queryClient = useQueryClient();
+  const showToast = useCustomToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [files, setFiles] = useState<FileDetail[]>([]);
   const {
     register,
     handleSubmit,
@@ -69,87 +61,140 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<ItemCreate>({
+  } = useForm<ItemCreateExtended>({
     mode: "onBlur",
     criteriaMode: "all",
     defaultValues: {
       title: "",
-      description: "",
+      content: "",
       status: false,
+      images: [],
     },
-  })
+  });
+
+  const {
+    isOpen: isPropertiesOpen,
+    onOpen: onPropertiesOpen,
+    onClose: onPropertiesClose,
+  } = useDisclosure()
+
+  const [properties, setProperties] = useState({})
+  const handleSaveProperties = (props: any) => {
+    console.log(props)
+    setProperties(props)
+  }
+
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      [{ 'font': [] }],
+      [{ 'color': [] }, { 'background': [] }], // Колір тексту та фону
+      [{ 'align': [] }], // Вирівнювання
+      ['bold', 'italic', 'underline', 'strike'], // Стилізація тексту
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }], // Списки
+      [{ 'indent': '-1' }, { 'indent': '+1' }], // Відступи
+      ['link', 'image', 'video'], // Додавання медіа
+      ['clean'], // Очищення форматування
+    ],
+  };
+
+  const formats = [
+    'header', 'font', 'color', 'background', 'align',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'video'
+  ];
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(event.target.files || []).map(
-      (file: File) => ({
-        name: file.name,
-        size: `${(file.size / 1024 / 1024).toFixed(2)} MB`, // Convert size to MB
-      }),
-    )
-    setFiles([...files, ...selectedFiles]) // Append new files to the existing array
-    setFiles([...files, ...selectedFiles]) // Append new files to the existing array
+    if (!event.target.files) return;
+
+    const selectedFiles = Array.from(event.target.files).map((file) => ({
+      name: file.name,
+      size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+      file,
+      preview: URL.createObjectURL(file), // Генеруємо URL для прев’ю
+    }));
+
+    setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+
     setValue(
-      "images",
-      event.target.files ? Array.from(event.target.files) : undefined,
-      { shouldValidate: true },
-    )
-  }
+        "images",
+        [...(watch("images") || []), ...selectedFiles.map((f) => f.file)],
+        { shouldValidate: true }
+    );
+  };
+
+  const handleRemoveFile = (index: number) => {
+    const updatedFiles = [...files];
+
+    // Очищаємо URL для запобігання витоку пам’яті
+    URL.revokeObjectURL(updatedFiles[index].preview!);
+
+    updatedFiles.splice(index, 1);
+    setFiles(updatedFiles);
+  };
+
+  const mutation = useMutation({
+    mutationFn: async (jsonPayload: ItemCreateExtended) => {
+      // Створюємо пост
+
+
+      // @ts-ignore
+      const postResponse = await ItemsService.createItem(jsonPayload);
+      const postId = postResponse.ID;
+
+      // Отримуємо файли
+      const images = jsonPayload.images;
+      if (postId && images && images.length > 0) {
+        const formData = new FormData();
+
+        images.forEach((file) => {
+          formData.append("files", file); // Змінено на "images" (повинно відповідати бекенду)
+        });
+
+        console.log("Uploading images:", formData.getAll("images")); // Дебаг
+
+        await BlogService.downloadImages(postId, formData);
+      } else {
+        console.warn("No images to upload.");
+      }
+    },
+    onSuccess: () => {
+      showToast("Success!", "Post created successfully.", "success");
+      reset();
+      setFiles([]);
+      onClose();
+    },
+    onError: (err: ApiError) => {
+      handleError(err, showToast);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
 
   const handleFileButtonClick = () => {
     if (fileInputRef.current) {
-      fileInputRef.current.click()
+      fileInputRef.current.click();
     }
-  }
+  };
 
-  const handleRemoveFile = ({ index }: { index: any }) => {
-    const updatedFiles = files.filter((_, idx) => idx !== index)
-    setFiles(updatedFiles)
-    // Additionally, you need to update the actual file input if necessary
-  }
+  const onSubmit: SubmitHandler<ItemCreateExtended> = async (data) => {
+    const payload: ItemCreateExtended = {
+      title: data.title,
+      content: data.content,
+      price: parseFloat(String(data.price).replace(",", ".")),
+      position: data.position,
+      language: data.language,
+      item_url: data.item_url,
+      category: data.category,
+      properties_id: data.properties_id, // Замінено на "properties_id" (повинно відповідати бекенду)
+      status: data.status,
+      images: files.map((f) => f.file), // Передаємо файли
+    };
 
-  const mutation = useMutation({
-    mutationFn: async (formData: FormData) => ItemsService.createItem(formData),
-    onSuccess: () => {
-      showToast("Success!", "Item created successfully.", "success")
-      reset()
-      onClose()
-    },
-    onError: (err: ApiError) => {
-      handleError(err, showToast)
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["items"] })
-    },
-  })
-
-  const onSubmit: SubmitHandler<ItemCreate> = async (data) => {
-    const images = watch("images");
-    if (!images || images.length === 0) {
-      showToast("Error", "Please upload at least one image.", "error");
-      return;
-    }
-
-    const formData = new FormData()
-    formData.append("title", data.title)
-    if (data.description) formData.append("description", data.description)
-    formData.append("description_second", data.description_second || "")
-    console.log("Submitting properties:", JSON.stringify(properties))
-    formData.append("properties", JSON.stringify(properties))
-    formData.append("status", String(data.status))
-    formData.append("category", data.category)
-    if (data.item_url) formData.append("item_url", data.item_url)
-    formData.append("language", data.language)
-    formData.append("position", String(data.position))
-
-    console.log(
-      "Form Data for Submission:",
-      Object.fromEntries(formData.entries()),
-    )
-    Array.from(images).forEach((file) => {
-      formData.append("images", file);
-    });
-    await mutation.mutateAsync(formData)
-  }
+    await mutation.mutateAsync(payload);
+  };
 
   return (
     <Modal
@@ -175,19 +220,22 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
               <FormErrorMessage>{errors.title.message}</FormErrorMessage>
             )}
           </FormControl>
-          <FormControl mt={4} isInvalid={!!errors.description}>
-            <FormLabel htmlFor="description">Description</FormLabel>
+          <FormControl mt={4} isInvalid={!!errors.content}>
+            <FormLabel htmlFor="content">Content</FormLabel>
             <ReactQuill
                 theme="snow"
-                value={watch('description')  || ''}
+                value={watch('content')  || ''}
                 onChange={(_, __, ___, editor) => {
-                  setValue('description', editor.getHTML()); // Update form state with HTML content
+                  setValue('content', editor.getHTML()); // Update form state with HTML content
                 }}
+                modules={modules}
+                formats={formats}
             />
-            {errors.description && (
-                <FormErrorMessage>{errors.description.message}</FormErrorMessage>
+            {errors.content && (
+                <FormErrorMessage>{errors.content.message}</FormErrorMessage>
             )}
           </FormControl >
+
           <FormLabel mt={4} htmlFor="properties">Properties</FormLabel>
           <Button variant="primary" onClick={onPropertiesOpen}>Add Properties</Button>
           <PropertiesModal
@@ -196,63 +244,44 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
             onSave={handleSaveProperties}
           />
 
-          {/*<FormControl mt={4} isInvalid={!!errors.description_second}>*/}
-          {/*  <FormLabel htmlFor="description_second">*/}
-          {/*    Description Second*/}
-          {/*  </FormLabel>*/}
-          {/*  <Textarea*/}
-          {/*    id="description_second"*/}
-          {/*    {...register("description_second")}*/}
-          {/*    placeholder="Description Second"*/}
-          {/*  />*/}
-          {/*</FormControl>*/}
-
-          <FormControl mt={4} isInvalid={!!errors.images}>
+          <FormControl mt={4}>
             <FormLabel htmlFor="images">Images</FormLabel>
             <Input
-              ref={fileInputRef}
-              id="images"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={onFileChange}
-              hidden
-              disabled={isSubmitting}
+                ref={fileInputRef}
+                id="images"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={onFileChange}
+                hidden
+                disabled={isSubmitting}
             />
-            {errors.images && (
-              <FormErrorMessage>{errors.images.message}</FormErrorMessage>
-            )}
-            <Button
-              colorScheme="teal"
-              variant="primary"
-              onClick={handleFileButtonClick}
-              mt={4}
-              isLoading={isSubmitting}
-            >
+            <Button colorScheme="teal" variant="outline" onClick={handleFileButtonClick} mt={2} isLoading={isSubmitting}>
               Upload Images
             </Button>
             <Card>
-              <CardBody>
-                {files.length > 0 && (
-                  <List spacing={2} mt={4}>
+              {files.length > 0 && (
+                  <List spacing={2} mt={2}>
                     {files.map((file, index) => (
-                      <ListItem
-                        key={index}
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="space-between"
-                      >
-                        {file.name} - {file.size}
-                        <IconButton
-                          icon={<CloseIcon />}
-                          aria-label="Remove file"
-                          onClick={() => handleRemoveFile({ index: index })}
-                        />
-                      </ListItem>
+                        <ListItem
+                            key={index}
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="space-between"
+                        >
+                          <Box display="flex" alignItems="center" gap={3}>
+                            <img src={file.preview} alt={file.name} width="50" height="50" style={{ borderRadius: "5px" }} />
+                            {file.name} - {file.size}
+                          </Box>
+                          <IconButton
+                              icon={<CloseIcon />}
+                              aria-label="Remove file"
+                              onClick={() => handleRemoveFile(index)}
+                          />
+                        </ListItem>
                     ))}
                   </List>
-                )}
-              </CardBody>
+              )}
             </Card>
           </FormControl>
           <FormControl mt={4} isInvalid={!!errors.category}>
@@ -301,6 +330,31 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
             )}
           </FormControl>
 
+          <FormControl mt={4} isInvalid={!!errors.price}>
+            <FormLabel htmlFor="price">Price</FormLabel>
+            <Input
+                id="price"
+                {...register("price", {
+                  required: "Price is required.",
+                  validate: (value) => {
+                    const parsedValue = parseFloat(String(value).replace(",", ".")); // ✅ Гарантуємо, що `value` — рядок
+                    if (isNaN(parsedValue)) return "Enter a valid number.";
+                    if (parsedValue <= 0) return "Price must be greater than 0.";
+                    return true;
+                  },
+                })}
+                placeholder="Enter price"
+                type="text"
+                inputMode="decimal"
+            />
+            {errors.price && (
+                <FormErrorMessage>{errors.price.message}</FormErrorMessage>
+            )}
+          </FormControl>
+
+
+
+
           <FormControl mt={4} isInvalid={!!errors.position}>
             <FormLabel htmlFor="position">Position</FormLabel>
             <Input
@@ -317,6 +371,7 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
               <FormErrorMessage>{errors.position.message}</FormErrorMessage>
             )}
           </FormControl>
+
           <FormControl mt={4} isInvalid={!!errors.status}>
             <FormLabel
               htmlFor="status"

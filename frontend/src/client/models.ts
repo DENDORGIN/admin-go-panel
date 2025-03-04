@@ -56,6 +56,31 @@ export type ItemsPublic = {
   Count: number
 }
 
+export type PropertiesFormData = {
+  height?: string
+  width?: string
+  weight?: string
+  color?: string
+  material?: string
+  brand?: string
+  motif?: string
+  size?: string
+  style?: string
+}
+
+export type Properties = {
+  ID: string;
+  height: string;
+  width: string;
+  weight: string;
+  color: string;
+  material: string;
+  brand: string;
+  motif: string;
+  size: string;
+  style: string;
+}
+
 export type PostPublic = {
   images: string | null
   title: string
