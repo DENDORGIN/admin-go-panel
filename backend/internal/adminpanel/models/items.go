@@ -5,67 +5,36 @@ import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"errors"
-
-	//"backend/internal/adminpanel/db/postgres"
-	//"backend/internal/adminpanel/repository"
-	//"backend/internal/adminpanel/services/utils"
-	//"errors"
-	//"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	//"time"
 )
 
-//type Items struct {
-//	ID           uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-//	Title        string    `gorm:"not null" json:"title"`
-//	Content      string    `gorm:"not null" json:"content"`
-//	Price        float64   `gorm:"not null" json:"price"`
-//	Position     int       `gorm:"not null" json:"position"`
-//	Language     string    `gorm:"not null" json:"language"`
-//	ItemUrl      string    `gorm:"default:null" json:"item_url"`
-//	Category     string    `gorm:"default:null" json:"category"`
-//	Status       bool      `gorm:"default:false" json:"status"`
-//	PropertiesId uuid.UUID `gorm:"not null;index" json:"property_id"`
-//	OwnerID      uuid.UUID `gorm:"not null;index" json:"-"`
-//	User         User      `gorm:"foreignKey:OwnerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
-//	CreatedAt    time.Time
-//	UpdatedAt    time.Time
-//}
-
-//func (c *Items) BeforeCreate(*gorm.DB) error {
-//	c.ID = uuid.New()
-//	return nil
-//}
-
 type ItemsPost struct {
-	ID           uuid.UUID
-	Title        string    `json:"title"`
-	Content      string    `json:"content"`
-	Price        float64   `json:"price"`
-	Position     int       `json:"position"`
-	Language     string    `json:"language"`
-	ItemUrl      string    `json:"item_url"`
-	Category     string    `json:"category"`
-	Status       bool      `json:"status"`
-	PropertiesId uuid.UUID `json:"property_id"`
-	OwnerID      uuid.UUID `json:"owner_id"`
+	ID       uuid.UUID
+	Title    string    `json:"title"`
+	Content  string    `json:"content"`
+	Price    float64   `json:"price"`
+	Position int       `json:"position"`
+	Language string    `json:"language"`
+	ItemUrl  string    `json:"item_url"`
+	Category string    `json:"category"`
+	Status   bool      `json:"status"`
+	OwnerID  uuid.UUID `json:"owner_id"`
 }
 
 type ItemGet struct {
-	ID           uuid.UUID
-	Title        string      `json:"title"`
-	Content      string      `json:"content"`
-	Price        float64     `json:"price"`
-	Position     int         `json:"position"`
-	Language     string      `json:"language"`
-	ItemUrl      string      `json:"item_url"`
-	Category     string      `json:"category"`
-	Status       bool        `json:"status"`
-	PropertiesId uuid.UUID   `json:"property_id"`
-	Property     PropertyGet `json:"property"`
-	OwnerID      uuid.UUID   `json:"owner_id"`
-	Images       []string    `json:"images"`
+	ID       uuid.UUID
+	Title    string      `json:"title"`
+	Content  string      `json:"content"`
+	Price    float64     `json:"price"`
+	Position int         `json:"position"`
+	Language string      `json:"language"`
+	ItemUrl  string      `json:"item_url"`
+	Category string      `json:"category"`
+	Status   bool        `json:"status"`
+	Property PropertyGet `json:"property"`
+	OwnerID  uuid.UUID   `json:"owner_id"`
+	Images   []string    `json:"images"`
 }
 
 type ItemUpdate struct {
@@ -84,7 +53,7 @@ type ItemGetAll struct {
 	Count int
 }
 
-func CreateItem(i *entities.Items) (*ItemGet, error) {
+func CreateItem(i *entities.Items) (*ItemsPost, error) {
 	if i.Title == "" {
 		return nil, errors.New("the item title cannot be empty")
 	}
@@ -99,29 +68,22 @@ func CreateItem(i *entities.Items) (*ItemGet, error) {
 			return nil, shiftErr
 		}
 	}
-	// Отримуємо всі властивості товарів
-	property, err := GetPropertyById(i.PropertiesId)
-	if err != nil {
-		return nil, err
-	}
 
 	err = repository.CreateEssence(postgres.DB, i)
 	if err != nil {
 		return nil, err
 	}
-	return &ItemGet{
-		ID:           i.ID,
-		Title:        i.Title,
-		Content:      i.Content,
-		Price:        i.Price,
-		Position:     i.Position,
-		Language:     i.Language,
-		ItemUrl:      i.ItemUrl,
-		Category:     i.Category,
-		Status:       i.Status,
-		PropertiesId: i.PropertiesId,
-		Property:     *property,
-		OwnerID:      i.OwnerID,
+	return &ItemsPost{
+		ID:       i.ID,
+		Title:    i.Title,
+		Content:  i.Content,
+		Price:    i.Price,
+		Position: i.Position,
+		Language: i.Language,
+		ItemUrl:  i.ItemUrl,
+		Category: i.Category,
+		Status:   i.Status,
+		OwnerID:  i.OwnerID,
 	}, nil
 }
 
@@ -185,7 +147,7 @@ func GetAllItems(userId uuid.UUID, parameters *entities.Parameters) (*ItemGetAll
 	// Отримуємо всі властивості товарів
 	propertyMap := make(map[uuid.UUID]PropertyGet)
 	for _, item := range items {
-		property, err := GetPropertyById(item.PropertiesId)
+		property, err := GetPropertyByItemId(item.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -197,19 +159,18 @@ func GetAllItems(userId uuid.UUID, parameters *entities.Parameters) (*ItemGetAll
 	// Формуємо відповідь
 	for _, item := range items {
 		response.Data = append(response.Data, &ItemGet{
-			ID:           item.ID,
-			Title:        item.Title,
-			Content:      item.Content,
-			Price:        item.Price,
-			Position:     item.Position,
-			Language:     item.Language,
-			ItemUrl:      item.ItemUrl,
-			Category:     item.Category,
-			Status:       item.Status,
-			PropertiesId: item.PropertiesId,
-			Property:     propertyMap[item.ID],
-			OwnerID:      item.OwnerID,
-			Images:       mediaMap[item.ID],
+			ID:       item.ID,
+			Title:    item.Title,
+			Content:  item.Content,
+			Price:    item.Price,
+			Position: item.Position,
+			Language: item.Language,
+			ItemUrl:  item.ItemUrl,
+			Category: item.Category,
+			Status:   item.Status,
+			Property: propertyMap[item.ID],
+			OwnerID:  item.OwnerID,
+			Images:   mediaMap[item.ID],
 		})
 	}
 

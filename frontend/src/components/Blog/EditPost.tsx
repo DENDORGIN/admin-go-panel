@@ -25,7 +25,7 @@ import { CloseIcon } from "@chakra-ui/icons"
 import { useRef, useState, useEffect } from "react"
 import {
   type ApiError,
-  BlogService,
+  BlogService, MediaService,
   type PostPublic,
   type PostUpdate,
 } from "../../client"
@@ -120,7 +120,7 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
 
   const handleDeleteImage = async (imageUrl: string) => {
     try {
-      await BlogService.deleteImage(post.ID, imageUrl);
+      await MediaService.deleteImage(post.ID, imageUrl);
 
       setExistingImages((prev) => prev.filter((img) => img !== imageUrl));
 
@@ -197,7 +197,7 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
 
         console.log("Uploading images:", formData.getAll("images")); // Дебаг
 
-        await BlogService.downloadImages(postId, formData);
+        await MediaService.downloadImages(postId, formData);
       } else {
         console.warn("No images to upload.");
       }

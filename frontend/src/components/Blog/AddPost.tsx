@@ -26,7 +26,7 @@ import ReactQuill from "react-quill";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type SubmitHandler, useForm } from "react-hook-form";
 
-import { type ApiError, BlogService, type PostCreate } from "../../client";
+import { type ApiError, BlogService, MediaService, type PostCreate } from "../../client";
 import useCustomToast from "../../hooks/useCustomToast";
 import { handleError } from "../../utils";
 
@@ -137,7 +137,7 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
 
         console.log("Uploading images:", formData.getAll("images")); // Дебаг
 
-        await BlogService.downloadImages(postId, formData);
+        await MediaService.downloadImages(postId, formData);
       } else {
         console.warn("No images to upload.");
       }

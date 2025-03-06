@@ -643,31 +643,6 @@ export class BlogService {
     })
   }
 
-  public static downloadImages(postId: string, data: FormData): CancelablePromise<void> {
-    return __request(OpenAPI, {
-      method: "POST",
-      url: `/api/v1/blog/${postId}/images`,
-      body: data,
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    })
-  }
-
-
-  static deleteImage(postId: string, imageUrl: string): CancelablePromise<void> {
-    return __request(OpenAPI, {
-      method: "DELETE",
-      url: `/api/v1/blog/images/${postId}`,
-      body: JSON.stringify({ imageUrl }), // Передаємо URL як JSON
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  }
-
-
-
 
 /**
    * Read Item
@@ -727,5 +702,35 @@ export class BlogService {
         422: "Validation Error",
       },
     })
+  }
+}
+
+
+
+
+export class MediaService {
+
+
+  public static downloadImages(postId: string, data: FormData): CancelablePromise<void> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: `/api/v1/media/${postId}/images`,
+      body: data,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+  }
+
+
+  static deleteImage(postId: string, imageUrl: string): CancelablePromise<void> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: `/api/v1/media/images/${postId}`,
+      body: JSON.stringify({ imageUrl }), // Передаємо URL як JSON
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   }
 }

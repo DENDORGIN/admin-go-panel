@@ -83,9 +83,9 @@ func main() {
 	r.GET("/api/v1/items/", routes.GetAllItemsHandler)
 
 	// Download files
-	r.POST("/api/v1/blog/:postId/images", routes.DownloadMediaHandler)
-	r.GET("/api/v1/blog/images/:postId", routes.GetAllMediaByBlogIdHandler)
-	r.DELETE("/api/v1/blog/images/:postId", routes.DeleteMediaHandler)
+	r.POST("/api/v1/media/:postId/images", routes.DownloadMediaHandler)
+	r.GET("/api/v1/media/images/:postId", routes.GetAllMediaByBlogIdHandler)
+	r.DELETE("/api/v1/media/images/:postId", routes.DeleteMediaHandler)
 
 	// Properties routes
 	r.POST("/api/v1/properties/", routes.CreatePropertiesHandler)

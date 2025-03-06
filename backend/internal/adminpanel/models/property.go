@@ -10,16 +10,17 @@ import (
 )
 
 type PropertyGet struct {
-	ID       uuid.UUID `json:"ID"`
-	Height   string    `json:"height"`
-	Width    string    `json:"width"`
-	Weight   string    `json:"weight"`
-	Color    string    `json:"color"`
-	Material string    `json:"material"`
-	Brand    string    `json:"brand"`
-	Size     string    `json:"size"`
-	Motif    string    `json:"motif"`
-	Style    string    `json:"style"`
+	ID        uuid.UUID `json:"ID"`
+	Height    string    `json:"height"`
+	Width     string    `json:"width"`
+	Weight    string    `json:"weight"`
+	Color     string    `json:"color"`
+	Material  string    `json:"material"`
+	Brand     string    `json:"brand"`
+	Size      string    `json:"size"`
+	Motif     string    `json:"motif"`
+	Style     string    `json:"style"`
+	ContentID uuid.UUID `json:"content_id"`
 }
 
 type PropertyUpdate struct {
@@ -40,39 +41,64 @@ func CreateProperty(c *entities.Property) (*PropertyGet, error) {
 		return nil, err
 	}
 	return &PropertyGet{
-		ID:       c.ID,
-		Height:   c.Height,
-		Width:    c.Width,
-		Weight:   c.Weight,
-		Color:    c.Color,
-		Material: c.Material,
-		Brand:    c.Brand,
-		Size:     c.Size,
-		Motif:    c.Motif,
-		Style:    c.Style,
+		ID:        c.ID,
+		Height:    c.Height,
+		Width:     c.Width,
+		Weight:    c.Weight,
+		Color:     c.Color,
+		Material:  c.Material,
+		Brand:     c.Brand,
+		Size:      c.Size,
+		Motif:     c.Motif,
+		Style:     c.Style,
+		ContentID: c.ContentId,
 	}, nil
 }
 
-func GetPropertyById(Id uuid.UUID) (*PropertyGet, error) {
+func GetPropertyById(id uuid.UUID) (*PropertyGet, error) {
 	var property entities.Property
-	err := postgres.DB.Where("id =?", Id).First(&property).Error
+	err := repository.GetByID(postgres.DB, id, &property)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
 		return nil, err
 	}
 	return &PropertyGet{
-		ID:       property.ID,
-		Height:   property.Height,
-		Width:    property.Width,
-		Weight:   property.Weight,
-		Color:    property.Color,
-		Material: property.Material,
-		Brand:    property.Brand,
-		Size:     property.Size,
-		Motif:    property.Motif,
-		Style:    property.Style,
+		ID:        property.ID,
+		Height:    property.Height,
+		Width:     property.Width,
+		Weight:    property.Weight,
+		Color:     property.Color,
+		Material:  property.Material,
+		Brand:     property.Brand,
+		Size:      property.Size,
+		Motif:     property.Motif,
+		Style:     property.Style,
+		ContentID: property.ContentId,
+	}, nil
+}
+
+func GetPropertyByItemId(itemid uuid.UUID) (*PropertyGet, error) {
+	var property entities.Property
+	err := repository.GetAllContentByID(postgres.DB, itemid, &property)
+	if err != nil {
+		// Якщо запис не знайдено — повертаємо пусту структуру без помилки
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &PropertyGet{}, nil
+		}
+		// Якщо якась інша помилка — повертаємо її
+		return nil, err
+	}
+	return &PropertyGet{
+		ID:        property.ID,
+		Height:    property.Height,
+		Width:     property.Width,
+		Weight:    property.Weight,
+		Color:     property.Color,
+		Material:  property.Material,
+		Brand:     property.Brand,
+		Size:      property.Size,
+		Motif:     property.Motif,
+		Style:     property.Style,
+		ContentID: property.ContentId,
 	}, nil
 }
 
@@ -115,16 +141,17 @@ func UpdateProperty(id uuid.UUID, update *PropertyUpdate) (*PropertyGet, error) 
 		return nil, err
 	}
 	return &PropertyGet{
-		ID:       property.ID,
-		Height:   property.Height,
-		Width:    property.Width,
-		Weight:   property.Weight,
-		Color:    property.Color,
-		Material: property.Material,
-		Brand:    property.Brand,
-		Size:     property.Size,
-		Motif:    property.Motif,
-		Style:    property.Style,
+		ID:        property.ID,
+		Height:    property.Height,
+		Width:     property.Width,
+		Weight:    property.Weight,
+		Color:     property.Color,
+		Material:  property.Material,
+		Brand:     property.Brand,
+		Size:      property.Size,
+		Motif:     property.Motif,
+		Style:     property.Style,
+		ContentID: property.ContentId,
 	}, nil
 }
 

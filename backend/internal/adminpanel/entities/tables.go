@@ -23,20 +23,19 @@ func (user *User) BeforeCreate(*gorm.DB) error {
 }
 
 type Items struct {
-	ID           uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	Title        string    `gorm:"not null" json:"title"`
-	Content      string    `gorm:"not null" json:"content"`
-	Price        float64   `gorm:"not null" json:"price"`
-	Position     int       `gorm:"not null" json:"position"`
-	Language     string    `gorm:"not null" json:"language"`
-	ItemUrl      string    `gorm:"default:null" json:"item_url"`
-	Category     string    `gorm:"default:null" json:"category"`
-	Status       bool      `gorm:"default:false" json:"status"`
-	PropertiesId uuid.UUID `gorm:"not null;index" json:"property_id"`
-	OwnerID      uuid.UUID `gorm:"not null;index" json:"-"`
-	User         User      `gorm:"foreignKey:OwnerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	Title     string    `gorm:"not null" json:"title"`
+	Content   string    `gorm:"not null" json:"content"`
+	Price     float64   `gorm:"not null" json:"price"`
+	Position  int       `gorm:"not null" json:"position"`
+	Language  string    `gorm:"not null" json:"language"`
+	ItemUrl   string    `gorm:"default:null" json:"item_url"`
+	Category  string    `gorm:"default:null" json:"category"`
+	Status    bool      `gorm:"default:false" json:"status"`
+	OwnerID   uuid.UUID `gorm:"not null;index" json:"-"`
+	User      User      `gorm:"foreignKey:OwnerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func (item *Items) BeforeCreate(*gorm.DB) error {
@@ -45,16 +44,17 @@ func (item *Items) BeforeCreate(*gorm.DB) error {
 }
 
 type Property struct {
-	ID       uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	Height   string    `gorm:"default:null" json:"height"`
-	Width    string    `gorm:"default:null" json:"width"`
-	Weight   string    `gorm:"default:null" json:"weight"`
-	Color    string    `gorm:"default:null" json:"color"`
-	Material string    `gorm:"default:null" json:"material"`
-	Brand    string    `gorm:"default:null" json:"brand"`
-	Size     string    `gorm:"default:null" json:"size"`
-	Motif    string    `gorm:"default:null" json:"motif"`
-	Style    string    `gorm:"default:null" json:"style"`
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	Height    string    `gorm:"default:null" json:"height"`
+	Width     string    `gorm:"default:null" json:"width"`
+	Weight    string    `gorm:"default:null" json:"weight"`
+	Color     string    `gorm:"default:null" json:"color"`
+	Material  string    `gorm:"default:null" json:"material"`
+	Brand     string    `gorm:"default:null" json:"brand"`
+	Size      string    `gorm:"default:null" json:"size"`
+	Motif     string    `gorm:"default:null" json:"motif"`
+	Style     string    `gorm:"default:null" json:"style"`
+	ContentId uuid.UUID `gorm:"type:uuid;" json:"content_id"`
 }
 
 func (property *Property) BeforeCreate(*gorm.DB) error {

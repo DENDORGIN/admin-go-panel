@@ -40,9 +40,16 @@ func DeleteByID[T any](db *gorm.DB, id uuid.UUID, model *T) error {
 	}
 	return err
 }
-
 func GetAllMediaByID[T any](db *gorm.DB, id uuid.UUID, model *T) error {
 	err := db.Where("content_id = ?", id).Find(model).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetAllContentByID[T any](db *gorm.DB, id uuid.UUID, model *T) error {
+	err := db.Where("content_id = ?", id).First(model).Error
 	if err != nil {
 		return err
 	}

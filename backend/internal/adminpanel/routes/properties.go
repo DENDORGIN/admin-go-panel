@@ -16,13 +16,13 @@ func CreatePropertiesHandler(ctx *gin.Context) {
 		return
 	}
 
-	newBlog, err := models.CreateProperty(&property)
+	newProps, err := models.CreateProperty(&property)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, newBlog)
+	ctx.JSON(http.StatusCreated, newProps)
 }
 
 func GetPropertyByIDHandler(ctx *gin.Context) {
