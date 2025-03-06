@@ -87,6 +87,106 @@ func CreateItem(i *entities.Items) (*ItemsPost, error) {
 	}, nil
 }
 
+func GetItemById(itemId uuid.UUID) (*ItemGet, error) {
+	var item entities.Items
+	var property entities.Property
+	var media []*entities.Media
+
+	// Get item
+	err := repository.GetByID(postgres.DB, itemId, &item)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get property by item ID
+	err = repository.GetAllContentByID(postgres.DB, itemId, &property)
+	if err != nil {
+		return nil, err
+	}
+
+	//Get Media by item ID
+	err = repository.GetAllMediaByID(postgres.DB, itemId, &media)
+	if err != nil {
+		return nil, err
+	}
+	mediaMap := make(map[uuid.UUID][]string)
+	for _, m := range media {
+		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
+	}
+	return &ItemGet{
+		ID:       item.ID,
+		Title:    item.Title,
+		Content:  item.Content,
+		Price:    item.Price,
+		Position: item.Position,
+		Language: item.Language,
+		ItemUrl:  item.ItemUrl,
+		Category: item.Category,
+		Status:   item.Status,
+		Property: PropertyGet{
+			ID:        property.ID,
+			Height:    property.Height,
+			Weight:    property.Weight,
+			Width:     property.Width,
+			Color:     property.Color,
+			Material:  property.Material,
+			Brand:     property.Brand,
+			Size:      property.Size,
+			Motif:     property.Motif,
+			Style:     property.Style,
+			ContentID: property.ContentId,
+		},
+		OwnerID: item.OwnerID,
+		Images:  mediaMap[item.ID],
+	}, nil
+
+}
+
+func UpdateItemById(itemId uuid.UUID, updateItem *ItemUpdate) (*ItemGet, error) {
+	var item *entities.Items
+
+	err := repository.GetByID(postgres.DB, itemId, &item)
+	if err != nil {
+		return nil, err
+	}
+
+	if updateItem.Position != item.Position {
+		err = repository.ShiftPositions[entities.Items](postgres.DB, updateItem.Position)
+		if err != nil {
+			return nil, err
+		}
+		item.Position = updateItem.Position
+	}
+	if updateItem.Title != "" {
+		item.Title = updateItem.Title
+	}
+	if updateItem.Content != "" {
+		item.Content = updateItem.Content
+	}
+	if updateItem.Price != 0 {
+		item.Price = updateItem.Price
+	}
+	if updateItem.Language != "" {
+		item.Language = updateItem.Language
+	}
+	if updateItem.ItemUrl != "" {
+		item.ItemUrl = updateItem.ItemUrl
+	}
+	if updateItem.Category != "" {
+		item.Category = updateItem.Category
+	}
+	if updateItem.Status != false && updateItem.Status != true {
+		item.Status = updateItem.Status
+	}
+
+	err = postgres.DB.Save(&item).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return GetItemById(itemId)
+}
+
 func GetAllItems(userId uuid.UUID, parameters *entities.Parameters) (*ItemGetAll, error) {
 	if parameters == nil {
 		parameters = &entities.Parameters{}

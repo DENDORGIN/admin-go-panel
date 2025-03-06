@@ -468,22 +468,7 @@ export class ItemsService {
     })
   }
 
-  /**
-   * Create Property
-   * Create new Property.
-   * @returns ItemPublic Successful Response
-   * @throws ApiError
-   */
-  public static createProperty(data: JSON): CancelablePromise<Properties> {
-    return __request(OpenAPI, {
-      method: "POST",
-      url: "/api/v1/properties/",
-      body: data,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  }
+
 
   /**
    * Read Item
@@ -728,6 +713,25 @@ export class MediaService {
       method: "DELETE",
       url: `/api/v1/media/images/${postId}`,
       body: JSON.stringify({ imageUrl }), // Передаємо URL як JSON
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
+}
+
+export class PropertyService {
+  /**
+   * Create Property
+   * Create new Property.
+   * @returns ItemPublic Successful Response
+   * @throws ApiError
+   */
+  public static createProperty(data: JSON): CancelablePromise<Properties> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/properties/",
+      body: data,
       headers: {
         "Content-Type": "application/json",
       },
