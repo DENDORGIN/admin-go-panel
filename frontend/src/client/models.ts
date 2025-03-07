@@ -20,7 +20,6 @@ export type ItemCreate = {
   item_url?: string | null
   category: string
   status: boolean
-  properties_id: string
 }
 
 export type ItemPublic = {

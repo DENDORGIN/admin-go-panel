@@ -23,7 +23,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { CloseIcon } from "@chakra-ui/icons";
 import { useRef, useState } from "react";
-import { type ApiError, BlogService, type ItemCreate, ItemsService } from "../../client";
+import {type ApiError, type ItemCreate, ItemsService, MediaService} from "../../client";
 import useCustomToast from "../../hooks/useCustomToast";
 import { handleError } from "../../utils";
 import ReactQuill from 'react-quill';
@@ -118,17 +118,17 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
 
   const mutation = useMutation({
     mutationFn: async (jsonPayload: ItemCreateExtended) => {
-      const postResponse = await ItemsService.createItem(jsonPayload);
-      const postId = postResponse.ID;
+      const { images, ...createData } = jsonPayload
+      //@ts-ignore
+      const postResponse = await ItemsService.createItem(createData)
+      const postId = postResponse.ID
 
-      const images = jsonPayload.images;
       if (postId && images && images.length > 0) {
-        const formData = new FormData();
+        const formData = new FormData()
         images.forEach((file) => {
-          formData.append("files", file);
-        });
-
-        await BlogService.downloadImages(postId, formData);
+          formData.append("files", file)
+        })
+        await MediaService.downloadImages(postId, formData)
       }
     },
     onSuccess: () => {
@@ -141,7 +141,7 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
       handleError(err, showToast);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["items"] });
     },
   });
 
@@ -161,7 +161,6 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
       language: data.language,
       item_url: data.item_url,
       category: data.category,
-      properties_id: "25535a84-fa1f-4c0b-b298-8ae80e7b4ca7",
       status: data.status,
       images: files.map((f) => f.file),
     };
@@ -286,9 +285,9 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
                     required: "Please select a language",
                   })}
               >
-                <option value="PL">PL</option>
-                <option value="EN">EN</option>
-                <option value="DE">DE</option>
+                <option value="pl">PL</option>
+                <option value="en">EN</option>
+                <option value="de">DE</option>
               </Select>
               {errors.language && (
                   <FormErrorMessage>{errors.language.message}</FormErrorMessage>

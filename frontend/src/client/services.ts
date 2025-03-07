@@ -456,7 +456,7 @@ export class ItemsService {
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
-  public static createItem(data: JSON): CancelablePromise<ItemPublic> {
+  public static createItem(data: TDataCreateItem): CancelablePromise<ItemPublic> {
     return __request(OpenAPI, {
       method: "POST",
       url: "/api/v1/items/",
