@@ -30,7 +30,7 @@ export type ItemPublic = {
   content: string
   images: string | null
   category: string
-  property_id: string
+  property: Properties
   item_url: string
   language: string
   price: number

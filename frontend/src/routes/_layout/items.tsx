@@ -109,7 +109,7 @@ function ItemsTable({ language }: ItemsTableProps) {
               <Th>Content</Th>
               <Th>Images</Th>
               <Th>Category</Th>
-              {/*<Th>Properties</Th>*/}
+              <Th>Properties</Th>
               <Th>URL</Th>
               <Th>Language</Th>
               <Th>Price</Th>
@@ -143,15 +143,18 @@ function ItemsTable({ language }: ItemsTableProps) {
                     <ImageGallery images={Array.isArray(item.images) ? item.images : item.images ? [item.images] : []} title={item.title} />
                   </Td>
                   <Td>{item.category || "No Category"}</Td>
-                  {/*<Td>*/}
-                  {/*  {Object.entries(item.properties).map(([key, value]) => (*/}
-                  {/*    <Box key={key}>*/}
-                  {/*      <strong>{key}:</strong> {value}*/}
-                  {/*    </Box>*/}
-                  {/*  ))}*/}
-                  {/*</Td>*/}
+                    <Td>
+                      {Object.entries(item.property)
+                          .filter(([key]) => key !== "ID" && key !== "content_id")
+                          .map(([key, value]) => (
+                              <Box key={key}>
+                                <strong>{key}:</strong> {value}
+                              </Box>
+                          ))}
+                    </Td>
 
-                  <Td>
+
+                    <Td>
                     <Link
                       href={item.item_url || "#"}
                       isExternal
