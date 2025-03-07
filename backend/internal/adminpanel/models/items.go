@@ -191,9 +191,16 @@ func UpdateItemById(itemId uuid.UUID, updateItem *ItemUpdate) (*ItemGet, error) 
 
 func DeleteItemById(id uuid.UUID) error {
 	var item entities.Items
+	var property entities.Property
 	var mediaList []entities.Media
 
 	err := repository.DeleteByID(postgres.DB, id, &item)
+	if err != nil {
+		return err
+	}
+
+	// Delete property by content_id
+	err = repository.DeleteContentByID(postgres.DB, id, &property)
 	if err != nil {
 		return err
 	}
@@ -211,7 +218,7 @@ func DeleteItemById(id uuid.UUID) error {
 		}
 	}
 
-	err = repository.DeleteMediaByID(postgres.DB, id, &entities.Media{})
+	err = repository.DeleteContentByID(postgres.DB, id, &entities.Media{})
 	if err != nil {
 		return err
 	}

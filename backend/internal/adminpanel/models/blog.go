@@ -222,7 +222,7 @@ func DeleteBlogById(id uuid.UUID) error {
 		}
 	}
 
-	err = repository.DeleteMediaByID(postgres.DB, id, &entities.Media{})
+	err = repository.DeleteContentByID(postgres.DB, id, &entities.Media{})
 	if err != nil {
 		return err
 	}
