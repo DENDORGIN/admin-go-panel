@@ -130,3 +130,37 @@ func GetAllItemsHandler(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, items)
 }
+func DeleteItemByIdHandler(ctx *gin.Context) {
+	userID, ok := utils.GetUserIDFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	id, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
+		return
+	}
+
+	item, err := models.GetItemById(id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	isSuperUser, err := models.GetCurrentUserIsSuperUser(userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if item.OwnerID != userID || !isSuperUser {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
+		return
+	}
+	err = models.DeleteItemById(id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"success": "Item deleted"})
+}

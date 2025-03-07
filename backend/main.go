@@ -83,6 +83,7 @@ func main() {
 	r.GET("/api/v1/items/", routes.GetAllItemsHandler)
 	r.GET("/api/v1/items/:id", routes.GetItemByID)
 	r.PUT("/api/v1/items/:id", routes.UpdateItemByIdHandler)
+	r.DELETE("/api/v1/items/:id", routes.DeleteItemByIdHandler)
 
 	// Download files
 	r.POST("/api/v1/media/:postId/images", routes.DownloadMediaHandler)

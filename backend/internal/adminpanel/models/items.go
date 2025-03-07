@@ -4,7 +4,9 @@ import (
 	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
+	"backend/internal/adminpanel/services/utils"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -185,6 +187,36 @@ func UpdateItemById(itemId uuid.UUID, updateItem *ItemUpdate) (*ItemGet, error) 
 	}
 
 	return GetItemById(itemId)
+}
+
+func DeleteItemById(id uuid.UUID) error {
+	var item entities.Items
+	var mediaList []entities.Media
+
+	err := repository.DeleteByID(postgres.DB, id, &item)
+	if err != nil {
+		return err
+	}
+
+	err = repository.GetAllMediaByID(postgres.DB, id, &mediaList)
+	if err != nil {
+		return err
+	}
+	for _, media := range mediaList {
+		fileName := utils.ExtractFileNameFromURL(media.Url)
+		fmt.Println("Deleted file:", fileName)
+		err = utils.DeleteFile(fileName)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = repository.DeleteMediaByID(postgres.DB, id, &entities.Media{})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func GetAllItems(userId uuid.UUID, parameters *entities.Parameters) (*ItemGetAll, error) {
