@@ -124,7 +124,7 @@ func DeleteBlogByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	isSuperUser, err := models.GetCurrentUserIsSuperUser(userID)
+	isSuperUser, err := utils.GetIsSuperUser(userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

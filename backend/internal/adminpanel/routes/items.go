@@ -101,28 +101,19 @@ func GetAllItemsHandler(ctx *gin.Context) {
 		return
 	}
 
-	// Отримуємо параметри запиту
+	isSuperUser, _ := utils.GetIsSuperUser(userID)
+
 	language := ctx.DefaultQuery("language", "pl")
 	skip, _ := strconv.Atoi(ctx.DefaultQuery("skip", "0"))
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "100"))
 
-	// Перевірка коректності значень
-	if skip < 0 {
-		skip = 0
-	}
-	if limit <= 0 {
-		limit = 100
-	}
-
-	// Формуємо структуру параметрів
 	params := &entities.Parameters{
 		Language: language,
 		Skip:     skip,
 		Limit:    limit,
 	}
 
-	// Викликаємо основну функцію
-	items, err := models.GetAllItems(userID, params)
+	items, err := models.GetAllItems(userID, isSuperUser, params)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -130,6 +121,7 @@ func GetAllItemsHandler(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, items)
 }
+
 func DeleteItemByIdHandler(ctx *gin.Context) {
 	userID, ok := utils.GetUserIDFromContext(ctx)
 	if !ok {
@@ -147,7 +139,7 @@ func DeleteItemByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	isSuperUser, err := models.GetCurrentUserIsSuperUser(userID)
+	isSuperUser, err := utils.GetIsSuperUser(userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

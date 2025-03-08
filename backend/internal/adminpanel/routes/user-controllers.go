@@ -167,13 +167,13 @@ func DeleteUser(ctx *gin.Context) {
 		return
 	}
 
-	isSuperUser, err := models.GetCurrentUserIsSuperUser(userID)
+	isSuperUser, err := utils.GetIsSuperUser(userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	isTargetSuperUser, err := models.GetCurrentUserIsSuperUser(id)
+	isTargetSuperUser, err := utils.GetIsSuperUser(id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

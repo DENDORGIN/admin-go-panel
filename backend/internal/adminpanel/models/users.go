@@ -10,20 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"log"
 )
-
-// User - модель користувача з UUID як primary key
-//type User struct {
-//	ID          uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-//	FullName    string    `gorm:"not null" json:"fullName"`
-//	Email       string    `gorm:"unique;not null" json:"email"`
-//	Password    string    `gorm:"not null" json:"password"`
-//	IsActive    bool      `gorm:"default:true" json:"isActive"`
-//	IsSuperUser bool      `gorm:"default:false" json:"isSuperUser"`
-//	CreatedAt   time.Time
-//	UpdatedAt   time.Time
-//}
 
 type UserResponse struct {
 	ID          uuid.UUID `json:"ID"`
@@ -55,12 +42,6 @@ type UpdatePassword struct {
 	CurrentPassword string `json:"currentPassword"`
 	NewPassword     string `json:"newPassword"`
 }
-
-// BeforeCreate - хук для автоматичної генерації UUID перед створенням запису
-//func (user *User) BeforeCreate(*gorm.DB) error {
-//	user.ID = uuid.New()
-//	return nil
-//}
 
 func CreateUser(user *entities.User) (*UserResponse, error) {
 	if postgres.DB == nil {
@@ -98,19 +79,6 @@ func GetUserById(id uuid.UUID) (*UserResponse, error) {
 		return nil, err
 	}
 
-	//// Отримуємо зв’язані дані (Calendar, Blog)
-	//var calendars []Calendar
-	//var blogs []Blog
-	//err = postgres.DB.Where("user_id = ?", id).Find(&calendars).Error
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//err = postgres.DB.Where("author_id = ?", id).Find(&blogs).Error
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	// Формуємо структуру UserResponse
 	userResponse := &UserResponse{
 		ID:          user.ID,
@@ -118,8 +86,6 @@ func GetUserById(id uuid.UUID) (*UserResponse, error) {
 		Email:       user.Email,
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
-		//Calendar:    calendars,
-		//Blog:        blogs,
 	}
 	return userResponse, nil
 }
@@ -237,14 +203,6 @@ func DeleteUserById(id uuid.UUID) error {
 		}
 	}
 	return nil
-}
-
-func GetCurrentUserIsSuperUser(id uuid.UUID) (bool, error) {
-	user, err := GetUserByIdFull(id)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return user.IsSuperUser, nil
 }
 
 func TransformUsers(users []*entities.User) []*UserResponse {

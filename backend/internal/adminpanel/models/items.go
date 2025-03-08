@@ -225,7 +225,7 @@ func DeleteItemById(id uuid.UUID) error {
 			return err
 		}
 	}
-
+	// Delete media by content_id
 	err = repository.DeleteContentByID(postgres.DB, id, &entities.Media{})
 	if err != nil {
 		return err
@@ -234,7 +234,7 @@ func DeleteItemById(id uuid.UUID) error {
 	return nil
 }
 
-func GetAllItems(userId uuid.UUID, parameters *entities.Parameters) (*ItemGetAll, error) {
+func GetAllItems(userId uuid.UUID, isSuperUser bool, parameters *entities.Parameters) (*ItemGetAll, error) {
 	if parameters == nil {
 		parameters = &entities.Parameters{}
 	}
@@ -255,10 +255,15 @@ func GetAllItems(userId uuid.UUID, parameters *entities.Parameters) (*ItemGetAll
 
 	response := &ItemGetAll{}
 
-	// Формуємо запит
-	query := postgres.DB.Where("owner_id = ?", userId)
+	// Формуємо базовий запит
+	query := postgres.DB
 
-	// Фільтр за регіоном
+	// Якщо не суперюзер, додаємо фільтр за власником
+	if !isSuperUser {
+		query = query.Where("owner_id = ?", userId)
+	}
+
+	// Фільтр за мовою
 	if parameters.Language != "" {
 		query = query.Where("language = ?", parameters.Language)
 	}
@@ -272,7 +277,7 @@ func GetAllItems(userId uuid.UUID, parameters *entities.Parameters) (*ItemGetAll
 		return nil, err
 	}
 
-	// Отримуємо всі медіафайли, пов'язані з товарами
+	// Отримуємо медіа
 	var itemIDs []uuid.UUID
 	for _, item := range items {
 		itemIDs = append(itemIDs, item.ID)
@@ -291,7 +296,7 @@ func GetAllItems(userId uuid.UUID, parameters *entities.Parameters) (*ItemGetAll
 		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
 	}
 
-	// Отримуємо всі властивості товарів
+	// Отримуємо властивості
 	propertyMap := make(map[uuid.UUID]PropertyGet)
 	for _, item := range items {
 		property, err := GetPropertyByItemId(item.ID)
