@@ -315,6 +315,7 @@ func GetAllItems(userId uuid.UUID, isSuperUser bool, parameters *entities.Parame
 			Title:    item.Title,
 			Content:  item.Content,
 			Price:    item.Price,
+			Quantity: item.Quantity,
 			Position: item.Position,
 			Language: item.Language,
 			ItemUrl:  item.ItemUrl,

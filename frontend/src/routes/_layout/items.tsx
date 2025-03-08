@@ -113,6 +113,7 @@ function ItemsTable({ language }: ItemsTableProps) {
               <Th>URL</Th>
               <Th>Language</Th>
               <Th>Price</Th>
+              <Th>Quantity</Th>
               <Th>Status</Th>
               <Th>Actions</Th>
             </Tr>
@@ -166,6 +167,7 @@ function ItemsTable({ language }: ItemsTableProps) {
                   </Td>
                   <Td>{item.language || "No Language"}</Td>
                   <Td>{item.price}</Td>
+                  <Td>{item.quantity}</Td>
                   <Td>
                     <Flex gap={2}>
                       <Box

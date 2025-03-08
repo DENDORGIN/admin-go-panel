@@ -15,6 +15,7 @@ export type ItemCreate = {
   title: string
   content: string
   price: number
+  quantity: number
   position: number
   language: string
   item_url?: string | null
@@ -33,6 +34,7 @@ export type ItemPublic = {
   item_url: string
   language: string
   price: number
+  quantity: number
   status: boolean
   owner_id: string
 }

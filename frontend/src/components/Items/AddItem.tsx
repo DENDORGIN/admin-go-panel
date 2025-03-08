@@ -157,6 +157,7 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
       title: data.title,
       content: data.content,
       price: parseFloat(String(data.price).replace(",", ".")),
+      quantity: data.quantity,
       position: data.position,
       language: data.language,
       item_url: data.item_url,
@@ -313,6 +314,23 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
               />
               {errors.price && (
                   <FormErrorMessage>{errors.price.message}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl mt={4} isInvalid={!!errors.quantity}>
+              <FormLabel htmlFor="quantity">Quantity</FormLabel>
+              <Input
+                  id="quantity"
+                  {...register("quantity", {
+                    required: "Quantity is required.",
+                    valueAsNumber: true,
+                    min: { value: 1, message: "Quantity must be greater than 0" },
+                  })}
+                  placeholder="Enter quantity"
+                  type="number"
+              />
+              {errors.quantity && (
+                  <FormErrorMessage>{errors.quantity.message}</FormErrorMessage>
               )}
             </FormControl>
 
