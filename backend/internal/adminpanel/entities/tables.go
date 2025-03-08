@@ -27,6 +27,7 @@ type Items struct {
 	Title     string    `gorm:"not null" json:"title"`
 	Content   string    `gorm:"not null" json:"content"`
 	Price     float64   `gorm:"not null" json:"price"`
+	Quantity  int       `gorm:"not null" json:"quantity"`
 	Position  int       `gorm:"not null" json:"position"`
 	Language  string    `gorm:"not null" json:"language"`
 	ItemUrl   string    `gorm:"default:null" json:"item_url"`
@@ -67,6 +68,7 @@ type Blog struct {
 	Title     string    `gorm:"not null" json:"title"`
 	Content   string    `gorm:"not null" json:"content"`
 	Position  int       `gorm:"not null" json:"position"`
+	Language  string    `gorm:"not null" json:"language"`
 	Status    bool      `gorm:"default:false" json:"status"`
 	AuthorID  uuid.UUID `gorm:"not null;index" json:"-"`
 	User      User      `gorm:"foreignKey:AuthorID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`

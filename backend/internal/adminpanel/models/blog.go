@@ -33,6 +33,7 @@ type BlogPost struct {
 	Title    string    `json:"title"`
 	Content  string    `json:"content"`
 	Position int       `json:"position"`
+	Language string    `json:"language"`
 	Status   bool      `json:"status"`
 	AuthorID uuid.UUID `json:"author_id"`
 }
@@ -42,6 +43,7 @@ type BlogGet struct {
 	Title    string    `json:"title"`
 	Content  string    `json:"content"`
 	Position int       `json:"position"`
+	Language string    `json:"language"`
 	Status   bool      `json:"status"`
 	AuthorID uuid.UUID `json:"author_id"`
 	Images   []string  `json:"images"`
@@ -71,7 +73,7 @@ func CreateBlog(b *entities.Blog) (*BlogPost, error) {
 
 	// Якщо позиція існує, зсуваємо всі наступні
 	if err == nil {
-		if shiftErr := repository.ShiftPositions[entities.Blog](postgres.DB, b.Position); shiftErr != nil {
+		if shiftErr := repository.ShiftPositions[entities.Blog](postgres.DB, b.Position, b.Language); shiftErr != nil {
 			return nil, shiftErr
 		}
 	}
@@ -85,6 +87,7 @@ func CreateBlog(b *entities.Blog) (*BlogPost, error) {
 		Title:    b.Title,
 		Content:  b.Content,
 		Position: b.Position,
+		Language: b.Language,
 		Status:   b.Status,
 		AuthorID: b.AuthorID,
 	}, nil
@@ -178,7 +181,7 @@ func UpdateBlogById(id uuid.UUID, updateBlog *BlogUpdate) (*BlogGet, error) {
 
 	// Якщо позиція змінилася - зсуваємо інші блоги
 	if updateBlog.Position != blog.Position {
-		err = repository.ShiftPositions[entities.Blog](postgres.DB, updateBlog.Position) // Передаємо тільки число
+		err = repository.ShiftPositions[entities.Blog](postgres.DB, updateBlog.Position, blog.Language) // Передаємо тільки число
 		if err != nil {
 			return nil, err
 		}
@@ -186,8 +189,13 @@ func UpdateBlogById(id uuid.UUID, updateBlog *BlogUpdate) (*BlogGet, error) {
 	}
 
 	// Оновлюємо поля блогу
-	blog.Title = updateBlog.Title
-	blog.Content = updateBlog.Content
+	if updateBlog.Title != "" {
+		blog.Title = updateBlog.Title
+	}
+	if updateBlog.Content != "" {
+		blog.Content = updateBlog.Content
+	}
+
 	blog.Status = updateBlog.Status
 
 	// Зберігаємо оновлений блог

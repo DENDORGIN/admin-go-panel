@@ -66,7 +66,7 @@ func CreateItem(i *entities.Items) (*ItemsPost, error) {
 
 	// Якщо позиція існує, зсуваємо всі наступні
 	if err == nil {
-		if shiftErr := repository.ShiftPositions[entities.Items](postgres.DB, i.Position); shiftErr != nil {
+		if shiftErr := repository.ShiftPositions[entities.Items](postgres.DB, i.Position, i.Language); shiftErr != nil {
 			return nil, shiftErr
 		}
 	}
@@ -153,7 +153,7 @@ func UpdateItemById(itemId uuid.UUID, updateItem *ItemUpdate) (*ItemGet, error) 
 	}
 
 	if updateItem.Position != item.Position {
-		err = repository.ShiftPositions[entities.Items](postgres.DB, updateItem.Position)
+		err = repository.ShiftPositions[entities.Items](postgres.DB, updateItem.Position, item.Language)
 		if err != nil {
 			return nil, err
 		}

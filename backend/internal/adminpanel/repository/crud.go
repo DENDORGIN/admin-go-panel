@@ -65,16 +65,17 @@ func DeleteContentByID[T any](db *gorm.DB, id uuid.UUID, model *T) error {
 }
 
 // ShiftPositions зміщує всі записи вперед, якщо нова позиція вже зайнята
-func ShiftPositions[T any](db *gorm.DB, newPosition int) error {
+func ShiftPositions[T any](db *gorm.DB, newPosition int, language string) error {
 	var items []T
 
-	// Отримуємо всі елементи, позиція яких >= newPosition
-	err := db.Where("position >= ?", newPosition).Order("position ASC").Find(&items).Error
+	// Вибираємо елементи з позицією >= newPosition та з конкретною мовою
+	err := db.Where("position >= ? AND language = ?", newPosition, language).
+		Order("position ASC").
+		Find(&items).Error
 	if err != nil {
 		return fmt.Errorf("failed to fetch items: %v", err)
 	}
 
-	// Перевіряємо, чи є елементи для зміщення
 	if len(items) == 0 {
 		return nil
 	}
@@ -84,13 +85,13 @@ func ShiftPositions[T any](db *gorm.DB, newPosition int) error {
 		positionField := v.FieldByName("Position")
 
 		if positionField.IsValid() && positionField.CanSet() {
-			positionField.SetInt(positionField.Int() + 1) // Зсуваємо позицію на +1
+			positionField.SetInt(positionField.Int() + 1)
 		} else {
 			return fmt.Errorf("model does not have a 'Position' field or it's not settable")
 		}
 	}
 
-	// Оновлюємо всі позиції в базі одним запитом
+	// Оновлюємо позиції лише вибраних товарів конкретної мови
 	for _, item := range items {
 		if err := db.Save(&item).Error; err != nil {
 			return fmt.Errorf("failed to update position: %v", err)
