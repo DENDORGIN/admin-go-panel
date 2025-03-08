@@ -16,6 +16,7 @@ type ItemsPost struct {
 	Title    string    `json:"title"`
 	Content  string    `json:"content"`
 	Price    float64   `json:"price"`
+	Quantity int       `json:"quantity"`
 	Position int       `json:"position"`
 	Language string    `json:"language"`
 	ItemUrl  string    `json:"item_url"`
@@ -29,6 +30,7 @@ type ItemGet struct {
 	Title    string      `json:"title"`
 	Content  string      `json:"content"`
 	Price    float64     `json:"price"`
+	Quantity int         `json:"quantity"`
 	Position int         `json:"position"`
 	Language string      `json:"language"`
 	ItemUrl  string      `json:"item_url"`
@@ -43,6 +45,7 @@ type ItemUpdate struct {
 	Title    string  `json:"title"`
 	Content  string  `json:"content"`
 	Price    float64 `json:"price"`
+	Quantity int     `json:"quantity"`
 	Position int     `json:"position"`
 	Language string  `json:"language"`
 	ItemUrl  string  `json:"item_url"`
@@ -81,6 +84,7 @@ func CreateItem(i *entities.Items) (*ItemsPost, error) {
 		Content:  i.Content,
 		Price:    i.Price,
 		Position: i.Position,
+		Quantity: i.Quantity,
 		Language: i.Language,
 		ItemUrl:  i.ItemUrl,
 		Category: i.Category,
@@ -120,6 +124,7 @@ func GetItemById(itemId uuid.UUID) (*ItemGet, error) {
 		Title:    item.Title,
 		Content:  item.Content,
 		Price:    item.Price,
+		Quantity: item.Quantity,
 		Position: item.Position,
 		Language: item.Language,
 		ItemUrl:  item.ItemUrl,
@@ -167,6 +172,9 @@ func UpdateItemById(itemId uuid.UUID, updateItem *ItemUpdate) (*ItemGet, error) 
 	}
 	if updateItem.Price != 0 {
 		item.Price = updateItem.Price
+	}
+	if updateItem.Quantity != 0 {
+		item.Quantity = updateItem.Quantity
 	}
 	if updateItem.Language != "" {
 		item.Language = updateItem.Language
