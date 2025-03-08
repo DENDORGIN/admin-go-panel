@@ -11,40 +11,31 @@ import {
   ModalHeader,
   ModalOverlay,
 } from "@chakra-ui/react";
-import { useMutation } from "@tanstack/react-query";
+
 import { useForm } from "react-hook-form";
-import { type ApiError, ItemsService, type PropertiesFormData } from "../../client";
+import {type PropertiesFormData } from "../../client";
 import useCustomToast from "../../hooks/useCustomToast";
-import { handleError } from "../../utils";
+
 
 interface PropertiesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (propertiesId: string) => void; // Змінено на string, бо ID приходить як UUID
+  onSave: (data: PropertiesFormData) => void;
 }
+
 
 const PropertiesModal = ({ isOpen, onClose, onSave }: PropertiesModalProps) => {
   const showToast = useCustomToast();
   const { register, handleSubmit, reset } = useForm<PropertiesFormData>();
 
-  const mutation = useMutation({
-    mutationFn: async (data: PropertiesFormData) => {
-      return ItemsService.createProperty(data);
-    },
-    onSuccess: (response) => {
-      showToast("Success!", "Properties created successfully.", "success");
-      onSave(response.ID); // Передача отриманого ID у товар
-      onClose();
-      reset();
-    },
-    onError: (err: ApiError) => {
-      handleError(err, showToast);
-    },
-  });
 
   const onSubmit = (data: PropertiesFormData) => {
-    mutation.mutate(data);
+    onSave(data);
+    reset();
+    onClose();
+    showToast("Успішно!", "Властивості тимчасово збережені.", "success");
   };
+
 
   return (
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -94,7 +85,7 @@ const PropertiesModal = ({ isOpen, onClose, onSave }: PropertiesModalProps) => {
             <Button mr={3} onClick={onClose}>
               Close
             </Button>
-            <Button variant="primary" type="submit" colorScheme="teal" isLoading={mutation.isPending}>
+            <Button variant="primary" type="submit" colorScheme="teal">
               Save Properties
             </Button>
           </ModalFooter>

@@ -67,6 +67,7 @@ export type PropertiesFormData = {
   motif?: string
   size?: string
   style?: string
+  content_id: string
 }
 
 export type Properties = {
@@ -80,6 +81,7 @@ export type Properties = {
   motif: string;
   size: string;
   style: string;
+  content_id: string
 }
 
 export type PostPublic = {

@@ -23,11 +23,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { CloseIcon } from "@chakra-ui/icons";
 import { useRef, useState } from "react";
-import {type ApiError, type ItemCreate, ItemsService, MediaService} from "../../client";
+import {type ApiError, type ItemCreate, ItemsService, MediaService, type PropertiesFormData, PropertyService} from "../../client";
 import useCustomToast from "../../hooks/useCustomToast";
 import { handleError } from "../../utils";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+
+import PropertiesModal from "../Modals/PropertiesModal"
 
 interface FileDetail {
   name: string;
@@ -67,6 +69,18 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
       images: [],
     },
   });
+
+  const [isPropertyModalOpen, setPropertyModalOpen] = useState(false);
+  const [propertyData, setPropertyData] = useState<PropertiesFormData | null>(null);
+  const handleOpenPropertyModal = () => setPropertyModalOpen(true);
+  const handleClosePropertyModal = () => setPropertyModalOpen(false);
+
+
+  const handleSaveProperties = (data: PropertiesFormData) => {
+    setPropertyData(data);
+  };
+
+
 
 
   const modules = {
@@ -118,32 +132,48 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
 
   const mutation = useMutation({
     mutationFn: async (jsonPayload: ItemCreateExtended) => {
-      const { images, ...createData } = jsonPayload
+      const { images, ...createData } = jsonPayload;
       //@ts-ignore
-      const postResponse = await ItemsService.createItem(createData)
-      const postId = postResponse.ID
-
-      if (postId && images && images.length > 0) {
-        const formData = new FormData()
-        images.forEach((file) => {
-          formData.append("files", file)
-        })
-        await MediaService.downloadImages(postId, formData)
-      }
+      return await ItemsService.createItem(createData);
     },
-    onSuccess: () => {
-      showToast("Success!", "Post created successfully.", "success");
+    onSuccess: async (postResponse) => {
+      const postId = postResponse.ID;
+
+      // завантаження картинок
+      if (postId && files?.length > 0) {
+        const formData = new FormData();
+        files.forEach((f) => formData.append("files", f.file));
+        await MediaService.downloadImages(postId, formData);
+      }
+
+      // створення properties
+      const propertyPayload: PropertiesFormData = {
+        ...(propertyData || {
+          height: "",
+          width: "",
+          weight: "",
+          color: "",
+          material: "",
+          brand: "",
+          size: "",
+          style: "",
+          content_id: postId
+        }),
+      };
+      // @ts-ignore
+      await PropertyService.createProperty(propertyPayload);
+
+      showToast("Success!", "Item and properties created successfully.", "success");
       reset();
       setFiles([]);
+      setPropertyData(null);
       onClose();
     },
-    onError: (err: ApiError) => {
-      handleError(err, showToast);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["items"] });
-    },
+    onError: (err: ApiError) => handleError(err, showToast),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["items"] }),
   });
+
+
 
   const handleFileButtonClick = () => {
     if (fileInputRef.current) {
@@ -208,6 +238,16 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
                   <FormErrorMessage>{errors.content.message}</FormErrorMessage>
               )}
             </FormControl>
+
+            <Button
+                colorScheme="orange"
+                variant="primary"
+                mt={4}
+                onClick={handleOpenPropertyModal}
+            >
+              Add Property
+            </Button>
+
 
             <FormControl mt={4}>
               <FormLabel htmlFor="images">Images</FormLabel>
@@ -375,6 +415,11 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
             </Button>
             <Button onClick={onClose}>Cancel</Button>
           </ModalFooter>
+          <PropertiesModal
+              isOpen={isPropertyModalOpen}
+              onClose={handleClosePropertyModal}
+              onSave={handleSaveProperties}
+          />
         </ModalContent>
       </Modal>
   );
