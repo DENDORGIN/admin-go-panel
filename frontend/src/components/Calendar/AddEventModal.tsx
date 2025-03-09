@@ -10,91 +10,166 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Select,
-} from "@chakra-ui/react"
-import { type SubmitHandler, useForm } from "react-hook-form"
+  Textarea,
+  Radio,
+  RadioGroup,
+  VStack,
+  HStack,
+  Text,
+  Box,
+} from "@chakra-ui/react";
+import { type SubmitHandler, useForm } from "react-hook-form";
 import useCustomToast from "../../hooks/useCustomToast";
 
 interface AddEventModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onAddEvent: (newEvent: any) => void
-  selectedDate: { startStr: string; endStr: string; allDay: boolean } | null
+  isOpen: boolean;
+  onClose: () => void;
+  onAddEvent: (newEvent: any) => void;
+  selectedDate: { startStr: string; endStr: string; allDay: boolean } | null;
 }
 
 interface EventFormValues {
-  title: string
-  color: string
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  allDay: boolean;
+  color?: string | null;
+  eventType: string;
 }
 
-const AddEventModal: React.FC<AddEventModalProps> = ({
-  isOpen,
-  onClose,
-  onAddEvent,
-  selectedDate,
-}) => {
-  const { register, handleSubmit, reset } = useForm<EventFormValues>()
+const eventTypes = ["workingDay", "sickDay", "vacation", "weekend"];
 
-  const showToast = useCustomToast()
+const AddEventModal: React.FC<AddEventModalProps> = ({
+                                                       isOpen,
+                                                       onClose,
+                                                       onAddEvent,
+                                                       selectedDate,
+                                                     }) => {
+  const { register, handleSubmit, reset, setValue, watch } = useForm<EventFormValues>();
+
+  const handleClose = () => {
+    reset();
+    onClose();
+  };
+
+  const showToast = useCustomToast();
 
   const onSubmit: SubmitHandler<EventFormValues> = (data) => {
     if (selectedDate) {
-      const formatDateTime = (dateStr: string) => {
-        const date = new Date(dateStr)
-        return date.toISOString()
-      }
+      const startDate = selectedDate.startStr.split("T")[0];
+      const endDate = selectedDate.endStr
+          ? new Date(new Date(selectedDate.endStr).setDate(new Date(selectedDate.endStr).getDate() - 1))
+              .toISOString()
+              .split("T")[0]
+          : startDate;
 
       const newEvent = {
         title: data.title,
-        startDate: formatDateTime(selectedDate.startStr), // Форматуємо дату правильно
-        endDate: formatDateTime(selectedDate.endStr),
+        startDate,
+        endDate,
         allDay: selectedDate.allDay,
-        color: data.color || "#3788d8",
-      }
+        description: data.description,
+        color: data.color || null,
+        workingDay: data.eventType === "workingDay",
+        sickDay: data.eventType === "sickDay",
+        vacation: data.eventType === "vacation",
+        weekend: data.eventType === "weekend",
+      };
 
-      onAddEvent(newEvent)
-      showToast("Create!", "Event created successfully.", "success")
-      reset()
+      onAddEvent(newEvent);
+      showToast("Create!", "Event created successfully.", "success");
+      reset();
+      handleClose();
     }
-  }
+  };
+
+  const colors = ["red", "skyblue", "green", "violet", "orange", "pink"];
+  const selectedColor = watch("color");
+  const selectedEventType = watch("eventType");
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} isCentered>
-      <ModalOverlay />
-      <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
-        <ModalHeader>Create Event</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody>
-          <FormControl isRequired>
-            <FormLabel>Event Title</FormLabel>
-            <Input
-              placeholder="Enter event title"
-              {...register("title", { required: true })}
-            />
-          </FormControl>
-          <FormControl mt={4}>
-            <FormLabel>Event Color</FormLabel>
-            <Select placeholder="Select color" {...register("color")}>
-              <option value="red">Red</option>
-              <option value="blue">Blue</option>
-              <option value="green">Green</option>
-              <option value="violet">Violet</option>
-              <option value="grey">Grey</option>
-              <option value="pink">Pink</option>
-              <option value="purple">Purple</option>
-              <option value="orange">Orange</option>
-            </Select>
-          </FormControl>
-        </ModalBody>
-        <ModalFooter>
-          <Button colorScheme="blue" mr={3} type="submit">
-            Add Event
-          </Button>
-          <Button onClick={onClose}>Cancel</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
-  )
-}
+      <Modal isOpen={isOpen} onClose={handleClose} isCentered>
+        <ModalOverlay />
+        <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
+          <ModalHeader>Create Event</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
 
-export default AddEventModal
+            <Text fontSize="lg" fontWeight="bold">
+              Selected Date:{" "}
+              {selectedDate
+                  ? `${new Date(selectedDate.startStr).toLocaleDateString()} ${
+                      selectedDate.endStr
+                          ? `- ${new Date(new Date(selectedDate.endStr).setDate(new Date(selectedDate.endStr).getDate() - 1)).toLocaleDateString()}`
+                          : ""
+                  }`
+                  : "N/A"}
+            </Text>
+
+
+            <FormControl isRequired mt={4}>
+              <FormLabel>Event Title</FormLabel>
+              <Input placeholder="Enter event title" {...register("title", { required: true })} />
+            </FormControl>
+
+            <HStack mt={4}>
+              <FormControl isRequired>
+                <FormLabel>Start Time</FormLabel>
+                <Input type="time" {...register("startDate", { required: true })} />
+              </FormControl>
+              <FormControl isRequired>
+                <FormLabel>End Time</FormLabel>
+                <Input type="time" {...register("endDate", { required: true })} />
+              </FormControl>
+            </HStack>
+
+            <FormControl mt={4}>
+              <FormLabel>Description</FormLabel>
+              <Textarea placeholder="Enter event description" {...register("description")} />
+            </FormControl>
+
+            <FormControl mt={4}>
+              <FormLabel>Event Color</FormLabel>
+              <HStack spacing={2}>
+                {colors.map((color) => (
+                    <Box
+                        key={color}
+                        width="30px"
+                        height="30px"
+                        borderRadius="md"
+                        cursor="pointer"
+                        bg={color}
+                        border={selectedColor === color ? "3px solid black" : "1px solid gray"}
+                        onClick={() => setValue("color", color)}
+                    />
+                ))}
+              </HStack>
+            </FormControl>
+
+            <FormControl mt={4}>
+              <FormLabel>Event Type</FormLabel>
+              <RadioGroup value={selectedEventType} onChange={(value) => setValue("eventType", value)}>
+                <VStack align="start">
+                  {eventTypes.map((type) => (
+                      <Radio key={type} value={type}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </Radio>
+                  ))}
+                </VStack>
+              </RadioGroup>
+            </FormControl>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} type="submit">
+              Add Event
+            </Button>
+            <Button onClick={handleClose}>Cancel</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+  );
+};
+
+export default AddEventModal;

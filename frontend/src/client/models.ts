@@ -195,11 +195,16 @@ export type ValidationError = {
 }
 
 export type CalendarEventCreate = {
-  title: string
-  startDate: string
-  endDate: string
-  allDay: boolean
-  color?: string | null
+  title: string;
+  startDate: string;
+  endDate: string;
+  allDay: boolean;
+  description: string;
+  color?: string | null;
+  workingDay: boolean;
+  sickDay: boolean;
+  vacation: boolean;
+  weekend: boolean;
 }
 
 export type CalendarEventPublic = {
