@@ -42,7 +42,7 @@ func GetItemByID(ctx *gin.Context) {
 
 	itemId, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
 		return
 	}
 
@@ -69,7 +69,7 @@ func UpdateItemByIdHandler(ctx *gin.Context) {
 
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
 		return
 	}
 
@@ -130,7 +130,7 @@ func DeleteItemByIdHandler(ctx *gin.Context) {
 
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
 		return
 	}
 

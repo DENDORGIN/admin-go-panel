@@ -28,7 +28,7 @@ func CreatePropertiesHandler(ctx *gin.Context) {
 func GetPropertyByIDHandler(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid property ID"})
 		return
 	}
 
@@ -44,7 +44,7 @@ func GetPropertyByIDHandler(ctx *gin.Context) {
 func UpdatePropertyHandler(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid property ID"})
 		return
 	}
 
@@ -66,7 +66,7 @@ func UpdatePropertyHandler(ctx *gin.Context) {
 func DeletePropertyHandler(ctx *gin.Context) {
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid property ID"})
 		return
 	}
 	err = models.DeleteProperty(id)

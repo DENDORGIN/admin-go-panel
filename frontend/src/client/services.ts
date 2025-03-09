@@ -496,15 +496,14 @@ export class ItemsService {
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
-  public static updateItem(data: TDataUpdateItem
-  ): CancelablePromise<ItemPublic> {
+  public static updateItem(
+      id: string,
+      data: JSON,
+  ): CancelablePromise<PostPublic> {
     return __request(OpenAPI, {
       method: "PUT",
-      url: `/api/v1/items/${data.id}`,
-      body: data.requestBody,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      url: `/api/v1/items/${id}`,
+      body: data,
       errors: {
         422: "Validation Error",
       },

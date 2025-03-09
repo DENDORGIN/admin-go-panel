@@ -35,7 +35,7 @@ import { handleError } from "../../utils"
 // import PropertiesModal from "../Modals/PropertiesModal"
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import PropertiesModal from "../Modals/PropertiesModal.tsx";
+// import PropertiesModal from "../Modals/PropertiesModal.tsx";
 
 interface EditItemProps {
   item: ItemPublic
@@ -59,49 +59,18 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
   const showToast = useCustomToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<FileDetail[]>([])
-  const [existingImages, setExistingImages] = useState<string[]>(
-      Array.isArray(item.images) ? item.images : item.images ? item.images.split(',') : []
-  );
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    watch,
-    trigger,
-    formState: { errors, isSubmitting },
-  } = useForm<ItemUpdateExtended>({
-    mode: "onBlur",
-    criteriaMode: "all",
-    defaultValues: {
-      title: "",
-      content: "",
-      status: false,
-      images: [],
-    },
-  });
-
-  // const [isPropertyModalOpen, setPropertyModalOpen] = useState(false);
-  // const [propertyData, setPropertyData] = useState<PropertiesFormData | null>(null);
-  // const handleOpenPropertyModal = () => setPropertyModalOpen(true);
-  // const handleClosePropertyModal = () => setPropertyModalOpen(false);
-  //
-  //
-  // const handleSaveProperties = (data: PropertiesFormData) => {
-  //   setPropertyData(data);
-  // };
 
   const modules = {
     toolbar: [
       [{ 'header': [1, 2, 3, false] }],
       [{ 'font': [] }],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'align': [] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'indent': '-1' }, { 'indent': '+1' }],
-      ['link', 'image', 'video'],
-      ['clean'],
+      [{ 'color': [] }, { 'background': [] }], // Колір тексту та фону
+      [{ 'align': [] }], // Вирівнювання
+      ['bold', 'italic', 'underline', 'strike'], // Стилізація тексту
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }], // Списки
+      [{ 'indent': '-1' }, { 'indent': '+1' }], // Відступи
+      ['link', 'image', 'video'], // Додавання медіа
+      ['clean'], // Очищення форматування
     ],
   };
 
@@ -111,6 +80,29 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
     'list', 'bullet', 'indent',
     'link', 'image', 'video'
   ];
+
+
+
+  const [existingImages, setExistingImages] = useState<string[]>(
+      Array.isArray(item.images) ? item.images : item.images ? item.images.split(',') : []
+  );
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    trigger,
+    formState: { isSubmitting, errors, isDirty },
+  } = useForm<ItemUpdateExtended>({
+    mode: "onBlur",
+    criteriaMode: "all",
+    defaultValues: {
+      ...item,
+      images: undefined,
+    },
+  });
 
   // Оновлюємо значення форми при відкритті модального вікна
   useEffect(() => {
@@ -130,32 +122,18 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
   }, [isOpen, item, reset]);
 
 
-  const handleFileButtonClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleRemoveFile = (index: number) => {
-    const updatedFiles = [...files];
-
-    // Очищаємо URL для запобігання витоку пам’яті
-    URL.revokeObjectURL(updatedFiles[index].preview!);
-
-    updatedFiles.splice(index, 1);
-    setFiles(updatedFiles);
-  };
-
   const handleDeleteImage = async (imageUrl: string) => {
     try {
-      await MediaService.deleteImage(imageUrl);
+      await MediaService.deleteImage(item.ID, imageUrl);
 
-      // Оновлюємо список існуючих зображень після успішного видалення
       setExistingImages((prev) => prev.filter((img) => img !== imageUrl));
 
-      // Оновлення форми для коректної перевірки змін
-      trigger("images");
+      // Примушуємо форму розпізнати зміни
+      setValue("images", files.length > 0 || existingImages.length > 1 ? files.map(f => f.file) : undefined, {
+        shouldDirty: true,
+      });
 
+      trigger("images"); // Викликаємо перевірку змін
       showToast("Success!", "Image deleted successfully.", "success");
     } catch (err) {
       handleError(err as ApiError, showToast);
@@ -166,7 +144,7 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
 
-    const selectedFiles = Array.from(event.target.files).map((file) => ({
+    const selectedFiles: FileDetail[] = Array.from(event.target.files).map((file) => ({
       name: file.name,
       size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
       file,
@@ -178,65 +156,96 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
     setValue(
         "images",
         [...(watch("images") || []), ...selectedFiles.map((f) => f.file)],
-        { shouldValidate: true }
+        { shouldValidate: true, shouldDirty: true, }
     );
   };
 
-  // const handleRemoveFile = (index: number) => {
-  //   const updatedFiles = [...files];
-  //
-  //   // Очищаємо URL для запобігання витоку пам’яті
-  //   URL.revokeObjectURL(updatedFiles[index].preview!);
-  //
-  //   updatedFiles.splice(index, 1);
-  //   setFiles(updatedFiles);
-  // };
+
+
+
+  const handleRemoveFile = (index: number) => {
+    const updatedFiles = [...files];
+
+    // Очищаємо URL для запобігання витоку пам’яті
+    URL.revokeObjectURL(updatedFiles[index].preview!);
+
+    updatedFiles.splice(index, 1);
+    setFiles(updatedFiles);
+
+    // Оновлюємо значення у react-hook-form, щоб змусити форму вважати себе зміненою
+    setValue("images", updatedFiles.length > 0 ? updatedFiles.map(f => f.file) : undefined, {
+      shouldDirty: true,
+    });
+
+    trigger("images"); // Перевіряємо валідацію
+  };
+
+
+
 
   const mutation = useMutation({
     mutationFn: async (jsonPayload: ItemUpdateExtended) => {
-      const { images, ...createData } = jsonPayload;
-      //@ts-ignore
-      return await ItemsService.UpdateItem(createData);
-    },
-    onSuccess: async (postResponse) => {
-      const postId = postResponse.ID;
+      // Створюємо пост
+      // @ts-ignore
+      const itemResponse = await ItemsService.updateItem(item.ID, jsonPayload);
+      const itemId = itemResponse.ID;
 
-      // завантаження картинок
-      if (postId && files?.length > 0) {
+      // Отримуємо файли
+      const images = jsonPayload.images;
+      if (itemId && images && images.length > 0) {
         const formData = new FormData();
-        files.forEach((f) => formData.append("files", f.file));
-        await MediaService.downloadImages(postId, formData);
+
+        images.forEach((file) => {
+          formData.append("files", file);
+        });
+
+        console.log("Uploading images:", formData.getAll("images")); // Дебаг
+
+        await MediaService.downloadImages(itemId, formData);
+      } else {
+        console.warn("No images to upload.");
       }
-
-      // await PropertyService.UpdateProperties(propertyPayload);
-
-      showToast("Success!", "Item and properties created successfully.", "success");
-      reset();
+    },
+    onSuccess: () => {
+      showToast("Success!", "Post created successfully.", "success");
+      setTimeout(() => {
+        onClose();
+      }, 500);
       setFiles([]);
-      // setPropertyData(null);
+      reset();
       onClose();
     },
-    onError: (err: ApiError) => handleError(err, showToast),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["items"] }),
+    onError: (err: ApiError) => {
+      handleError(err, showToast);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
   });
+
+  const handleFileButtonClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
 
   const onSubmit: SubmitHandler<ItemUpdateExtended> = async (data) => {
-
-    const payload: ItemUpdateExtended = {
-      title: data.title,
-      content: data.content,
-      price: parseFloat(String(data.price).replace(",", ".")),
-      quantity: data.quantity,
-      position: data.position,
-      item_url: data.item_url,
-      category: data.category,
-      status: data.status,
-      images: files.map((f) => f.file),
-    };
-
-    await mutation.mutateAsync(payload);
+  const payload: ItemUpdateExtended = {
+    title: data.title,
+    content: data.content,
+    price: parseFloat(String(data.price).replace(",", ".")),
+    quantity: data.quantity,
+    position: data.position,
+    item_url: data.item_url,
+    category: data.category,
+    status: data.status,
+    images: files.map((f) => f.file),
   };
+
+  await mutation.mutateAsync(payload);
+};
+
 
   return (
       <Modal
@@ -469,7 +478,12 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
             </FormControl>
           </ModalBody>
           <ModalFooter gap={3}>
-            <Button variant="primary" type="submit" isLoading={isSubmitting}>
+            <Button
+                variant="primary"
+                type="submit"
+                isLoading={isSubmitting}
+                isDisabled={!isDirty && files.length === 0 && existingImages.length === 0}
+            >
               Save
             </Button>
             <Button onClick={onClose}>Cancel</Button>
