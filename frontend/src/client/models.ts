@@ -40,16 +40,14 @@ export type ItemPublic = {
 }
 
 export type ItemUpdate = {
-  title?: string | null
-  description?: string | null
-  description_second?: string | null
-  images?: File[] | null
-  position: number
-  language: string
+  title?: string
+  content?: string
+  price?: number
+  quantity?: number
+  position?: number
   item_url?: string | null
-  category: string
-  properties: Record<string, any>
-  status: boolean
+  category?: string
+  status?: boolean
 }
 
 export type ItemsPublic = {
@@ -68,6 +66,18 @@ export type PropertiesFormData = {
   size?: string
   style?: string
   content_id: string
+}
+
+export type UpdateProperties = {
+  height?: string
+  width?: string
+  weight?: string
+  color?: string
+  material?: string
+  brand?: string
+  motif?: string
+  size?: string
+  style?: string
 }
 
 export type Properties = {

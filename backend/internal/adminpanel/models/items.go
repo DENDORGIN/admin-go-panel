@@ -47,7 +47,6 @@ type ItemUpdate struct {
 	Price    float64 `json:"price"`
 	Quantity int     `json:"quantity"`
 	Position int     `json:"position"`
-	Language string  `json:"language"`
 	ItemUrl  string  `json:"item_url"`
 	Category string  `json:"category"`
 	Status   bool    `json:"status"`
@@ -175,9 +174,6 @@ func UpdateItemById(itemId uuid.UUID, updateItem *ItemUpdate) (*ItemGet, error) 
 	}
 	if updateItem.Quantity != 0 {
 		item.Quantity = updateItem.Quantity
-	}
-	if updateItem.Language != "" {
-		item.Language = updateItem.Language
 	}
 	if updateItem.ItemUrl != "" {
 		item.ItemUrl = updateItem.ItemUrl

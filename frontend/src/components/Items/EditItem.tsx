@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   Card,
-  CardBody,
   FormControl,
   FormErrorMessage,
   FormLabel,
@@ -19,22 +18,24 @@ import {
   ModalOverlay,
   Select,
   Switch,
-  Textarea, useDisclosure,
 } from "@chakra-ui/react"
-import { useQueryClient } from "@tanstack/react-query"
+import {useMutation, useQueryClient} from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
 
 import { CloseIcon } from "@chakra-ui/icons"
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import {
   type ApiError,
   type ItemPublic,
   type ItemUpdate,
-  ItemsService,
+  ItemsService, type UpdateProperties, MediaService, PropertyService,
 } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 import { handleError } from "../../utils"
-import PropertiesModal from "../Modals/PropertiesModal"
+// import PropertiesModal from "../Modals/PropertiesModal"
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import PropertiesModal from "../Modals/PropertiesModal.tsx";
 
 interface EditItemProps {
   item: ItemPublic
@@ -42,9 +43,15 @@ interface EditItemProps {
   onClose: () => void
 }
 
+interface ItemUpdateExtended extends ItemUpdate {
+  images?: File[];
+}
+
 interface FileDetail {
   name: string
   size: string
+  file: File
+  preview?: string;
 }
 
 const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
@@ -52,264 +59,429 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
   const showToast = useCustomToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<FileDetail[]>([])
+  const [existingImages, setExistingImages] = useState<string[]>(
+      Array.isArray(item.images) ? item.images : item.images ? item.images.split(',') : []
+  );
   const {
     register,
     handleSubmit,
     reset,
     setValue,
     watch,
-    formState: { isSubmitting, errors, isDirty },
-  } = useForm<ItemUpdate>({
+    trigger,
+    formState: { errors, isSubmitting },
+  } = useForm<ItemUpdateExtended>({
     mode: "onBlur",
     criteriaMode: "all",
-    defaultValues: { ...item, images: undefined },
-  })
+    defaultValues: {
+      title: "",
+      content: "",
+      status: false,
+      images: [],
+    },
+  });
 
-  const {
-    isOpen: isPropertiesOpen,
-    onOpen: onPropertiesOpen,
-    onClose: onPropertiesClose,
-  } = useDisclosure()
+  // const [isPropertyModalOpen, setPropertyModalOpen] = useState(false);
+  // const [propertyData, setPropertyData] = useState<PropertiesFormData | null>(null);
+  // const handleOpenPropertyModal = () => setPropertyModalOpen(true);
+  // const handleClosePropertyModal = () => setPropertyModalOpen(false);
+  //
+  //
+  // const handleSaveProperties = (data: PropertiesFormData) => {
+  //   setPropertyData(data);
+  // };
 
-  const [properties, setProperties] = useState({})
-  const handleSaveProperties = (props: any) => {
-    console.log(props)
-    setProperties(props)
-  }
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      [{ 'font': [] }],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'align': [] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'indent': '-1' }, { 'indent': '+1' }],
+      ['link', 'image', 'video'],
+      ['clean'],
+    ],
+  };
 
+  const formats = [
+    'header', 'font', 'color', 'background', 'align',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet', 'indent',
+    'link', 'image', 'video'
+  ];
 
-  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(event.target.files || []).map(
-      (file: File) => ({
-        name: file.name,
-        size: `${(file.size / 1024 / 1024).toFixed(2)} MB`, // Convert size to MB
-      }),
-    )
-    setFiles([...files, ...selectedFiles]) // Append new files to the existing array
-    setValue(
-      "images",
-      event.target.files ? Array.from(event.target.files) : undefined,
-      { shouldValidate: true },
-    )
-  }
+  // Оновлюємо значення форми при відкритті модального вікна
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        ...item,
+        images: undefined, // Очищаємо список файлів
+      });
+
+      // Оновлюємо список існуючих зображень
+      setExistingImages(
+          Array.isArray(item.images) ? item.images : item.images ? item.images.split(",") : []
+      );
+
+      setFiles([]); // Очищаємо нові завантажені файли
+    }
+  }, [isOpen, item, reset]);
+
 
   const handleFileButtonClick = () => {
     if (fileInputRef.current) {
-      fileInputRef.current.click()
+      fileInputRef.current.click();
     }
-  }
+  };
 
   const handleRemoveFile = (index: number) => {
-    const updatedFiles = files.filter((_, idx) => idx !== index)
-    setFiles(updatedFiles)
-  }
+    const updatedFiles = [...files];
 
-  const onSubmit: SubmitHandler<ItemUpdate> = async (data) => {
-    const formData = new FormData()
-    formData.append("title", data.title || "")
-    formData.append("description", data.description || "")
-    formData.append("description_second", data.description_second || "")
-    formData.append("properties", JSON.stringify(properties))
-    formData.append("category", data.category || "")
-    formData.append("item_url", data.item_url || "")
-    formData.append("language", data.language || "")
-    formData.append("position", String(data.position))
-    formData.append("status", String(data.status))
+    // Очищаємо URL для запобігання витоку пам’яті
+    URL.revokeObjectURL(updatedFiles[index].preview!);
 
-    const images = watch("images") as FileList | null
-    if (images && images.length > 0) {
-      Array.from(images).forEach((file) => {
-        formData.append("images", file)
-      })
-    }
+    updatedFiles.splice(index, 1);
+    setFiles(updatedFiles);
+  };
 
+  const handleDeleteImage = async (imageUrl: string) => {
     try {
-      await ItemsService.updateItem(item.ID, formData)
-      showToast("Success!", "Item updated successfully.", "success")
-      queryClient.invalidateQueries({ queryKey: ["items"] })
-      onClose()
-    } catch (err) {
-      handleError(err as ApiError, showToast)
-    }
-  }
+      await MediaService.deleteImage(imageUrl);
 
-  const onCancel = () => {
-    reset({ ...item, images: undefined })
-    onClose()
-  }
+      // Оновлюємо список існуючих зображень після успішного видалення
+      setExistingImages((prev) => prev.filter((img) => img !== imageUrl));
+
+      // Оновлення форми для коректної перевірки змін
+      trigger("images");
+
+      showToast("Success!", "Image deleted successfully.", "success");
+    } catch (err) {
+      handleError(err as ApiError, showToast);
+    }
+  };
+
+
+  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files) return;
+
+    const selectedFiles = Array.from(event.target.files).map((file) => ({
+      name: file.name,
+      size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+      file,
+      preview: URL.createObjectURL(file), // Генеруємо URL для прев’ю
+    }));
+
+    setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+
+    setValue(
+        "images",
+        [...(watch("images") || []), ...selectedFiles.map((f) => f.file)],
+        { shouldValidate: true }
+    );
+  };
+
+  // const handleRemoveFile = (index: number) => {
+  //   const updatedFiles = [...files];
+  //
+  //   // Очищаємо URL для запобігання витоку пам’яті
+  //   URL.revokeObjectURL(updatedFiles[index].preview!);
+  //
+  //   updatedFiles.splice(index, 1);
+  //   setFiles(updatedFiles);
+  // };
+
+  const mutation = useMutation({
+    mutationFn: async (jsonPayload: ItemUpdateExtended) => {
+      const { images, ...createData } = jsonPayload;
+      //@ts-ignore
+      return await ItemsService.UpdateItem(createData);
+    },
+    onSuccess: async (postResponse) => {
+      const postId = postResponse.ID;
+
+      // завантаження картинок
+      if (postId && files?.length > 0) {
+        const formData = new FormData();
+        files.forEach((f) => formData.append("files", f.file));
+        await MediaService.downloadImages(postId, formData);
+      }
+
+      // await PropertyService.UpdateProperties(propertyPayload);
+
+      showToast("Success!", "Item and properties created successfully.", "success");
+      reset();
+      setFiles([]);
+      // setPropertyData(null);
+      onClose();
+    },
+    onError: (err: ApiError) => handleError(err, showToast),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["items"] }),
+  });
+
+
+  const onSubmit: SubmitHandler<ItemUpdateExtended> = async (data) => {
+
+    const payload: ItemUpdateExtended = {
+      title: data.title,
+      content: data.content,
+      price: parseFloat(String(data.price).replace(",", ".")),
+      quantity: data.quantity,
+      position: data.position,
+      item_url: data.item_url,
+      category: data.category,
+      status: data.status,
+      images: files.map((f) => f.file),
+    };
+
+    await mutation.mutateAsync(payload);
+  };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      size={{ base: "xl", xl: "xl" }}
-      isCentered
-    >
-      <ModalOverlay />
-      <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
-        <ModalHeader>Edit Item</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody pb={6}>
-          <FormControl isRequired isInvalid={!!errors.title}>
-            <FormLabel htmlFor="title">Title</FormLabel>
-            <Input
-              id="title"
-              {...register("title", { required: "Title is required" })}
-              placeholder="Title"
-              type="text"
-            />
-            {errors.title && (
-              <FormErrorMessage>{errors.title.message}</FormErrorMessage>
-            )}
-          </FormControl>
-          <FormControl mt={4}>
-            <FormLabel htmlFor="description">Description</FormLabel>
-            <Textarea
-              id="description"
-              {...register("description")}
-              placeholder="Description"
-            />
-          </FormControl>
-          <FormLabel mt={4} htmlFor="properties">Properties</FormLabel>
-          <Button variant="primary" onClick={onPropertiesOpen}>Add Properties</Button>
-          <PropertiesModal
-              isOpen={isPropertiesOpen}
-              onClose={onPropertiesClose}
-              onSave={handleSaveProperties}
-          />
-
-          <FormControl mt={4}>
-            <FormLabel htmlFor="images">Images</FormLabel>
-            <Input
-              ref={fileInputRef}
-              id="images"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={onFileChange}
-              hidden
-              disabled={isSubmitting}
-            />
-            <Button
-              colorScheme="teal"
-              variant="outline"
-              onClick={handleFileButtonClick}
-              mt={2}
-              isLoading={isSubmitting}
-            >
-              Upload Images
-            </Button>
-            <Card>
-              <CardBody>
-                {files.length > 0 && (
-                  <List spacing={2} mt={2}>
-                    {files.map((file, index) => (
-                      <ListItem
-                        key={index}
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="space-between"
-                      >
-                        {file.name} - {file.size}
-                        <IconButton
-                          icon={<CloseIcon />}
-                          aria-label="Remove file"
-                          onClick={() => handleRemoveFile(index)}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                )}
-              </CardBody>
-            </Card>
-          </FormControl>
-
-          <FormControl mt={4} isInvalid={!!errors.category}>
-            <FormLabel htmlFor="category">Category</FormLabel>
-            <Select
-                placeholder="Select Categories"
-                {...register("category", {
-                  required: "Please select a category",
-                })}
-            >
-              <option value="Angels">Angels</option>
-              <option value="Buddy">Buddy</option>
-              <option value="Pots and Drinkers">Pots and Drinkers</option>
-              <option value="Animals">Animals</option>
-            </Select>
-            {errors.category && (
-                <FormErrorMessage>{errors.category.message}</FormErrorMessage>
-            )}
-          </FormControl>
-          <FormControl mt={4}>
-            <FormLabel htmlFor="url">URL</FormLabel>
-            <Input
-              id="item_url"
-              {...register("item_url", { required: "URL is required." })}
-              placeholder="URL"
-              type="text"
-            />
-            {errors.item_url && (
-              <FormErrorMessage>{errors.item_url.message}</FormErrorMessage>
-            )}
-          </FormControl>
-          {/*<FormControl mt={4}>*/}
-          {/*  <FormLabel htmlFor="language">Language</FormLabel>*/}
-          {/*  <Select placeholder="Select lenguage" {...register("language")}>*/}
-          {/*    <option value="PL">PL</option>*/}
-          {/*    <option value="EN">EN</option>*/}
-          {/*    <option value="DE">DE</option>*/}
-          {/*  </Select>*/}
-          {/*</FormControl>*/}
-
-          <FormControl mt={4} isInvalid={!!errors.position}>
-            <FormLabel htmlFor="position">Position</FormLabel>
-            <Input
-              id="position"
-              {...register("position", {
-                required: "Position is required.",
-                valueAsNumber: true,
-                min: { value: 1, message: "Position must be greater than 0" },
-              })}
-              placeholder="Enter position"
-              type="number"
-            />
-            {errors.position && (
-              <FormErrorMessage>{errors.position.message}</FormErrorMessage>
-            )}
-          </FormControl>
-          <FormControl mt={4} isInvalid={!!errors.status}>
-            <FormLabel
-              htmlFor="status"
-              display="flex"
-              alignItems="center"
-              gap={2}
-            >
-              <Box
-                width="12px"
-                height="12px"
-                borderRadius="full"
-                bg={watch("status") ? "green.500" : "red.500"}
+      <Modal
+          isOpen={isOpen}
+          onClose={onClose}
+          size={{ base: "xl", xl: "xl" }}
+          isCentered
+      >
+        <ModalOverlay />
+        <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
+          <ModalHeader>Add Item</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <FormControl isRequired isInvalid={!!errors.title}>
+              <FormLabel htmlFor="title">Title</FormLabel>
+              <Input
+                  id="title"
+                  {...register("title", { required: "Title is required." })}
+                  placeholder="Title"
+                  type="text"
               />
-              Status
-            </FormLabel>
-            <Switch id="status" {...register("status")} colorScheme="teal" />
-          </FormControl>
-        </ModalBody>
-        <ModalFooter gap={3}>
-          <Button
-            variant="primary"
-            type="submit"
-            isLoading={isSubmitting}
-            isDisabled={!isDirty}
-          >
-            Save
-          </Button>
-          <Button onClick={onCancel}>Cancel</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
-  )
-}
+              {errors.title && (
+                  <FormErrorMessage>{errors.title.message}</FormErrorMessage>
+              )}
+            </FormControl>
+            <FormControl mt={4} isInvalid={!!errors.content}>
+              <FormLabel htmlFor="content">Content</FormLabel>
+              <ReactQuill
+                  theme="snow"
+                  value={watch('content') || ''}
+                  onChange={(_, __, ___, editor) => {
+                    setValue('content', editor.getHTML());
+                  }}
+                  modules={modules}
+                  formats={formats}
+              />
+              {errors.content && (
+                  <FormErrorMessage>{errors.content.message}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            {/*<Button*/}
+            {/*    colorScheme="orange"*/}
+            {/*    variant="primary"*/}
+            {/*    mt={4}*/}
+            {/*    onClick={handleOpenPropertyModal}*/}
+            {/*>*/}
+            {/*  Add Property*/}
+            {/*</Button>*/}
+
+
+            <FormControl mt={4}>
+              <FormLabel htmlFor="images">Images</FormLabel>
+              <Input
+                  ref={fileInputRef}
+                  id="images"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={onFileChange}
+                  hidden
+                  disabled={isSubmitting}
+              />
+              <Button
+                  colorScheme="teal"
+                  variant="outline"
+                  onClick={handleFileButtonClick}
+                  mt={2}
+                  isLoading={isSubmitting}
+              >
+                Upload Images
+              </Button>
+              <Card>
+                {files.length > 0 && (
+                    <List spacing={2} mt={2}>
+                      {files.map((file, index) => (
+                          <ListItem
+                              key={index}
+                              display="flex"
+                              alignItems="center"
+                              justifyContent="space-between"
+                          >
+                            <Box display="flex" alignItems="center" gap={3}>
+                              <img src={file.preview} alt={file.name} width="50" height="50" style={{ borderRadius: "5px" }} />
+                              {file.name} - {file.size}
+                            </Box>
+                            <IconButton
+                                icon={<CloseIcon />}
+                                aria-label="Remove file"
+                                onClick={() => handleRemoveFile(index)}
+                            />
+                          </ListItem>
+                      ))}
+                    </List>
+                )}
+              </Card>
+
+            </FormControl>
+
+            {existingImages.length > 0 && (
+                <Box mt={4}>
+                  <FormLabel>Existing Images</FormLabel>
+                  <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(100px, 1fr))" gap={4}>
+                    {existingImages.map((image, index) => (
+                        <Box key={index} position="relative">
+                          <img
+                              src={image}
+                              alt={`Uploaded ${index}`}
+                              width="100"
+                              height="100"
+                              style={{ borderRadius: "5px" }}
+                          />
+                          <IconButton
+                              icon={<CloseIcon />}
+                              aria-label="Remove existing image"
+                              position="absolute"
+                              top="5px"
+                              right="5px"
+                              size="xs"
+                              onClick={() => handleDeleteImage(image)}
+                              isLoading={isSubmitting}
+                          />
+                        </Box>
+                    ))}
+                  </Box>
+                </Box>
+            )}
+            <FormControl mt={4} isInvalid={!!errors.category}>
+              <FormLabel htmlFor="category">Category</FormLabel>
+              <Select
+                  placeholder="Select Categories"
+                  {...register("category", {
+                    required: "Please select a category",
+                  })}
+              >
+                <option value="Angels">Angels</option>
+                <option value="Buddy">Buddy</option>
+                <option value="Pots and Drinkers">Pots and Drinkers</option>
+                <option value="Animals">Animals</option>
+              </Select>
+              {errors.category && (
+                  <FormErrorMessage>{errors.category.message}</FormErrorMessage>
+              )}
+            </FormControl>
+            <FormControl mt={4}>
+              <FormLabel htmlFor="url">URL</FormLabel>
+              <Input
+                  id="item_url"
+                  {...register("item_url", { required: "URL is required." })}
+                  placeholder="URL"
+                  type="text"
+              />
+              {errors.item_url && (
+                  <FormErrorMessage>{errors.item_url.message}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl mt={4} isInvalid={!!errors.price}>
+              <FormLabel htmlFor="price">Price</FormLabel>
+              <Input
+                  id="price"
+                  {...register("price", {
+                    required: "Price is required.",
+                    validate: (value) => {
+                      const parsedValue = parseFloat(String(value).replace(",", "."));
+                      if (isNaN(parsedValue)) return "Enter a valid number.";
+                      if (parsedValue <= 0) return "Price must be greater than 0.";
+                      return true;
+                    },
+                  })}
+                  placeholder="Enter price"
+                  type="text"
+                  inputMode="decimal"
+              />
+              {errors.price && (
+                  <FormErrorMessage>{errors.price.message}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl mt={4} isInvalid={!!errors.quantity}>
+              <FormLabel htmlFor="quantity">Quantity</FormLabel>
+              <Input
+                  id="quantity"
+                  {...register("quantity", {
+                    required: "Quantity is required.",
+                    valueAsNumber: true,
+                    min: { value: 1, message: "Quantity must be greater than 0" },
+                  })}
+                  placeholder="Enter quantity"
+                  type="number"
+              />
+              {errors.quantity && (
+                  <FormErrorMessage>{errors.quantity.message}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl mt={4} isInvalid={!!errors.position}>
+              <FormLabel htmlFor="position">Position</FormLabel>
+              <Input
+                  id="position"
+                  {...register("position", {
+                    required: "Position is required.",
+                    valueAsNumber: true,
+                    min: { value: 1, message: "Position must be greater than 0" },
+                  })}
+                  placeholder="Enter position"
+                  type="number"
+              />
+              {errors.position && (
+                  <FormErrorMessage>{errors.position.message}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <FormControl mt={4} isInvalid={!!errors.status}>
+              <FormLabel
+                  htmlFor="status"
+                  display="flex"
+                  alignItems="center"
+                  gap={2}
+              >
+                <Box
+                    width="12px"
+                    height="12px"
+                    borderRadius="full"
+                    bg={watch("status") ? "green.500" : "red.500"}
+                />
+                Status
+              </FormLabel>
+              <Switch id="status" {...register("status")} colorScheme="teal" />
+            </FormControl>
+          </ModalBody>
+          <ModalFooter gap={3}>
+            <Button variant="primary" type="submit" isLoading={isSubmitting}>
+              Save
+            </Button>
+            <Button onClick={onClose}>Cancel</Button>
+          </ModalFooter>
+          {/*<PropertiesModal*/}
+          {/*    isOpen={isPropertyModalOpen}*/}
+          {/*    onClose={handleClosePropertyModal}*/}
+          {/*    onSave={handleSaveProperties}*/}
+          {/*/>*/}
+        </ModalContent>
+      </Modal>
+  );
+};
 
 export default EditItem

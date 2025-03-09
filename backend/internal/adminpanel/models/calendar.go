@@ -10,30 +10,18 @@ import (
 	"time"
 )
 
-//type Calendar struct {
-//	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-//	Title     string    `gorm:"not null" json:"title"`
-//	StartDate time.Time `gorm:"not null" json:"startDate"`
-//	EndDate   time.Time `gorm:"not null" json:"endDate"`
-//	AllDay    bool      `gorm:"not null" json:"allDay"`
-//	Color     string    `gorm:"not null" json:"color"`
-//	UserID    uuid.UUID `gorm:"not null;index" json:"-"`
-//	User      User      `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
-//}
-//
-//func (c *Calendar) BeforeCreate(*gorm.DB) error {
-//	c.ID = uuid.New()
-//	return nil
-//}
-
 type CalendarEvent struct {
-	ID        uuid.UUID
-	Title     string    `json:"title"`
-	StartDate time.Time `json:"startDate"`
-	EndDate   time.Time `json:"endDate"`
-	AllDay    bool      `json:"allDay"`
-	Color     string    `json:"color"`
-	UserID    uuid.UUID `json:"user_id"`
+	ID         uuid.UUID
+	Title      string    `json:"title"`
+	StartDate  time.Time `json:"startDate"`
+	EndDate    time.Time `json:"endDate"`
+	AllDay     bool      `json:"allDay"`
+	Color      string    `json:"color"`
+	WorkingDay bool      `json:"workingDay"`
+	SickDay    bool      `json:"sickDay"`
+	Vacation   bool      `json:"vacation"`
+	Weekend    bool      `json:"weekend"`
+	UserID     uuid.UUID `json:"user_id"`
 }
 
 func CreateEvent(c *entities.Calendar) (*CalendarEvent, error) {
@@ -51,13 +39,17 @@ func CreateEvent(c *entities.Calendar) (*CalendarEvent, error) {
 		return nil, err
 	}
 	return &CalendarEvent{
-		ID:        c.ID,
-		Title:     c.Title,
-		StartDate: c.StartDate,
-		EndDate:   c.EndDate,
-		AllDay:    c.AllDay,
-		Color:     c.Color,
-		UserID:    c.UserID,
+		ID:         c.ID,
+		Title:      c.Title,
+		StartDate:  c.StartDate,
+		EndDate:    c.EndDate,
+		AllDay:     c.AllDay,
+		Color:      c.Color,
+		WorkingDay: c.WorkingDay,
+		SickDay:    c.SickDay,
+		Vacation:   c.Vacation,
+		Weekend:    c.Weekend,
+		UserID:     c.UserID,
 	}, nil
 
 }
@@ -77,13 +69,17 @@ func GetAllEvents(userId uuid.UUID) ([]CalendarEvent, error) {
 
 	for _, event := range events {
 		response = append(response, CalendarEvent{
-			ID:        event.ID,
-			Title:     event.Title,
-			StartDate: event.StartDate,
-			EndDate:   event.EndDate,
-			AllDay:    event.AllDay,
-			Color:     event.Color,
-			UserID:    event.UserID,
+			ID:         event.ID,
+			Title:      event.Title,
+			StartDate:  event.StartDate,
+			EndDate:    event.EndDate,
+			AllDay:     event.AllDay,
+			Color:      event.Color,
+			WorkingDay: event.WorkingDay,
+			SickDay:    event.SickDay,
+			Vacation:   event.Vacation,
+			Weekend:    event.Weekend,
+			UserID:     event.UserID,
 		})
 	}
 	return response, nil
@@ -100,13 +96,17 @@ func GetEventById(eventId uuid.UUID) (*CalendarEvent, error) {
 		return nil, err
 	}
 	return &CalendarEvent{
-		ID:        calendar.ID,
-		Title:     calendar.Title,
-		StartDate: calendar.StartDate,
-		EndDate:   calendar.EndDate,
-		AllDay:    calendar.AllDay,
-		Color:     calendar.Color,
-		UserID:    calendar.UserID,
+		ID:         calendar.ID,
+		Title:      calendar.Title,
+		StartDate:  calendar.StartDate,
+		EndDate:    calendar.EndDate,
+		AllDay:     calendar.AllDay,
+		Color:      calendar.Color,
+		WorkingDay: calendar.WorkingDay,
+		SickDay:    calendar.SickDay,
+		Vacation:   calendar.Vacation,
+		Weekend:    calendar.Weekend,
+		UserID:     calendar.UserID,
 	}, nil
 }
 

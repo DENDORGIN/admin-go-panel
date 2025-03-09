@@ -2,7 +2,7 @@ import type { CancelablePromise } from "./core/CancelablePromise"
 import { OpenAPI } from "./core/OpenAPI"
 import { request as __request } from "./core/request"
 
-import type {
+import {
   Body_login_login_access_token,
   CalendarEventCreate,
   CalendarEventPublic,
@@ -21,7 +21,7 @@ import type {
   UserRegister,
   UserUpdate,
   UserUpdateMe,
-  UsersPublic, Properties,
+  UsersPublic, Properties, UpdateProperties,
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -496,14 +496,15 @@ export class ItemsService {
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
-  public static updateItem(
-    id: string,
-    data: FormData,
+  public static updateItem(data: TDataUpdateItem
   ): CancelablePromise<ItemPublic> {
     return __request(OpenAPI, {
       method: "PUT",
-      url: `/api/v1/items/${id}`,
-      body: data, // Відправлення FormData
+      url: `/api/v1/items/${data.id}`,
+      body: data.requestBody,
+      headers: {
+        "Content-Type": "application/json",
+      },
       errors: {
         422: "Validation Error",
       },
@@ -720,6 +721,12 @@ export class MediaService {
   }
 }
 
+
+
+export type TDataUpdateProperty = {
+  requestBody: UpdateProperties
+}
+
 export class PropertyService {
   /**
    * Create Property
@@ -731,6 +738,23 @@ export class PropertyService {
     return __request(OpenAPI, {
       method: "POST",
       url: "/api/v1/properties/",
+      body: data,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
+
+
+  /**
+   * Update Property
+   * @returns ItemPublic Successful Response
+   * @throws ApiError
+   */
+  public static UpdateProperties(id: string, data: TDataUpdateProperty): CancelablePromise<Properties> {
+    return __request(OpenAPI, {
+      method: "PUT",
+      url: `/api/v1/properties/${id}`,
       body: data,
       headers: {
         "Content-Type": "application/json",
