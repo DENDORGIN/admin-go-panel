@@ -39,6 +39,9 @@ func main() {
 	r.Use(redirectFromWWW())
 	r.Use(CustomCors())
 
+	// Запуск планувальника
+	routes.StartCronJobs()
+
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Healthy",

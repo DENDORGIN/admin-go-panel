@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"backend/internal/adminpanel/entities"
 	"crypto/tls"
 	"fmt"
 	"github.com/joho/godotenv"
@@ -9,20 +10,20 @@ import (
 	"os"
 )
 
-type EmailConfig struct {
-	SMTPHost string
-	SMTPPort int
-	Username string
-	Password string
-	From     string
-}
+//type EmailConfig struct {
+//	SMTPHost string
+//	SMTPPort int
+//	Username string
+//	Password string
+//	From     string
+//}
 
 func SendEmail(to string, subject string, body string, isHTML bool) error {
 	err := godotenv.Load(".env")
 	if err != nil {
 		return fmt.Errorf("error loading .env file email: %v", err)
 	}
-	var emailConfig = EmailConfig{
+	var emailConfig = entities.EmailConfig{
 		SMTPHost: os.Getenv("SMTP_HOST"),
 		SMTPPort: 587,
 		Username: os.Getenv("SMTP_USER"),
