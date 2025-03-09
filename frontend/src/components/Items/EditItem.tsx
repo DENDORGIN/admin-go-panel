@@ -28,7 +28,7 @@ import {
   type ApiError,
   type ItemPublic,
   type ItemUpdate,
-  ItemsService, type UpdateProperties, MediaService, PropertyService,
+  ItemsService, MediaService //, PropertyService,  type UpdateProperties,
 } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 import { handleError } from "../../utils"
