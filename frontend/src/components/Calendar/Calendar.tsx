@@ -10,15 +10,15 @@ import type { CalendarEventCreate, CalendarEventPublic } from "../../client";
 import AddEventModal from "./AddEventModal";
 import "./Calendar.css";
 import useCustomToast from "../../hooks/useCustomToast";
-import { EventInput } from "@fullcalendar/core"; // Додаємо імпорт
+import { EventInput } from "@fullcalendar/core";
 
 const Calendar = () => {
-  const [events, setEvents] = useState<EventInput[]>([]); // ✅ Використовуємо EventInput[]
+  const [events, setEvents] = useState<EventInput[]>([]);
   const [selectedDate, setSelectedDate] = useState<{ startStr: string; endStr: string; allDay: boolean } | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const showToast = useCustomToast();
 
-  // Fetching events from API
+
   const { data: fetchedEvents, isLoading, refetch } = useQuery<CalendarEventPublic[]>({
     queryKey: ["calendarEvents"],
     queryFn: CalendarEventsService.readCalendarEvents,
@@ -33,7 +33,7 @@ const Calendar = () => {
         start: event.startDate,
         end: event.endDate,
         allDay: event.allDay,
-        color: event.color ?? undefined, // ✅ Виправлено `null`
+        color: event.color ?? undefined,
       }));
       setEvents(formattedEvents);
     }
