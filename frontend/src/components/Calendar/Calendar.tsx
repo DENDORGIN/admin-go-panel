@@ -49,7 +49,7 @@ const Calendar = () => {
         start: createdEvent.startDate,
         end: createdEvent.endDate,
         allDay: createdEvent.allDay,
-        color: createdEvent.color ?? undefined, // ✅ Переконалися, що немає `null`
+        color: createdEvent.color ?? undefined,
       };
 
       setEvents((prevEvents) => [...prevEvents, formattedEvent]); // ✅ Тепер всі події відповідають `EventInput`
@@ -61,7 +61,7 @@ const Calendar = () => {
   const handleDateSelect = (selectInfo: any) => {
     setSelectedDate({
       startStr: selectInfo.startStr,
-      endStr: selectInfo.endStr || selectInfo.startStr, // ✅ Виправлено `TS2322`
+      endStr: selectInfo.endStr || selectInfo.startStr,
       allDay: selectInfo.allDay,
     });
     onOpen();
