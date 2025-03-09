@@ -94,7 +94,7 @@ const Calendar = () => {
             initialView="dayGridMonth"
             editable={true}
             selectable={true}
-            events={events} // ✅ Тепер `events` має правильний тип
+            events={events}
             select={handleDateSelect}
             eventClick={handleEventClick}
             height="auto"
