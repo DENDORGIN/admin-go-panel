@@ -203,4 +203,8 @@ export type CalendarEventPublic = {
   allDay: boolean
   color?: string | null
   user_id: string
+  workingDay: boolean;
+  sickDay: boolean;
+  vacation: boolean;
+  weekend: boolean;
 }

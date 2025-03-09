@@ -28,11 +28,17 @@ const Calendar = () => {
     if (fetchedEvents) {
       const formattedEvents = fetchedEvents.map((event) => ({
         id: event.ID,
-        title: event.title,
-        start: event.startDate,
-        end: event.endDate,
-        allDay: event.allDay,
-        color: event.color,
+        title: data.title,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+        allDay: selectedDate.allDay,
+        description: data.description,
+        color: data.color || null,
+        user_id: string,
+        workingDay: data.eventType === "workingDay",
+        sickDay: data.eventType === "sickDay",
+        vacation: data.eventType === "vacation",
+        weekend: data.eventType === "weekend",
       }))
       // @ts-ignore
       setEvents(formattedEvents)
@@ -51,9 +57,13 @@ const Calendar = () => {
 
   // Handling date selection for new events
   const handleDateSelect = (selectInfo: any) => {
-    setSelectedDate(selectInfo)
-    onOpen()
-  }
+    setSelectedDate({
+      startStr: selectInfo.startStr,
+      endStr: selectInfo.endStr,
+      allDay: selectInfo.allDay,
+    });
+    onOpen();
+  };
 
   // Handling event addition
   const handleEventAdd = (newEvent: CalendarEventCreate) => {
