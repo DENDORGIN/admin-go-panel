@@ -1,65 +1,67 @@
-import { useDisclosure } from "@chakra-ui/react"
-import dayGridPlugin from "@fullcalendar/daygrid"
-import interactionPlugin from "@fullcalendar/interaction"
-import FullCalendar from "@fullcalendar/react"
-import timeGridPlugin from "@fullcalendar/timegrid"
-import { useMutation, useQuery } from "@tanstack/react-query"
-import { useEffect, useState } from "react"
-import { CalendarEventsService } from "../../client"
-import type { CalendarEventCreate, CalendarEventPublic } from "../../client"
-import AddEventModal from "./AddEventModal"
-import "./Calendar.css"
+import { useDisclosure } from "@chakra-ui/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import FullCalendar from "@fullcalendar/react";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { CalendarEventsService } from "../../client";
+import type { CalendarEventCreate, CalendarEventPublic } from "../../client";
+import AddEventModal from "./AddEventModal";
+import "./Calendar.css";
 import useCustomToast from "../../hooks/useCustomToast";
+import { EventInput } from "@fullcalendar/core"; // Додаємо імпорт
 
 const Calendar = () => {
-  const [events, setEvents] = useState<CalendarEventPublic[]>([])
-  const [selectedDate, setSelectedDate] = useState(null)
-  const { isOpen, onOpen, onClose } = useDisclosure()
-  const showToast = useCustomToast()
+  const [events, setEvents] = useState<EventInput[]>([]); // ✅ Використовуємо EventInput[]
+  const [selectedDate, setSelectedDate] = useState<{ startStr: string; endStr: string; allDay: boolean } | null>(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const showToast = useCustomToast();
 
   // Fetching events from API
   const { data: fetchedEvents, isLoading, refetch } = useQuery<CalendarEventPublic[]>({
     queryKey: ["calendarEvents"],
     queryFn: CalendarEventsService.readCalendarEvents,
-  })
+  });
 
   // Formatting events
   useEffect(() => {
     if (fetchedEvents) {
-      const formattedEvents = fetchedEvents.map((event) => ({
+      const formattedEvents: EventInput[] = fetchedEvents.map((event) => ({
         id: event.ID,
-        title: data.title,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        allDay: selectedDate.allDay,
-        description: data.description,
-        color: data.color || null,
-        user_id: string,
-        workingDay: data.eventType === "workingDay",
-        sickDay: data.eventType === "sickDay",
-        vacation: data.eventType === "vacation",
-        weekend: data.eventType === "weekend",
-      }))
-      // @ts-ignore
-      setEvents(formattedEvents)
+        title: event.title,
+        start: event.startDate,
+        end: event.endDate,
+        allDay: event.allDay,
+        color: event.color ?? undefined, // ✅ Виправлено `null`
+      }));
+      setEvents(formattedEvents);
     }
-  }, [fetchedEvents])
+  }, [fetchedEvents]);
 
   // Mutation for adding a new event
   const mutation = useMutation({
-    mutationFn: (newEvent: CalendarEventCreate) =>
-      CalendarEventsService.createCalendarEvent(newEvent),
+    mutationFn: (newEvent: CalendarEventCreate) => CalendarEventsService.createCalendarEvent(newEvent),
     onSuccess: (createdEvent: CalendarEventPublic) => {
-      setEvents((prevEvents) => [...prevEvents, createdEvent])
-      refetch().then()
+      const formattedEvent: EventInput = {
+        id: createdEvent.ID,
+        title: createdEvent.title,
+        start: createdEvent.startDate,
+        end: createdEvent.endDate,
+        allDay: createdEvent.allDay,
+        color: createdEvent.color ?? undefined, // ✅ Переконалися, що немає `null`
+      };
+
+      setEvents((prevEvents) => [...prevEvents, formattedEvent]); // ✅ Тепер всі події відповідають `EventInput`
+      refetch();
     },
-  })
+  });
 
   // Handling date selection for new events
   const handleDateSelect = (selectInfo: any) => {
     setSelectedDate({
       startStr: selectInfo.startStr,
-      endStr: selectInfo.endStr,
+      endStr: selectInfo.endStr || selectInfo.startStr, // ✅ Виправлено `TS2322`
       allDay: selectInfo.allDay,
     });
     onOpen();
@@ -67,52 +69,49 @@ const Calendar = () => {
 
   // Handling event addition
   const handleEventAdd = (newEvent: CalendarEventCreate) => {
-    mutation.mutate(newEvent)
-    onClose()
-  }
+    mutation.mutate(newEvent);
+    onClose();
+  };
 
   // Handling event click for deletion
   const handleEventClick = (clickInfo: any) => {
     if (window.confirm(`Delete event '${clickInfo.event.title}'?`)) {
-      const eventId = clickInfo.event.id
-      setEvents((prevEvents) =>
-        prevEvents.filter((event) => event.ID !== eventId),
-      )
-      CalendarEventsService.deleteCalendarEvent(eventId).then(() => refetch())
-      showToast("Deleted!", "Event deleted successfully.", "success")
+      const eventId = clickInfo.event.id;
+      setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventId));
+      CalendarEventsService.deleteCalendarEvent(eventId).then(() => refetch());
+      showToast("Deleted!", "Event deleted successfully.", "success");
     }
-  }
+  };
 
   if (isLoading) {
-    return <div>Loading calendar...</div>
+    return <div>Loading calendar...</div>;
   }
 
   return (
-    <div className="calendar-container">
-      <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        editable={true}
-        selectable={true}
-        // @ts-ignore
-        events={events}
-        select={handleDateSelect}
-        eventClick={handleEventClick}
-        height="auto"
-        headerToolbar={{
-          left: "prev,next today",
-          center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay",
-        }}
-      />
-      <AddEventModal
-        isOpen={isOpen}
-        onClose={onClose}
-        onAddEvent={handleEventAdd}
-        selectedDate={selectedDate}
-      />
-    </div>
-  )
-}
+      <div className="calendar-container">
+        <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            editable={true}
+            selectable={true}
+            events={events} // ✅ Тепер `events` має правильний тип
+            select={handleDateSelect}
+            eventClick={handleEventClick}
+            height="auto"
+            headerToolbar={{
+              left: "prev,next today",
+              center: "title",
+              right: "dayGridMonth,timeGridWeek,timeGridDay",
+            }}
+        />
+        <AddEventModal
+            isOpen={isOpen}
+            onClose={onClose}
+            onAddEvent={handleEventAdd}
+            selectedDate={selectedDate}
+        />
+      </div>
+  );
+};
 
-export default Calendar
+export default Calendar;
