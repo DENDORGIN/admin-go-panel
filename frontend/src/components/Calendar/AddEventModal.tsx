@@ -18,6 +18,7 @@ import {
   Text,
   Box,
 } from "@chakra-ui/react";
+import { useEffect } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import useCustomToast from "../../hooks/useCustomToast";
 
@@ -53,21 +54,38 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
     onClose();
   };
 
+  useEffect(() => {
+    if (selectedDate) {
+      const start = new Date(selectedDate.startStr);
+      const end = selectedDate.endStr ? new Date(selectedDate.endStr) : start;
+
+      if (selectedDate.allDay) {
+        setValue("startDate", "");
+        setValue("endDate", "");
+      } else {
+        setValue("startDate", start.toTimeString().slice(0, 5));
+        setValue("endDate", end.toTimeString().slice(0, 5));
+      }
+    }
+  }, [selectedDate, setValue]);
+
+
   const showToast = useCustomToast();
 
   const onSubmit: SubmitHandler<EventFormValues> = (data) => {
     if (selectedDate) {
       const startDate = selectedDate.startStr.split("T")[0];
       const endDate = selectedDate.endStr
-          ? new Date(new Date(selectedDate.endStr).setDate(new Date(selectedDate.endStr).getDate() - 1))
-              .toISOString()
-              .split("T")[0]
+          ? new Date(selectedDate.endStr).toISOString().split("T")[0]
           : startDate;
+
+      const formattedStartDate = `${startDate}T${data.startDate}:00`;
+      const formattedEndDate = `${endDate}T${data.endDate}:00`;
 
       const newEvent = {
         title: data.title,
-        startDate,
-        endDate,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
         allDay: selectedDate.allDay,
         description: data.description,
         color: data.color || null,
@@ -95,7 +113,6 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
           <ModalHeader>Create Event</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-
             <Text fontSize="lg" fontWeight="bold">
               Selected Date:{" "}
               {selectedDate
@@ -106,7 +123,6 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                   }`
                   : "N/A"}
             </Text>
-
 
             <FormControl isRequired mt={4}>
               <FormLabel>Event Title</FormLabel>

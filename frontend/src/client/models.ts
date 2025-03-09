@@ -208,11 +208,16 @@ export type CalendarEventCreate = {
 }
 
 export type CalendarEventPublic = {
-  ID: string
-  title: string
-  startDate: string
-  endDate: string
-  allDay: boolean
-  color?: string | null
-  user_id: string
+  ID: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  allDay: boolean;
+  description: string;
+  color?: string | null;
+  user_id: string;
+  workingDay: boolean;
+  sickDay: boolean;
+  vacation: boolean;
+  weekend: boolean;
 }
