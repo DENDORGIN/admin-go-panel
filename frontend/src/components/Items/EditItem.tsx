@@ -207,7 +207,7 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
       }
     },
     onSuccess: () => {
-      showToast("Success!", "Post created successfully.", "success");
+      showToast("Success!", "Item created successfully.", "success");
       setTimeout(() => {
         onClose();
       }, 500);
@@ -219,7 +219,7 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
       handleError(err, showToast);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["items", item.language] });
     },
   });
 

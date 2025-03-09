@@ -79,8 +79,8 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
           ? new Date(selectedDate.endStr).toISOString().split("T")[0]
           : startDate;
 
-      const formattedStartDate = `${startDate}T${data.startDate}:00`;
-      const formattedEndDate = `${endDate}T${data.endDate}:00`;
+      const formattedStartDate = `${startDate}T${data.startDate}:00Z`;
+      const formattedEndDate = `${endDate}T${data.endDate}:00Z`;
 
       const newEvent = {
         title: data.title,
