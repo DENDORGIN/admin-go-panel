@@ -64,10 +64,14 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
               .split("T")[0]
           : startDate;
 
+      // Форматуємо дату з урахуванням часу
+      const formattedStartDate = `${startDate}T${data.startDate}:00`;
+      const formattedEndDate = `${endDate}T${data.endDate}:00`;
+
       const newEvent = {
         title: data.title,
-        startDate,
-        endDate,
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
         allDay: selectedDate.allDay,
         description: data.description,
         color: data.color || null,
@@ -95,7 +99,6 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
           <ModalHeader>Create Event</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-
             <Text fontSize="lg" fontWeight="bold">
               Selected Date:{" "}
               {selectedDate
@@ -106,7 +109,6 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                   }`
                   : "N/A"}
             </Text>
-
 
             <FormControl isRequired mt={4}>
               <FormLabel>Event Title</FormLabel>
