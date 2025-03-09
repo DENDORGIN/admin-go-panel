@@ -33,6 +33,48 @@ func CreateEventHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, newEvent)
 }
 
+func UpdateCalendarEventHandler(ctx *gin.Context) {
+	userID, ok := utils.GetUserIDFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	eventIdStr := ctx.Param("id")
+	if eventIdStr == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Event ID is required"})
+		return
+	}
+
+	eventId, err := uuid.Parse(eventIdStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Event ID format"})
+		return
+	}
+	var updateEvent models.CalendarEventUpdate
+	if err = ctx.ShouldBindJSON(&updateEvent); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	event, err := models.GetEventById(eventId)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+		return
+	}
+	if event.UserID != userID {
+		ctx.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to update this event"})
+		return
+	}
+
+	updatedEvent, err := models.CalendarUpdateEvent(eventId, &updateEvent)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, updatedEvent)
+
+}
+
 func GetAllEventsHandler(ctx *gin.Context) {
 	userID, ok := utils.GetUserIDFromContext(ctx)
 	if !ok {

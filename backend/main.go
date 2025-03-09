@@ -69,6 +69,7 @@ func main() {
 	// Calendar
 	r.GET("/api/v1/calendar/events", routes.GetAllEventsHandler)
 	r.POST("/api/v1/calendar/events", routes.CreateEventHandler)
+	r.PUT("/api/v1/calendar/events/:id", routes.UpdateCalendarEventHandler)
 	r.DELETE("/api/v1/calendar/events/:id", routes.DeleteEvent)
 
 	// Blogs routes
