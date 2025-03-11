@@ -3,6 +3,7 @@ package main
 import (
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/routes"
+	"backend/internal/adminpanel/services/reminder"
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"strings"
+	"time"
 )
 
 func init() {
@@ -19,6 +21,8 @@ func init() {
 	if err != nil {
 		_ = fmt.Errorf("error loading .env file: %v", err)
 	}
+	_ = os.Setenv("TZ", "UTC")
+	time.Local = time.UTC
 }
 
 func main() {
@@ -35,12 +39,12 @@ func main() {
 	fmt.Println(port)
 	gin.SetMode(gin.ReleaseMode)
 
+	// Запуск планувальника
+	reminder.StartReminderJobs()
+
 	r := gin.New()
 	r.Use(redirectFromWWW())
 	r.Use(CustomCors())
-
-	// Запуск планувальника
-	routes.StartCronJobs()
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

@@ -10,14 +10,6 @@ import (
 	"os"
 )
 
-//type EmailConfig struct {
-//	SMTPHost string
-//	SMTPPort int
-//	Username string
-//	Password string
-//	From     string
-//}
-
 func SendEmail(to string, subject string, body string, isHTML bool) error {
 	err := godotenv.Load(".env")
 	if err != nil {

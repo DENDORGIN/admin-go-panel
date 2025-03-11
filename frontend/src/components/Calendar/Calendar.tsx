@@ -103,7 +103,18 @@ const Calendar = () => {
               center: "title",
               right: "dayGridMonth,timeGridWeek,timeGridDay",
             }}
+            slotLabelFormat={{
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,  // ВИМКНЕННЯ AM/PM
+            }}
+            eventTimeFormat={{
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,  // ВІДОБРАЖЕННЯ В 24-ГОДИННОМУ ФОРМАТІ
+            }}
         />
+
         <AddEventModal
             isOpen={isOpen}
             onClose={onClose}

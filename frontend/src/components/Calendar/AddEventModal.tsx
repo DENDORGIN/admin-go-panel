@@ -34,9 +34,11 @@ interface EventFormValues {
   description: string;
   startDate: string;
   endDate: string;
+  reminderOffset?: number;
   allDay: boolean;
   color?: string | null;
   eventType: string;
+  sendEmail: boolean;
 }
 
 const eventTypes = ["workingDay", "sickDay", "vacation", "weekend"];
@@ -78,14 +80,14 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
       const endDate = selectedDate.endStr
           ? new Date(selectedDate.endStr).toISOString().split("T")[0]
           : startDate;
-
-      const formattedStartDate = `${startDate}T${data.startDate}:00Z`;
-      const formattedEndDate = `${endDate}T${data.endDate}:00Z`;
+      const formattedStartDate = new Date(`${startDate}T${data.startDate}`).toISOString(); // Час браузера
+      const formattedEndDate = new Date(`${endDate}T${data.endDate}`).toISOString();
 
       const newEvent = {
         title: data.title,
         startDate: formattedStartDate,
         endDate: formattedEndDate,
+        reminderOffset: data.reminderOffset,
         allDay: selectedDate.allDay,
         description: data.description,
         color: data.color || null,
@@ -93,6 +95,8 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
         sickDay: data.eventType === "sickDay",
         vacation: data.eventType === "vacation",
         weekend: data.eventType === "weekend",
+      //   TODO: Додати чекбокс (сповіщення про подію на email) поле sendMail  bool "default === false"
+      //   TODO: Якщо зазначено передати true,
       };
 
       onAddEvent(newEvent);

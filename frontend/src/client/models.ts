@@ -198,6 +198,7 @@ export type CalendarEventCreate = {
   title: string;
   startDate: string;
   endDate: string;
+  reminderOffset?: number;
   allDay: boolean;
   description: string;
   color?: string | null;
@@ -205,6 +206,7 @@ export type CalendarEventCreate = {
   sickDay: boolean;
   vacation: boolean;
   weekend: boolean;
+  sendEmail: boolean;
 }
 
 export type CalendarEventPublic = {
@@ -212,6 +214,7 @@ export type CalendarEventPublic = {
   title: string;
   startDate: string;
   endDate: string;
+  reminderOffset?: number;
   allDay: boolean;
   description: string;
   color?: string | null;
@@ -220,4 +223,5 @@ export type CalendarEventPublic = {
   sickDay: boolean;
   vacation: boolean;
   weekend: boolean;
+  sendEmail: boolean;
 }
