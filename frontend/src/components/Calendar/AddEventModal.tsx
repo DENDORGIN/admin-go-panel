@@ -17,8 +17,14 @@ import {
   HStack,
   Text,
   Box,
+  Checkbox,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
 } from "@chakra-ui/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import useCustomToast from "../../hooks/useCustomToast";
 
@@ -51,8 +57,15 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                                                      }) => {
   const { register, handleSubmit, reset, setValue, watch } = useForm<EventFormValues>();
 
+  const [sendEmail, setSendEmail] = useState(false);
+  // Обробник зміни чекбокса
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSendEmail(!e.target.checked); // Якщо зняли галочку → sendEmail = true
+  };
+
   const handleClose = () => {
     reset();
+    setSendEmail(false); // Скидаємо чекбокс при закритті модального вікна
     onClose();
   };
 
@@ -70,6 +83,8 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
       }
     }
   }, [selectedDate, setValue]);
+
+
 
 
   const showToast = useCustomToast();
@@ -95,8 +110,8 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
         sickDay: data.eventType === "sickDay",
         vacation: data.eventType === "vacation",
         weekend: data.eventType === "weekend",
-      //   TODO: Додати чекбокс (сповіщення про подію на email) поле sendMail  bool "default === false"
-      //   TODO: Якщо зазначено передати true,
+        sendEmail: sendEmail
+
       };
 
       onAddEvent(newEvent);
@@ -145,6 +160,25 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
             </HStack>
 
             <FormControl mt={4}>
+              <FormLabel>Reminder Offset (minutes)</FormLabel>
+              <NumberInput
+                  size="md"
+                  maxW={24}
+                  min={1}
+                  defaultValue={15}
+                  value={watch("reminderOffset") || 15}
+                  onChange={(value) => setValue("reminderOffset", Number(value))} // ✅ Оновлюємо state
+              >
+                <NumberInputField {...register("reminderOffset", { required: true })} />
+                <NumberInputStepper>
+                  <NumberIncrementStepper />
+                  <NumberDecrementStepper />
+                </NumberInputStepper>
+              </NumberInput>
+            </FormControl>
+
+
+            <FormControl mt={4}>
               <FormLabel>Description</FormLabel>
               <Textarea placeholder="Enter event description" {...register("description")} />
             </FormControl>
@@ -178,11 +212,23 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                   ))}
                 </VStack>
               </RadioGroup>
+
+              {/* ✅ Чекбокс "Send Event" */}
+              <FormControl mt={4}>
+                <Checkbox
+                    size="lg"
+                    colorScheme="orange"
+                    defaultChecked
+                    onChange={handleCheckboxChange}
+                >
+                  Send Event
+                </Checkbox>
+              </FormControl>
             </FormControl>
           </ModalBody>
 
           <ModalFooter>
-            <Button colorScheme="blue" mr={3} type="submit">
+            <Button variant="primary" mr={3} type="submit">
               Add Event
             </Button>
             <Button onClick={handleClose}>Cancel</Button>
