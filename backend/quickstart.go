@@ -1,19 +1,17 @@
-package utils
+package main
 
 import (
 	"context"
-
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/gmail/v1"
 	"google.golang.org/api/option"
-
-	"log"
-	"net/http"
-	"os"
 )
 
 // Retrieve a token, saves the token, then returns the generated client.
@@ -54,12 +52,7 @@ func tokenFromFile(file string) (*oauth2.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
-
-		}
-	}(f)
+	defer f.Close()
 	tok := &oauth2.Token{}
 	err = json.NewDecoder(f).Decode(tok)
 	return tok, err
@@ -72,67 +65,40 @@ func saveToken(path string, token *oauth2.Token) {
 	if err != nil {
 		log.Fatalf("Unable to cache oauth token: %v", err)
 	}
-	defer func(f *os.File) {
-		err := f.Close()
-		if err != nil {
-
-		}
-	}(f)
+	defer f.Close()
 	json.NewEncoder(f).Encode(token)
 }
 
-//"backend/credentials_google_gmail.json"
-
-// Функція для відправки email
-func SendEmail(to, subject, body string) error {
+func main() {
 	ctx := context.Background()
 	b, err := os.ReadFile("credentials_google_gmail.json")
 	if err != nil {
-		return fmt.Errorf("unable to read client secret file: %v", err)
+		log.Fatalf("Unable to read client secret file: %v", err)
 	}
 
-	config, err := google.ConfigFromJSON(b, gmail.GmailSendScope)
+	// If modifying these scopes, delete your previously saved token.json.
+	config, err := google.ConfigFromJSON(b, gmail.GmailReadonlyScope)
 	if err != nil {
-		return fmt.Errorf("unable to parse client secret file to config: %v", err)
+		log.Fatalf("Unable to parse client secret file to config: %v", err)
 	}
-
 	client := getClient(config)
+
 	srv, err := gmail.NewService(ctx, option.WithHTTPClient(client))
 	if err != nil {
-		return fmt.Errorf("unable to retrieve Gmail client: %v", err)
+		log.Fatalf("Unable to retrieve Gmail client: %v", err)
 	}
 
-	from := os.Getenv("EMAILS_FROM_EMAIL")
-	if from == "" {
-		return fmt.Errorf("EMAILS_FROM_EMAIL is not set")
-	}
-
-	// Формування повідомлення у форматі RFC 2822
-	message := fmt.Sprintf("From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s", from, to, subject, body)
-	encodedMessage := base64.URLEncoding.EncodeToString([]byte(message))
-
-	email := &gmail.Message{Raw: encodedMessage}
-
-	_, err = srv.Users.Messages.Send("me", email).Do()
+	user := "me"
+	r, err := srv.Users.Labels.List(user).Do()
 	if err != nil {
-		return fmt.Errorf("u"+
-			"nable to send email: %v", err)
+		log.Fatalf("Unable to retrieve labels: %v", err)
 	}
-
-	log.Println("Email successfully sent to", to)
-	return nil
-}
-
-func SendPasswordResetEmail(to string, resetToken string) error {
-	resetLink := fmt.Sprintf("http://localhost:5173/reset-password?token=%s", resetToken)
-
-	htmlBody := fmt.Sprintf(`
-		<h2>Password Reset Request</h2>
-		<p>We received a request to reset your password. Click the link below to set a new password:</p>
-		<a href="%s">Reset Password</a>
-		<p>If you didn't request a password reset, you can ignore this email.</p>
-	`, resetLink)
-
-	subject := "Password Reset Request"
-	return SendEmail(to, subject, htmlBody)
+	if len(r.Labels) == 0 {
+		fmt.Println("No labels found.")
+		return
+	}
+	fmt.Println("Labels:")
+	for _, l := range r.Labels {
+		fmt.Printf("- %s\n", l.Name)
+	}
 }
