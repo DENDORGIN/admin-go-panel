@@ -17,7 +17,7 @@ func SendEmail(to string, subject string, body string, isHTML bool) error {
 	}
 	var emailConfig = entities.EmailConfig{
 		SMTPHost: os.Getenv("SMTP_HOST"),
-		SMTPPort: 587,
+		SMTPPort: 465,
 		Username: os.Getenv("SMTP_USER"),
 		Password: os.Getenv("SMTP_PASSWORD"),
 		From:     os.Getenv("EMAILS_FROM_EMAIL"),
