@@ -11,9 +11,11 @@ import {
 } from "react-icons/fi"
 
 import type { UserPublic } from "../../client"
+import {ChatIcon} from "@chakra-ui/icons";
 
 const items = [
   { icon: FiHome, title: "Dashboard", path: "/" },
+  { icon: ChatIcon, title: "Chat", path: "/chat" },
   { icon: FiBriefcase, title: "Items", path: "/items" },
   { icon: FiBookOpen, title: "Blog", path: "/blog" },
   { icon: FiCalendar, title: "Calendar", path: "/calendar" },

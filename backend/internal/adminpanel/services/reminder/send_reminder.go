@@ -6,6 +6,7 @@ import (
 	"backend/internal/adminpanel/services/utils"
 	"fmt"
 	"log"
+	"time"
 )
 
 func SendReminder(event entities.Calendar) {
@@ -13,6 +14,10 @@ func SendReminder(event entities.Calendar) {
 	if err != nil {
 		log.Printf("⚠️ Event '%s' has no user email, skipped.\n", event.Title)
 		return
+	}
+	warsawLoc, err := time.LoadLocation("Europe/Warsaw")
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	subject := fmt.Sprintf("🔔 Reminder.: %s", event.Title)
@@ -22,7 +27,7 @@ func SendReminder(event entities.Calendar) {
 		<p>Details: %s</p>
 		<hr>
 		<p><em>This is an automated message. Do not reply to it.</em></p>`,
-		user.FullName, event.Title, event.StartDate.Format("02.01.2006 15:04"), event.Description,
+		user.FullName, event.Title, event.StartDate.In(warsawLoc).Format("02.01.2006 15:04"), event.Description,
 	)
 
 	err = utils.SendEmail(user.Email, subject, message, true)

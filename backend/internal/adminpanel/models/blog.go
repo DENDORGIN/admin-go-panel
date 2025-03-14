@@ -11,23 +11,6 @@ import (
 	"gorm.io/gorm"
 )
 
-//type Blog struct {
-//	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-//	Title     string    `gorm:"not null" json:"title"`
-//	Content   string    `gorm:"not null" json:"content"`
-//	Position  int       `gorm:"not null" json:"position"`
-//	Status    bool      `gorm:"default:false" json:"status"`
-//	AuthorID  uuid.UUID `gorm:"not null;index" json:"-"`
-//	User      User      `gorm:"foreignKey:AuthorID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
-//	CreatedAt time.Time
-//	UpdatedAt time.Time
-//}
-//
-//func (c *Blog) BeforeCreate(*gorm.DB) error {
-//	c.ID = uuid.New()
-//	return nil
-//}
-
 type BlogPost struct {
 	ID       uuid.UUID
 	Title    string    `json:"title"`

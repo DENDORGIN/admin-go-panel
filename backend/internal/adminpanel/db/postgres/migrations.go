@@ -1,7 +1,6 @@
-package models
+package postgres
 
 import (
-	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/entities"
 	"log"
 )
@@ -10,16 +9,19 @@ func InitDB() {
 	var err error
 
 	// Підключення до бази даних
-	err = postgres.Connect()
+	err = Connect()
 	if err != nil {
 		log.Fatalf("Failed to connect to the database: %v", err)
 	}
 
 	log.Println("Successfully connected to the database")
-	db := postgres.GetDB()
+	db := GetDB()
 
 	// Виконання міграцій для всіх таблиць
-	err = db.AutoMigrate(&entities.User{}, &entities.Calendar{}, &entities.Blog{}, &entities.Media{}, &entities.Items{}, &entities.Property{})
+	err = db.AutoMigrate(&entities.User{}, &entities.Calendar{},
+		&entities.Blog{}, &entities.Media{},
+		&entities.Items{}, &entities.Property{},
+		&entities.Messages{}, &entities.ChatRooms{})
 	if err != nil {
 		log.Fatalf("Failed to migrate: %v", err)
 	}

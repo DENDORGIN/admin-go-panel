@@ -116,3 +116,32 @@ func (media *Media) BeforeCreate(*gorm.DB) error {
 	media.ID = uuid.New()
 	return nil
 }
+
+type Messages struct {
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	UserId    uuid.UUID `gorm:"type:uuid;" json:"user_id"`
+	ChatId    uuid.UUID `gorm:"type:uuid;" json:"chat_id"`
+	Message   string    `gorm:"type:string" json:"message"`
+	CreatedAt time.Time `gorm:"type:time" json:"created_at"`
+	User      User      `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
+}
+
+func (message *Messages) BeforeCreate(*gorm.DB) error {
+	message.ID = uuid.New()
+	return nil
+}
+
+type ChatRooms struct {
+	ID          uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
+	NameRoom    string     `gorm:"not null" json:"name_room"`
+	Description string     `gorm:"type:string" json:"description"`
+	Image       string     `gorm:"not null" json:"image"`
+	OwnerId     uuid.UUID  `gorm:"type:uuid;" json:"owner_id"`
+	CreatedAt   time.Time  `gorm:"type:time" json:"created_at"`
+	Messages    []Messages `gorm:"foreignKey:ChatId;constraint:OnDelete:CASCADE" json:"messages"`
+}
+
+func (chatRoom *ChatRooms) BeforeCreate(*gorm.DB) error {
+	chatRoom.ID = uuid.New()
+	return nil
+}

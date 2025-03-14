@@ -1,7 +1,9 @@
 package main
 
 import (
-	"backend/internal/adminpanel/models"
+	"backend/cmd/chat"
+	"backend/cmd/chat/rooms"
+	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/routes"
 	"backend/internal/adminpanel/services/reminder"
 	"fmt"
@@ -33,7 +35,7 @@ func main() {
 		log.Fatal(http.ListenAndServe(":6060", nil))
 	}()
 
-	models.InitDB()
+	postgres.InitDB()
 
 	port := os.Getenv("APP_RUN_PORT")
 	fmt.Println(port)
@@ -61,6 +63,9 @@ func main() {
 
 	//Users
 	r.POST("/api/v1/users/signup", routes.CreateUser)
+
+	// Chat routes
+	r.GET("/ws/chat", chat.HandleWebSocket)
 
 	//Protecting routes with JWT middleware
 	r.Use(routes.AuthMiddleware())
@@ -104,6 +109,9 @@ func main() {
 	r.GET("/api/v1/properties/:id", routes.GetPropertyByIDHandler)
 	r.PUT("/api/v1/properties/:id", routes.UpdatePropertyHandler)
 	r.DELETE("/api/v1/properties/:id", routes.DeletePropertyHandler)
+
+	// Chat room routes
+	r.POST("/api/v1/rooms/", rooms.CreateRoomHandler)
 
 	// Run the server
 	if err := r.Run(port); err != nil {
