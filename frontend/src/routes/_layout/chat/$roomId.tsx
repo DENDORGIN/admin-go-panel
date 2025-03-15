@@ -11,6 +11,7 @@ export const Route = createFileRoute("/_layout/chat/$roomId")({
 interface MessageType {
     id: string;
     user_id: string;
+    full_name: string;
     room_id: string;
     message: string;
     created_at: string;
@@ -123,7 +124,7 @@ function MessageBubble({ msg, isMe }: { msg: MessageType; isMe: boolean }) {
                 maxW="70%"
             >
                 <Text fontSize="sm" fontWeight="bold">
-                    {isMe ? "Ви" : msg.user_id}
+                    {isMe ? "Ви" : msg.full_name}
                 </Text>
                 <Text>{msg.message}</Text>
                 <Text fontSize="xs" color="gray.500" mt={1}>
