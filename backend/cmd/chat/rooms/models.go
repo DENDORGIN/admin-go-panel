@@ -48,53 +48,30 @@ func CreateRoom(room *entities.ChatRooms) (*RoomPublic, error) {
 	}, nil
 }
 
-//
-//func GetAllBlogs(userId uuid.UUID) (*BlogGetAll, error) {
-//	var blogs []*entities.Blog
-//	var media []*entities.Media
-//	response := &BlogGetAll{}
-//
-//	// Отримуємо всі блоги автора
-//	err := postgres.DB.Where("author_id = ?", userId).Order("position ASC").Find(&blogs).Error
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	// Отримуємо всі медіафайли, пов'язані з блогами цього автора
-//	var blogIDs []uuid.UUID
-//	for _, blog := range blogs {
-//		blogIDs = append(blogIDs, blog.ID)
-//	}
-//
-//	if len(blogIDs) > 0 {
-//		err = postgres.DB.Where("content_id IN (?)", blogIDs).Find(&media).Error
-//		if err != nil {
-//			return nil, err
-//		}
-//	}
-//
-//	// Групуємо медіафайли за ID блогу
-//	mediaMap := make(map[uuid.UUID][]string)
-//	for _, m := range media {
-//		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
-//	}
-//
-//	// Формуємо фінальну структуру з блогами та відповідними медіафайлами
-//	for _, blog := range blogs {
-//		response.Data = append(response.Data, &BlogGet{
-//			ID:       blog.ID,
-//			Title:    blog.Title,
-//			Content:  blog.Content,
-//			Position: blog.Position,
-//			Status:   blog.Status,
-//			AuthorID: blog.AuthorID,
-//			Images:   mediaMap[blog.ID],
-//		})
-//	}
-//
-//	response.Count = len(blogs)
-//	return response, nil
-//}
+func GetAllRooms(userId uuid.UUID) (*RoomGetAll, error) {
+	var rooms []*entities.ChatRooms
+	response := &RoomGetAll{}
+
+	// Отримуємо всі блоги автора
+	err := postgres.DB.Where("owner_id = ?", userId).Find(&rooms).Error
+	if err != nil {
+		return nil, err
+	}
+
+	for _, room := range rooms {
+		response.Data = append(response.Data, &RoomPublic{
+			ID:          room.ID,
+			NameRoom:    room.NameRoom,
+			Description: room.Description,
+			Image:       room.Image,
+			OwnerId:     room.OwnerId,
+		})
+	}
+
+	response.Count = len(rooms)
+	return response, nil
+}
+
 //
 //func GetBlogById(id uuid.UUID) (*BlogGet, error) {
 //	var blog entities.Blog

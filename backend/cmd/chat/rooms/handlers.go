@@ -33,13 +33,13 @@ func CreateRoomHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, newBlog)
 }
 
-func GetAllBlogsHandler(ctx *gin.Context) {
+func GetAllRoomsHandler(ctx *gin.Context) {
 	userID, ok := utils.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	blogs, err := models.GetAllBlogs(userID)
+	blogs, err := GetAllRooms(userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

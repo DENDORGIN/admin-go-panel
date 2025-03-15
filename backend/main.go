@@ -112,6 +112,7 @@ func main() {
 
 	// Chat room routes
 	r.POST("/api/v1/rooms/", rooms.CreateRoomHandler)
+	r.GET("/api/v1/rooms/", rooms.GetAllRoomsHandler)
 
 	// Run the server
 	if err := r.Run(port); err != nil {
