@@ -127,7 +127,7 @@ function MessageBubble({ msg, isMe }: { msg: MessageType; isMe: boolean }) {
                     {isMe ? "Ви" : msg.full_name}
                 </Text>
                 <Text>{msg.message}</Text>
-                <Text fontSize="xs" color="gray.500" mt={1}>
+                <Text fontSize="xs" color={isMe ? "white" : "gray.500"} mt={1}>
                     {new Date(msg.created_at).toLocaleTimeString("pl-PL", {
                         hour: "2-digit",
                         minute: "2-digit",
