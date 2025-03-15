@@ -13,6 +13,7 @@ type RoomPublic struct {
 	NameRoom    string    `json:"name_room"`
 	Description string    `json:"description"`
 	Image       string    `json:"image"`
+	Status      bool      `json:"status"`
 	OwnerId     uuid.UUID `json:"owner_id"`
 }
 
@@ -20,6 +21,7 @@ type BlogUpdate struct {
 	NameRoom    string `json:"name_room"`
 	Description string `json:"description"`
 	Image       int    `json:"image"`
+	Status      bool   `json:"status"`
 }
 
 type RoomGetAll struct {
@@ -44,6 +46,7 @@ func CreateRoom(room *entities.ChatRooms) (*RoomPublic, error) {
 		NameRoom:    room.NameRoom,
 		Description: room.Description,
 		Image:       room.Image,
+		Status:      room.Status,
 		OwnerId:     room.OwnerId,
 	}, nil
 }
@@ -64,6 +67,7 @@ func GetAllRooms(userId uuid.UUID) (*RoomGetAll, error) {
 			NameRoom:    room.NameRoom,
 			Description: room.Description,
 			Image:       room.Image,
+			Status:      room.Status,
 			OwnerId:     room.OwnerId,
 		})
 	}

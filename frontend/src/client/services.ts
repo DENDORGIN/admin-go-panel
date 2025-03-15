@@ -21,7 +21,7 @@ import {
   UserRegister,
   UserUpdate,
   UserUpdateMe,
-  UsersPublic, Properties, UpdateProperties,
+  UsersPublic, Properties, UpdateProperties, RoomPublic, RoomsPublic,
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -759,5 +759,48 @@ export class PropertyService {
         "Content-Type": "application/json",
       },
     });
+  }
+}
+
+
+export type TDataReadRooms = {
+  limit?: number
+  skip?: number
+}
+
+export class RoomService {
+
+  /**
+   * Create Room
+   * Create new Room.
+   * @returns RoomPublic Successful Response
+   * @throws ApiError
+   */
+  public static createRoom(data: JSON): CancelablePromise<RoomPublic> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/rooms/",
+      body: data,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
+
+  public static readRooms(
+      data: TDataReadRooms = {},
+  ): CancelablePromise<RoomsPublic> {
+    const { limit = 100, skip = 0 } = data
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/rooms/",
+      query: {
+        skip,
+        limit,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
   }
 }

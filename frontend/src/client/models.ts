@@ -225,3 +225,21 @@ export type CalendarEventPublic = {
   weekend: boolean;
   sendEmail: boolean;
 }
+
+export type RoomPublic = {
+  ID: string;
+  name_room: string;
+  description?: string;
+  image: string;
+  status: boolean;
+}
+
+export type RoomsPublic = {
+  Data: Array<RoomPublic>
+  Count: number
+}
+export type RoomCreate = {
+  name_room: string;
+  description?: string;
+  image: string;
+}

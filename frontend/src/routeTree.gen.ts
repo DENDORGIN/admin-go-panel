@@ -18,11 +18,12 @@ import { Route as LoginImport } from './routes/login'
 import { Route as LayoutImport } from './routes/_layout'
 import { Route as LayoutIndexImport } from './routes/_layout/index'
 import { Route as LayoutSettingsImport } from './routes/_layout/settings'
+import { Route as LayoutRoomsImport } from './routes/_layout/rooms'
 import { Route as LayoutItemsImport } from './routes/_layout/items'
-import { Route as LayoutChatImport } from './routes/_layout/chat'
 import { Route as LayoutCalendarImport } from './routes/_layout/calendar'
 import { Route as LayoutBlogImport } from './routes/_layout/blog'
 import { Route as LayoutAdminImport } from './routes/_layout/admin'
+import { Route as LayoutChatRoomIdImport } from './routes/_layout/chat/$roomId'
 
 // Create/Update Routes
 
@@ -61,13 +62,13 @@ const LayoutSettingsRoute = LayoutSettingsImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
-const LayoutItemsRoute = LayoutItemsImport.update({
-  path: '/items',
+const LayoutRoomsRoute = LayoutRoomsImport.update({
+  path: '/rooms',
   getParentRoute: () => LayoutRoute,
 } as any)
 
-const LayoutChatRoute = LayoutChatImport.update({
-  path: '/chat',
+const LayoutItemsRoute = LayoutItemsImport.update({
+  path: '/items',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -83,6 +84,11 @@ const LayoutBlogRoute = LayoutBlogImport.update({
 
 const LayoutAdminRoute = LayoutAdminImport.update({
   path: '/admin',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutChatRoomIdRoute = LayoutChatRoomIdImport.update({
+  path: '/chat/$roomId',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -122,12 +128,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutCalendarImport
       parentRoute: typeof LayoutImport
     }
-    '/_layout/chat': {
-      preLoaderRoute: typeof LayoutChatImport
-      parentRoute: typeof LayoutImport
-    }
     '/_layout/items': {
       preLoaderRoute: typeof LayoutItemsImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/rooms': {
+      preLoaderRoute: typeof LayoutRoomsImport
       parentRoute: typeof LayoutImport
     }
     '/_layout/settings': {
@@ -136,6 +142,10 @@ declare module '@tanstack/react-router' {
     }
     '/_layout/': {
       preLoaderRoute: typeof LayoutIndexImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/chat/$roomId': {
+      preLoaderRoute: typeof LayoutChatRoomIdImport
       parentRoute: typeof LayoutImport
     }
   }
@@ -148,10 +158,11 @@ export const routeTree = rootRoute.addChildren([
     LayoutAdminRoute,
     LayoutBlogRoute,
     LayoutCalendarRoute,
-    LayoutChatRoute,
     LayoutItemsRoute,
+    LayoutRoomsRoute,
     LayoutSettingsRoute,
     LayoutIndexRoute,
+    LayoutChatRoomIdRoute,
   ]),
   LoginRoute,
   RecoverPasswordRoute,

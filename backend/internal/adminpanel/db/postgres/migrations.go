@@ -21,7 +21,7 @@ func InitDB() {
 	err = db.AutoMigrate(&entities.User{}, &entities.Calendar{},
 		&entities.Blog{}, &entities.Media{},
 		&entities.Items{}, &entities.Property{},
-		&entities.Messages{}, &entities.ChatRooms{})
+		&entities.ChatRooms{}, &entities.Messages{})
 	if err != nil {
 		log.Fatalf("Failed to migrate: %v", err)
 	}
