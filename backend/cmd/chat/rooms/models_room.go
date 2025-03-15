@@ -17,7 +17,7 @@ type RoomPublic struct {
 	OwnerId     uuid.UUID `json:"owner_id"`
 }
 
-type BlogUpdate struct {
+type RoomUpdate struct {
 	NameRoom    string `json:"name_room"`
 	Description string `json:"description"`
 	Image       int    `json:"image"`
@@ -51,12 +51,13 @@ func CreateRoom(room *entities.ChatRooms) (*RoomPublic, error) {
 	}, nil
 }
 
-func GetAllRooms(userId uuid.UUID) (*RoomGetAll, error) {
+func GetAllRooms() (*RoomGetAll, error) { //userId uuid.UUID
 	var rooms []*entities.ChatRooms
 	response := &RoomGetAll{}
 
-	// Отримуємо всі блоги автора
-	err := postgres.DB.Where("owner_id = ?", userId).Find(&rooms).Error
+	// Отримуємо всі кімнати автора
+	//err := postgres.DB.Where("owner_id = ?", userId).Find(&rooms).Error
+	err := postgres.DB.Find(&rooms).Error
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"backend/cmd/chat/rooms"
 	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/services/utils"
@@ -28,7 +29,7 @@ var upgrader = websocket.Upgrader{
 }
 
 type MessagePayload struct {
-	ChatId  uuid.UUID `json:"chat_id"`
+	RoomId  uuid.UUID `json:"room_id"`
 	UserId  uuid.UUID `json:"user_id"`
 	Message string    `json:"message"`
 }
@@ -40,9 +41,9 @@ func HandleWebSocket(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		return
 	}
-	chatID, err := uuid.Parse(c.Query("chat_id"))
+	roomID, err := uuid.Parse(c.Query("room_id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid chat_id"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room_id"})
 		return
 	}
 
@@ -52,57 +53,62 @@ func HandleWebSocket(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("Клієнт з ID %s підключився\n", user.ID)
+	fmt.Printf("Клієнт з ID %s підключився до кімнати %s\n", user.ID, roomID)
 
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		fmt.Println("Помилка WebSocket:", err)
 		return
 	}
-	defer func(conn *websocket.Conn) {
-		err := conn.Close()
-		if err != nil {
+	defer conn.Close()
 
-		}
-	}(conn)
-
+	// Додаємо користувача в мапу клієнтів
 	mutex.Lock()
-	if clients[chatID] == nil {
-		clients[chatID] = make(map[*websocket.Conn]bool)
+	if clients[roomID] == nil {
+		clients[roomID] = make(map[*websocket.Conn]bool)
 	}
-	clients[chatID][conn] = true
+	clients[roomID][conn] = true
 	mutex.Unlock()
 
-	// Очікуємо повідомлення
+	// 🔹 Отримуємо історію повідомлень кімнати
+	history, err := rooms.GetAllMessages(roomID)
+	if err != nil {
+		log.Println("❌ Не вдалося отримати історію чату:", err)
+	} else {
+		historyData, _ := json.Marshal(history)
+		conn.WriteMessage(websocket.TextMessage, historyData) // ✅ Відправка історії користувачу
+	}
+
+	// Чекаємо нові повідомлення
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
 			log.Println("Користувач відключився:", user.ID)
 			mutex.Lock()
-			delete(clients[chatID], conn)
+			delete(clients[roomID], conn)
 			mutex.Unlock()
 			break
 		}
 
-		// Обробка повідомлення
+		// Обробка нового повідомлення
 		var payload MessagePayload
 		if err := json.Unmarshal(msg, &payload); err != nil {
 			log.Println("Помилка JSON:", err)
 			continue
 		}
 
-		// Зберігаємо в базу
+		// Зберігаємо повідомлення в базі даних
 		message := entities.Messages{
 			ID:        uuid.New(),
 			UserId:    user.ID,
-			ChatId:    chatID,
+			RoomId:    roomID,
 			Message:   payload.Message,
 			CreatedAt: time.Now(),
 		}
 		postgres.DB.Create(&message)
 
-		// Відправляємо всім у кімнаті
-		broadcastMessage(chatID, msg)
+		// Відправляємо нове повідомлення всім користувачам у кімнаті
+		broadcastMessage(roomID, msg)
 	}
 }
 
@@ -118,10 +124,3 @@ func broadcastMessage(chatID uuid.UUID, message []byte) {
 		}
 	}
 }
-
-//func main() {
-//	r := gin.Default()
-//	r.GET("/ws", handleWebSocket)
-//
-//	r.Run(":8080")
-//}

@@ -34,12 +34,12 @@ func CreateRoomHandler(ctx *gin.Context) {
 }
 
 func GetAllRoomsHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	_, ok := utils.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	blogs, err := GetAllRooms(userID)
+	blogs, err := GetAllRooms()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

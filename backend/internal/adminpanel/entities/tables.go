@@ -120,7 +120,7 @@ func (media *Media) BeforeCreate(*gorm.DB) error {
 type Messages struct {
 	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
 	UserId    uuid.UUID `gorm:"type:uuid;" json:"user_id"`
-	ChatId    uuid.UUID `gorm:"type:uuid;" json:"chat_id"`
+	RoomId    uuid.UUID `gorm:"type:uuid;" json:"room_id"`
 	Message   string    `gorm:"type:string" json:"message"`
 	CreatedAt time.Time `gorm:"type:time" json:"created_at"`
 	User      User      `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
@@ -139,7 +139,7 @@ type ChatRooms struct {
 	Status      bool       `gorm:"default:false" json:"status"`
 	OwnerId     uuid.UUID  `gorm:"type:uuid;" json:"owner_id"`
 	CreatedAt   time.Time  `gorm:"type:time" json:"created_at"`
-	Messages    []Messages `gorm:"foreignKey:ChatId;constraint:OnDelete:CASCADE" json:"messages"`
+	Messages    []Messages `gorm:"foreignKey:RoomId;constraint:OnDelete:CASCADE" json:"messages"`
 }
 
 func (chatRoom *ChatRooms) BeforeCreate(*gorm.DB) error {
