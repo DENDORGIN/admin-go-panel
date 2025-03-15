@@ -10,7 +10,7 @@ import {
     Button,
     Skeleton,
 } from "@chakra-ui/react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { createFileRoute } from "@tanstack/react-router"
 import { StarIcon } from "@chakra-ui/icons"
@@ -19,7 +19,7 @@ import { z } from "zod"
 import { RoomService, type RoomPublic } from "../../client"
 
 // 🔹 Типізація кімнат
-interface RoomType {
+export interface RoomType {
     ID: string;
     name_room: string;
     description: string;
@@ -49,6 +49,7 @@ function gePostQueryOptions({ page }: { page: number }) {
 
 function RoomGrid() {
     const { page } = Route.useSearch()
+    const queryClient = useQueryClient();
 
     const {
         data: rooms,
@@ -67,6 +68,8 @@ function RoomGrid() {
             status: room.status ?? false, // Додаємо `status`, якщо його немає
         }))
         : []
+    // ✅ Зберігаємо список кімнат у `useQueryClient()`
+    queryClient.setQueryData(["rooms"], transformedRooms);
 
     return (
         <SimpleGrid columns={[1, 2, 3]} spacing={6} py={6}>

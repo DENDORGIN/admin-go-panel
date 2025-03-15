@@ -1,7 +1,9 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Box, Input, Button, VStack, HStack, Text, Flex } from "@chakra-ui/react";
 import useAuth from "../../../hooks/useAuth";
+import { RoomType } from "../rooms";
 
 export const Route = createFileRoute("/_layout/chat/$roomId")({
     component: ChatRoom,
@@ -17,13 +19,20 @@ interface MessageType {
     created_at: string;
 }
 
+
+
 function ChatRoom() {
     const { user } = useAuth();
     const { roomId } = useParams({ from: "/_layout/chat/$roomId" });
+    const queryClient = useQueryClient();
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [input, setInput] = useState("");
     const ws = useRef<WebSocket | null>(null);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+    // ✅ Отримуємо список кімнат із кешу
+    const rooms: RoomType[] | undefined = queryClient.getQueryData(["rooms"]);
+    const roomName = rooms?.find(room => room.ID === roomId)?.name_room || "Невідома кімната";
 
     useEffect(() => {
         if (!user) return;
@@ -95,7 +104,7 @@ function ChatRoom() {
         <Flex direction="column" w="100%" h="97vh" p={6}>
             <Box flex="1" borderWidth={1} borderRadius="lg" boxShadow="md" overflow="hidden">
                 <Text fontSize="2xl" p={4} borderBottom="1px solid lightgray">
-                    Chat Room: {roomId}
+                    Chat Room: {roomName}
                 </Text>
                 <VStack spacing={5} align="stretch" flex="1" overflowY="auto" p={4} maxH="calc(100vh - 150px)">
                     {messages.map((msg) => (
