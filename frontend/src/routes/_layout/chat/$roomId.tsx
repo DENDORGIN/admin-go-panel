@@ -94,7 +94,9 @@ function ChatRoom() {
 
     const sendMessage = () => {
         if (ws.current && ws.current.readyState === WebSocket.OPEN && input.trim()) {
-            const message = { id: crypto.randomUUID(), user_id: user?.ID, room_id: roomId, message: input, created_at: new Date().toISOString() };
+            const message = { id: crypto.randomUUID(), user_id: user?.ID,
+                full_name: user?.fullName, room_id: roomId,
+                message: input, created_at: new Date().toISOString() };
             ws.current.send(JSON.stringify(message));
             setInput("");
         }
