@@ -122,7 +122,7 @@ function RoomCard({ room }: { room: RoomType }) {
                             <StarIcon key={i} color={i < 4 ? "teal.500" : "gray.300"} />
                         ))}
                     <Text ml="2" fontSize="sm" color="gray.600">
-                        34 reviews
+                        42 reviews
                     </Text>
                 </Flex>
 

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Box, Input, Button, VStack, HStack, Text, Flex } from "@chakra-ui/react";
 import useAuth from "../../../hooks/useAuth";
 import { RoomType } from "../rooms";
+import { useBreakpointValue } from "@chakra-ui/react";
 
 export const Route = createFileRoute("/_layout/chat/$roomId")({
     component: ChatRoom,
@@ -29,6 +30,8 @@ function ChatRoom() {
     const [input, setInput] = useState("");
     const ws = useRef<WebSocket | null>(null);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+    const chatWidth = useBreakpointValue({ base: "100%", md: "80%", lg: "50%" });
 
     // ✅ Отримуємо список кімнат із кешу
     const rooms: RoomType[] | undefined = queryClient.getQueryData(["rooms"]);
@@ -103,11 +106,11 @@ function ChatRoom() {
     };
 
     return (
-        <Flex direction="column" w="100%" h="97vh" p={6}>
-            <Box flex="1" borderWidth={1} borderRadius="lg" boxShadow="md" overflow="hidden">
-                <Text fontSize="2xl" p={4} borderBottom="1px solid lightgray">
-                    Chat Room: {roomName}
-                </Text>
+        <Flex direction="column" h="97vh" w={chatWidth} maxW="1920px" p={6} mx="auto">
+            <Text fontSize="3xl" color="orange.500" p={3} textAlign="center">
+                {roomName}
+            </Text>
+            <Box flex="1" borderWidth={1} borderRadius="lg" boxShadow="md" overflow="hidden" p={4} w="100%">
                 <VStack spacing={5} align="stretch" flex="1" overflowY="auto" p={4} maxH="calc(100vh - 150px)">
                     {messages.map((msg) => (
                         <MessageBubble key={msg.id} msg={msg} isMe={msg.user_id === user?.ID} />
@@ -115,7 +118,7 @@ function ChatRoom() {
                     <div ref={messagesEndRef} />
                 </VStack>
             </Box>
-            <HStack mt={4} p={2} borderTop="1px solid lightgray" bg="white">
+            <HStack mt={4} p={2} borderTop="1px solid lightgray" bg="white" w="100%">
                 <Input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -130,7 +133,6 @@ function ChatRoom() {
                 />
                 <Button onClick={sendMessage} colorScheme="blue">Send</Button>
             </HStack>
-
         </Flex>
     );
 }
