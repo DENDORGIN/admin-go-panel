@@ -232,6 +232,7 @@ export type RoomPublic = {
   description?: string;
   image: string;
   status: boolean;
+  owner_id: string;
 }
 
 export type RoomsPublic = {

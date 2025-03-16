@@ -15,28 +15,26 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-  ModalOverlay,
-  Switch,
-} from "@chakra-ui/react"
-import {useMutation, useQueryClient} from "@tanstack/react-query"
-import { type SubmitHandler, useForm } from "react-hook-form"
-
-import { CloseIcon } from "@chakra-ui/icons"
-import { useRef, useState, useEffect } from "react"
+  ModalOverlay, Switch,
+} from "@chakra-ui/react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { type SubmitHandler, useForm } from "react-hook-form";
+import { CloseIcon } from "@chakra-ui/icons";
+import { useRef, useState, useEffect } from "react";
 import {
   type ApiError,
-  BlogService, MediaService,
-  type PostPublic,
-  type PostUpdate,
-} from "../../client"
-import useCustomToast from "../../hooks/useCustomToast"
-import { handleError } from "../../utils"
-import ReactQuill from "react-quill";
+  MediaService,
+  type RoomPublic,
+  RoomService,
+  type RoomUpdate,
+} from "../../client";
+import useCustomToast from "../../hooks/useCustomToast";
+import { handleError } from "../../utils";
 
-interface EditPostProps {
-  post: PostPublic
-  isOpen: boolean
-  onClose: () => void
+interface EditRoomProps {
+  room: RoomPublic;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 interface FileDetail {
@@ -46,42 +44,16 @@ interface FileDetail {
   preview?: string;
 }
 
-interface PostUpdateExtended extends PostUpdate {
-  images?: File[];
+interface RoomUpdateExtended extends RoomUpdate {
+  image: string;
 }
 
-const EditRoom = ({ post, isOpen, onClose }: EditPostProps) => {
-  const queryClient = useQueryClient()
-  const showToast = useCustomToast()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [files, setFiles] = useState<FileDetail[]>([])
-
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      [{ 'font': [] }],
-      [{ 'color': [] }, { 'background': [] }], // Колір тексту та фону
-      [{ 'align': [] }], // Вирівнювання
-      ['bold', 'italic', 'underline', 'strike'], // Стилізація тексту
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }], // Списки
-      [{ 'indent': '-1' }, { 'indent': '+1' }], // Відступи
-      ['link', 'image', 'video'], // Додавання медіа
-      ['clean'], // Очищення форматування
-    ],
-  };
-
-  const formats = [
-    'header', 'font', 'color', 'background', 'align',
-    'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet', 'indent',
-    'link', 'image', 'video'
-  ];
-
-
-
-  const [existingImages, setExistingImages] = useState<string[]>(
-      Array.isArray(post.images) ? post.images : post.images ? post.images.split(',') : []
-  );
+const EditRoom = ({ room, isOpen, onClose }: EditRoomProps) => {
+  const queryClient = useQueryClient();
+  const showToast = useCustomToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<FileDetail | null>(null);
+  const [existingImage, setExistingImage] = useState<string>(room.image || "");
 
   const {
     register,
@@ -89,320 +61,209 @@ const EditRoom = ({ post, isOpen, onClose }: EditPostProps) => {
     reset,
     setValue,
     watch,
-    trigger,
     formState: { isSubmitting, errors, isDirty },
-  } = useForm<PostUpdateExtended>({
+  } = useForm<RoomUpdateExtended>({
     mode: "onBlur",
-    criteriaMode: "all",
     defaultValues: {
-      ...post,
-      images: undefined,
+      ...room,
+      image: "",
     },
   });
 
-  // Оновлюємо значення форми при відкритті модального вікна
+  // Оновлення форми при відкритті
   useEffect(() => {
     if (isOpen) {
       reset({
-        ...post,
-        images: undefined, // Очищаємо список файлів
+        ...room,
+        image: "",
       });
 
-      // Оновлюємо список існуючих зображень
-      setExistingImages(
-          Array.isArray(post.images) ? post.images : post.images ? post.images.split(",") : []
-      );
-
-      setFiles([]); // Очищаємо нові завантажені файли
+      setExistingImage(room.image || "");
+      setFile(null);
     }
-  }, [isOpen, post, reset]);
+  }, [isOpen, room, reset]);
 
+  // Завантаження зображення
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
 
-  const handleDeleteImage = async (imageUrl: string) => {
     try {
-      await MediaService.deleteImage(post.ID, imageUrl);
+      const response = await MediaService.downloadOneImage(formData);
+      if (!response) throw new Error("Image upload failed");
+      return response;
+    } catch (error) {
+      throw new Error("Image upload error: " + error);
+    }
+  };
 
-      setExistingImages((prev) => prev.filter((img) => img !== imageUrl));
+  // Видалення зображення
+  const handleDeleteImage = async () => {
+    if (!existingImage) return;
 
-      // Примушуємо форму розпізнати зміни
-      setValue("images", files.length > 0 || existingImages.length > 1 ? files.map(f => f.file) : undefined, {
-        shouldDirty: true,
-      });
-
-      trigger("images"); // Викликаємо перевірку змін
+    try {
+      await MediaService.deleteImageInUrl(existingImage);
+      setExistingImage("");
+      setValue("image", "", { shouldDirty: true });
       showToast("Success!", "Image deleted successfully.", "success");
     } catch (err) {
       handleError(err as ApiError, showToast);
     }
   };
 
-
+  // Вибір нового файлу
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files) return;
+    if (!event.target.files || event.target.files.length === 0) return;
 
-    const selectedFiles: FileDetail[] = Array.from(event.target.files).map((file) => ({
-      name: file.name,
-      size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-      file,
-      preview: URL.createObjectURL(file), // Генеруємо URL для прев’ю
-    }));
+    const selectedFile = event.target.files[0];
+    const newFile: FileDetail = {
+      name: selectedFile.name,
+      size: `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
+      file: selectedFile,
+      preview: URL.createObjectURL(selectedFile),
+    };
 
-    setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
-
-    setValue(
-        "images",
-        [...(watch("images") || []), ...selectedFiles.map((f) => f.file)],
-        { shouldValidate: true, shouldDirty: true, }
-    );
+    setFile(newFile);
+    setValue("image", "", { shouldDirty: true });
   };
 
-
-
-
-  const handleRemoveFile = (index: number) => {
-    const updatedFiles = [...files];
-
-    // Очищаємо URL для запобігання витоку пам’яті
-    URL.revokeObjectURL(updatedFiles[index].preview!);
-
-    updatedFiles.splice(index, 1);
-    setFiles(updatedFiles);
-
-    // Оновлюємо значення у react-hook-form, щоб змусити форму вважати себе зміненою
-    setValue("images", updatedFiles.length > 0 ? updatedFiles.map(f => f.file) : undefined, {
-      shouldDirty: true,
-    });
-
-    trigger("images"); // Перевіряємо валідацію
+  // Видалення вибраного файлу
+  const handleRemoveFile = () => {
+    if (file?.preview) URL.revokeObjectURL(file.preview);
+    setFile(null);
+    setValue("image", "", { shouldDirty: true });
   };
 
-
-
-
+  // Мутація оновлення кімнати
   const mutation = useMutation({
-    mutationFn: async (jsonPayload: PostUpdateExtended) => {
-      // Створюємо пост
+    mutationFn: async (jsonPayload: RoomUpdateExtended) => {
       // @ts-ignore
-      const postResponse = await BlogService.updatePost(post.ID, jsonPayload);
-      const postId = postResponse.ID;
-
-      // Отримуємо файли
-      const images = jsonPayload.images;
-      if (postId && images && images.length > 0) {
-        const formData = new FormData();
-
-        images.forEach((file) => {
-          formData.append("files", file);
-        });
-
-        console.log("Uploading images:", formData.getAll("images")); // Дебаг
-
-        await MediaService.downloadImages(postId, formData);
-      } else {
-        console.warn("No images to upload.");
-      }
+      await RoomService.updateRoom(room.ID, jsonPayload);
     },
     onSuccess: () => {
-      showToast("Success!", "Post created successfully.", "success");
-      setTimeout(() => {
-        onClose();
-      }, 500);
-      setFiles([]);
-      reset();
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      showToast("Success!", "Room updated successfully.", "success");
       onClose();
     },
     onError: (err: ApiError) => {
       handleError(err, showToast);
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-    },
   });
 
-  const handleFileButtonClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
+  // Відправка форми
+  const onSubmit: SubmitHandler<RoomUpdateExtended> = async (data) => {
+    let imageUrl = existingImage;
+
+    // Завантажуємо нове зображення, якщо вибране
+    if (file) {
+      try {
+        imageUrl = await uploadImage(file.file);
+      } catch (error) {
+        showToast("Error", "Failed to upload image", "error");
+        return;
+      }
     }
-  };
 
-
-
-  const onSubmit: SubmitHandler<PostUpdateExtended> = async (data) => {
-    const payload: PostUpdateExtended = {
-      title: data.title,
-      position: data.position,
-      content: data.content,
+    const payload: RoomUpdateExtended = {
+      name_room: data.name_room,
+      description: data.description,
       status: data.status,
-      images: files.map((f) => f.file),
+      image: imageUrl, // Додаємо URL зображення
     };
 
     await mutation.mutateAsync(payload);
   };
 
-
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      size={{ base: "xl", xl: "xl" }}
-      isCentered
-    >
-      <ModalOverlay />
-      <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
-        <ModalHeader>Edit Post</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody pb={6}>
-          <FormControl isRequired isInvalid={!!errors.title}>
-            <FormLabel htmlFor="title">Title</FormLabel>
-            <ReactQuill
-                theme="snow"
-                value={watch('title') || ''}
-                onChange={(_, __, ___, editor) => {
-                  setValue('title', editor.getHTML());
-                }}
-                modules={modules}
-                formats={formats}
-            />
-            {errors.title && (
-              <FormErrorMessage>{errors.title.message}</FormErrorMessage>
-            )}
-          </FormControl>
-          <FormControl mt={4} isInvalid={!!errors.content}>
-            <FormLabel htmlFor="description">Description</FormLabel>
-            <ReactQuill
-                theme="snow"
-                value={watch('content') || ''}
-                onChange={(_, __, ___, editor) => {
-                  setValue('content', editor.getHTML());
-                }}
-                modules={modules}
-                formats={formats}
-            />
-            {errors.content && (
-                <FormErrorMessage>{errors.content.message}</FormErrorMessage>
-            )}
-          </FormControl>
+      <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
+        <ModalOverlay />
+        <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
+          <ModalHeader>Edit Room</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            <FormControl mt={4} isInvalid={!!errors.name_room}>
+              <FormLabel htmlFor="name_room">Name Room</FormLabel>
+              <Input id="name_room" {...register("name_room")} placeholder="Room name" />
+              {errors.name_room && <FormErrorMessage>{errors.name_room.message}</FormErrorMessage>}
+            </FormControl>
 
-          <FormControl mt={4}>
-            <FormLabel htmlFor="images">Images</FormLabel>
-            <Input
-              ref={fileInputRef}
-              id="images"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={onFileChange}
-              hidden
-              disabled={isSubmitting}
-            />
-            <Button
-              colorScheme="teal"
-              variant="outline"
-              onClick={handleFileButtonClick}
-              mt={2}
-              isLoading={isSubmitting}
-            >
-              Upload Images
-            </Button>
-            <Card>
-              {files.length > 0 && (
-                  <List spacing={2} mt={2}>
-                    {files.map((file, index) => (
-                        <ListItem
-                            key={index}
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="space-between"
-                        >
-                          <Box display="flex" alignItems="center" gap={3}>
-                            <img src={file.preview} alt={file.name} width="50" height="50" style={{ borderRadius: "5px" }} />
-                            {file.name} - {file.size}
-                          </Box>
-                          <IconButton
-                              icon={<CloseIcon />}
-                              aria-label="Remove file"
-                              onClick={() => handleRemoveFile(index)}
-                          />
-                        </ListItem>
-                    ))}
-                  </List>
-              )}
-            </Card>
+            <FormControl mt={4} isInvalid={!!errors.description}>
+              <FormLabel htmlFor="description">Description</FormLabel>
+              <Input id="description" {...register("description")} placeholder="Description" />
+              {errors.description && <FormErrorMessage>{errors.description.message}</FormErrorMessage>}
+            </FormControl>
 
-          </FormControl>
-
-          {existingImages.length > 0 && (
-              <Box mt={4}>
-                <FormLabel>Existing Images</FormLabel>
-                <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(100px, 1fr))" gap={4}>
-                  {existingImages.map((image, index) => (
-                      <Box key={index} position="relative">
-                        <img src={image} alt={`Uploaded ${index}`} width="100" height="100" style={{ borderRadius: "5px" }} />
-                        <IconButton
-                            icon={<CloseIcon />}
-                            aria-label="Remove existing image"
-                            position="absolute"
-                            top="5px"
-                            right="5px"
-                            size="xs"
-                            onClick={() => handleDeleteImage(image)}
-                            isLoading={isSubmitting}
-                        />
-                      </Box>
-                  ))}
-                </Box>
-              </Box>
-          )}
-
-
-          <FormControl mt={4} isInvalid={!!errors.position}>
-            <FormLabel htmlFor="position">Position</FormLabel>
-            <Input
-              id="position"
-              {...register("position", {
-                required: "Position is required.",
-                valueAsNumber: true,
-                min: { value: 1, message: "Position must be greater than 0" },
-              })}
-              placeholder="Enter position"
-              type="number"
-            />
-            {errors.position && (
-              <FormErrorMessage>{errors.position.message}</FormErrorMessage>
-            )}
-          </FormControl>
-          <FormControl mt={4} isInvalid={!!errors.status}>
-            <FormLabel
-              htmlFor="status"
-              display="flex"
-              alignItems="center"
-              gap={2}
-            >
-              <Box
-                width="12px"
-                height="12px"
-                borderRadius="full"
-                bg={watch("status") ? "green.500" : "red.500"}
+            {/* Завантаження нового зображення */}
+            <FormControl mt={4}>
+              <FormLabel htmlFor="image">Image</FormLabel>
+              <Input
+                  ref={fileInputRef}
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={onFileChange}
+                  hidden
+                  disabled={isSubmitting}
               />
-              Status
-            </FormLabel>
-            <Switch id="status" {...register("status")} colorScheme="teal" />
-          </FormControl>
-        </ModalBody>
-        <ModalFooter gap={3}>
-          <Button
-            variant="primary"
-            type="submit"
-            isLoading={isSubmitting}
-            isDisabled={!isDirty && files.length === 0 && existingImages.length === 0}
-          >
-            Save
-          </Button>
-          <Button onClick={onClose}>Cancel</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
-  )
-}
+              <Button colorScheme="teal" variant="outline" onClick={() => fileInputRef.current?.click()} mt={2}>
+                Upload Image
+              </Button>
 
-export default EditRoom
+              {/* Перегляд нового файлу */}
+              {file && (
+                  <Card mt={2} p={3}>
+                    <List spacing={2}>
+                      <ListItem display="flex" alignItems="center" justifyContent="space-between">
+                        <Box display="flex" alignItems="center" gap={3}>
+                          <img src={file.preview} alt={file.name} width="50" height="50" style={{ borderRadius: "5px" }} />
+                          {file.name} - {file.size}
+                        </Box>
+                        <IconButton icon={<CloseIcon />} aria-label="Remove file" onClick={handleRemoveFile} />
+                      </ListItem>
+                    </List>
+                  </Card>
+              )}
+            </FormControl>
+
+            {/* Перегляд поточного зображення */}
+            {existingImage && (
+                <Box mt={4}>
+                  <FormLabel>Current Image</FormLabel>
+                  <Box position="relative">
+                    <img src={existingImage} alt="Current" width="100" height="100" style={{ borderRadius: "5px" }} />
+                    <IconButton
+                        icon={<CloseIcon />}
+                        aria-label="Remove current image"
+                        position="absolute"
+                        top="5px"
+                        right="5px"
+                        size="xs"
+                        onClick={handleDeleteImage}
+                    />
+                  </Box>
+                </Box>
+            )}
+
+            <FormControl mt={4} isInvalid={!!errors.status}>
+              <FormLabel htmlFor="status" display="flex" alignItems="center" gap={2}>
+                <Box width="12px" height="12px" borderRadius="full" bg={watch("status") ? "green.500" : "red.500"} />
+                Status
+              </FormLabel>
+              <Switch id="status" {...register("status")} colorScheme="teal" />
+            </FormControl>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button type="submit" variant="primary" isLoading={isSubmitting} isDisabled={!isDirty && !file}>
+              Save
+            </Button>
+            <Button onClick={onClose} ml={3}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+  );
+};
+
+export default EditRoom;

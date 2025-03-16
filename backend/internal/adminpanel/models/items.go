@@ -6,7 +6,6 @@ import (
 	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
 	"errors"
-	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -214,9 +213,7 @@ func DeleteItemById(id uuid.UUID) error {
 		return err
 	}
 	for _, media := range mediaList {
-		fileName := utils.ExtractFileNameFromURL(media.Url)
-		fmt.Println("Deleted file:", fileName)
-		err = utils.DeleteFile(fileName)
+		err = utils.DeleteImageInBucket(media.Url)
 		if err != nil {
 			return err
 		}

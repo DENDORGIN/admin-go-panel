@@ -32,7 +32,10 @@ import { useRef } from "react";
 
 import { RoomService, type RoomPublic } from "../../client";
 import AddRoom from "../../components/Rooms/AddRoom";
+import EditRoom from "../../components/Rooms/EditRoom";
 import useCustomToast from "../../hooks/useCustomToast.ts";
+import useAuth from "../../hooks/useAuth.ts";
+
 
 // 🔹 Типізація кімнат
 export interface RoomType {
@@ -41,6 +44,7 @@ export interface RoomType {
     description: string;
     image: string;
     status: boolean;
+    owner_id: string;
 }
 
 // 🔹 Схема валідації URL-параметрів
@@ -63,7 +67,7 @@ function geRoomQueryOptions({ page }: { page: number }) {
     };
 }
 
-function RoomGrid({ onDeleteRoom }: { onDeleteRoom: (room: RoomType) => void }) {
+function RoomGrid({ onDeleteRoom, onEditRoom }: { onDeleteRoom: (room: RoomType) => void; onEditRoom: (room: RoomType) => void }) {
     const { page } = Route.useSearch();
     const queryClient = useQueryClient();
 
@@ -78,6 +82,7 @@ function RoomGrid({ onDeleteRoom }: { onDeleteRoom: (room: RoomType) => void }) 
             description: room.description || "No description available",
             image: room.image || "https://via.placeholder.com/400",
             status: room.status ?? false,
+            owner_id: room.owner_id,
         }))
         : [];
 
@@ -91,7 +96,7 @@ function RoomGrid({ onDeleteRoom }: { onDeleteRoom: (room: RoomType) => void }) 
                 ))
                 : transformedRooms.length > 0 ? (
                     transformedRooms.map((room) => (
-                        <RoomCard key={room.ID} room={room} onDelete={() => onDeleteRoom(room)} />
+                        <RoomCard key={room.ID} room={room} onDelete={() => onDeleteRoom(room)} onEdit={() => onEditRoom(room)} />
                     ))
                 ) : (
                     <Text textAlign="center" w="full">
@@ -102,8 +107,11 @@ function RoomGrid({ onDeleteRoom }: { onDeleteRoom: (room: RoomType) => void }) 
     );
 }
 
-function RoomCard({ room, onDelete }: { room: RoomType; onDelete: () => void }) {
+function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => void; onEdit: () => void }) {
     const navigate = useNavigate();
+    const { user } = useAuth();
+
+    const isOwner = room.owner_id === user?.ID
 
     const handleOpenChat = () => {
         navigate({ to: `/chat/${room.ID}` });
@@ -124,8 +132,8 @@ function RoomCard({ room, onDelete }: { room: RoomType; onDelete: () => void }) 
                         size="sm"
                     />
                     <MenuList>
-                        <MenuItem>Update Room</MenuItem>
-                        <MenuItem onClick={onDelete} color="red.500">
+                        <MenuItem onClick={onEdit} isDisabled={!isOwner}>Update Room</MenuItem>
+                        <MenuItem onClick={onDelete} isDisabled={!isOwner} color="red.500">
                             Delete Room
                         </MenuItem>
                     </MenuList>
@@ -169,6 +177,7 @@ function RoomCard({ room, onDelete }: { room: RoomType; onDelete: () => void }) 
 function Room() {
     const cancelRef = useRef<HTMLButtonElement | null>(null); // 🛠 Додано useRef
     const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
+    const [isEditRoomOpen, setIsEditRoomOpen] = useState(false);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedRoom, setSelectedRoom] = useState<RoomType | null>(null);
     const queryClient = useQueryClient();
@@ -205,12 +214,17 @@ function Room() {
         }
     };
 
+    const handleEditRoom = (room: RoomType) => {
+        setSelectedRoom(room);
+        setIsEditRoomOpen(true);
+    };
+
     return (
         <Container maxW="full">
             <Heading size="lg" textAlign="center" pt={12}>
                 Chat Rooms
             </Heading>
-            <RoomGrid onDeleteRoom={handleDeleteRoom} />
+            <RoomGrid onDeleteRoom={handleDeleteRoom} onEditRoom={handleEditRoom} />
 
             <Button
                 position="fixed"
@@ -249,6 +263,7 @@ function Room() {
                     </AlertDialogContent>
                 </AlertDialogOverlay>
             </AlertDialog>
+            {selectedRoom && <EditRoom room={selectedRoom} isOpen={isEditRoomOpen} onClose={() => setIsEditRoomOpen(false)} />}
         </Container>
     );
 }

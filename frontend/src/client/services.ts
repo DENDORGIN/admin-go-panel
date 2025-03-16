@@ -729,6 +729,17 @@ export class MediaService {
       },
     });
   }
+
+  static deleteImageInUrl(imageUrl: string): CancelablePromise<void> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: `/api/v1/media/images/url`,
+      body: JSON.stringify({ imageUrl }), // Передаємо URL як JSON
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
 }
 
 
