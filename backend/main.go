@@ -103,6 +103,7 @@ func main() {
 	r.POST("/api/v1/media/images", routes.DownloadMediaOneImageHandler)
 	r.GET("/api/v1/media/images/:postId", routes.GetAllMediaByBlogIdHandler)
 	r.DELETE("/api/v1/media/images/:postId", routes.DeleteMediaHandler)
+	r.DELETE("/api/v1/media/images/url", routes.DeleteImageFromUrl)
 
 	// Properties routes
 	r.POST("/api/v1/properties/", routes.CreatePropertiesHandler)

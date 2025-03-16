@@ -170,3 +170,25 @@ func DeleteMediaHandler(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Media deleted successfully"})
 }
+
+func DeleteImageFromUrl(ctx *gin.Context) {
+	var req DeleteMediaRequest
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	if req.ImageUrl == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Image URL is required"})
+		return
+	}
+
+	err := utils.DeleteImageInBucket(req.ImageUrl)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Image deleted successfully"})
+}

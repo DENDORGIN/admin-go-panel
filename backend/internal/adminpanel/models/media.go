@@ -10,19 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-//type Media struct {
-//	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-//	ContentId uuid.UUID `gorm:"type:uuid;" json:"content_id"`
-//	Url       string    `gorm:"type:string" json:"url"`
-//	Type      string    `gorm:"type:string" json:"type"`
-//	CreatedAt time.Time `gorm:"type:time" json:"created_at"`
-//}
-//
-//func (c *Media) BeforeCreate(*gorm.DB) error {
-//	c.ID = uuid.New()
-//	return nil
-//}
-
 type MediaPublic struct {
 	ID        uuid.UUID `json:"id"`
 	Url       string    `json:"url"`
@@ -103,9 +90,8 @@ func DeleteInBucket(id uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-	fileName := utils.ExtractFileNameFromURL(media.Url)
 
-	err = utils.DeleteFile(fileName)
+	err = utils.DeleteImageInBucket(media.Url)
 	if err != nil {
 		return err
 	}

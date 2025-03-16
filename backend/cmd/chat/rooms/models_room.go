@@ -6,7 +6,6 @@ import (
 	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
 	"errors"
-	"fmt"
 	"github.com/google/uuid"
 )
 
@@ -145,9 +144,7 @@ func DeleteRoomById(roomId uuid.UUID) error {
 		return err
 	}
 
-	fileName := utils.ExtractFileNameFromURL(roomGet.Image)
-	fmt.Println("Deleted file:", fileName)
-	err = utils.DeleteFile(fileName)
+	err = utils.DeleteImageInBucket(roomGet.Image)
 	if err != nil {
 		return err
 	}

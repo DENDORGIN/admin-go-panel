@@ -105,3 +105,14 @@ func DeleteFile(fileName string) error {
 
 	return nil
 }
+
+func DeleteImageInBucket(url string) error {
+	fileName := ExtractFileNameFromURL(url)
+	fmt.Println("Deleting image", fileName)
+
+	err := DeleteFile(fileName)
+	if err != nil {
+		return err
+	}
+	return nil
+}

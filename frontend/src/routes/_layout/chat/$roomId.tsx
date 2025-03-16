@@ -128,7 +128,7 @@ function ChatRoom() {
             {/* ✅ Відображаємо форму тільки якщо чат відкритий */}
             {isRoomClosed ? (
                 <Box textAlign="center" color="red.500" fontWeight="bold" p={4}>
-                    Чат закритий для нових повідомлень
+                    Chat is closed for new messages
                 </Box>
             ) : (
                 <HStack mt={4} p={2} borderTop="1px solid lightgray" bg={useColorModeValue("white", "gray.800")} w="100%">

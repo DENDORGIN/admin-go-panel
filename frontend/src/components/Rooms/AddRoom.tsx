@@ -48,8 +48,6 @@ const AddRoom = ({ isOpen, onClose }: AddRoomProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<FileDetail | null>(null); // Змінено на один файл
 
-
-
   const {
     register,
     handleSubmit,
