@@ -1,7 +1,7 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Box, Input, Button, VStack, HStack, Text, Flex } from "@chakra-ui/react";
+import { Box, Input, Button, VStack, HStack, Text, Flex, useColorModeValue } from "@chakra-ui/react";
 import useAuth from "../../../hooks/useAuth";
 import { RoomType } from "../rooms";
 import { useBreakpointValue } from "@chakra-ui/react";
@@ -106,6 +106,10 @@ function ChatRoom() {
             setInput("");
         }
     };
+    // 🎨 Додаємо підтримку темної теми
+    const inputBg = useColorModeValue("white", "gray.700");
+    const inputColor = useColorModeValue("black", "white");
+    const inputBorder = useColorModeValue("gray.300", "gray.600");
 
     return (
         <Flex direction="column" h="97vh" w={chatWidth} maxW="1920px" p={6} mx="auto">
@@ -127,13 +131,17 @@ function ChatRoom() {
                     Чат закритий для нових повідомлень
                 </Box>
             ) : (
-                <HStack mt={4} p={2} borderTop="1px solid lightgray" bg="white" w="100%">
+                <HStack mt={4} p={2} borderTop="1px solid lightgray" bg={useColorModeValue("white", "gray.800")} w="100%">
                     <Input
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Send message..."
                         flex="1"
-                        isDisabled={isRoomClosed} // Блокування поля введення
+                        isDisabled={isRoomClosed}
+                        bg={inputBg}
+                        color={inputColor}
+                        borderColor={inputBorder}
+                        _placeholder={{ color: useColorModeValue("gray.500", "gray.400") }}
                         onKeyDown={(e) => {
                             if (e.key === "Enter") {
                                 e.preventDefault();
@@ -141,7 +149,7 @@ function ChatRoom() {
                             }
                         }}
                     />
-                    <Button onClick={sendMessage} colorScheme="blue" isDisabled={isRoomClosed}>
+                    <Button onClick={sendMessage} variant="primary" isDisabled={isRoomClosed}>
                         Send
                     </Button>
                 </HStack>
