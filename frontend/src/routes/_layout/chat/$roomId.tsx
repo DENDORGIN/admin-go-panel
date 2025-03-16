@@ -116,9 +116,21 @@ function ChatRoom() {
                 </VStack>
             </Box>
             <HStack mt={4} p={2} borderTop="1px solid lightgray" bg="white">
-                <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Send message..." flex="1" />
+                <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Send message..."
+                    flex="1"
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
+                            sendMessage();
+                        }
+                    }}
+                />
                 <Button onClick={sendMessage} colorScheme="blue">Send</Button>
             </HStack>
+
         </Flex>
     );
 }
