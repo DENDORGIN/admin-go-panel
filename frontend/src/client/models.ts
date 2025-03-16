@@ -244,3 +244,10 @@ export type RoomCreate = {
   image: string;
   status: boolean;
 }
+
+export type RoomUpdate = {
+  name_room?: string;
+  description?: string;
+  image?: string;
+  status: boolean;
+}

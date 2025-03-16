@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"mime/multipart"
 	"os"
+	"strings"
 )
 
 func UploadFile(ctx *gin.Context, fileHeader *multipart.FileHeader) (string, error) {
@@ -85,10 +86,20 @@ func DeleteFile(fileName string) error {
 
 	// Отримуємо об'єкт
 	obj := bucket.Object(fileName)
+	if obj == nil {
+		// Файл не існує, пропускаємо видалення
+		fmt.Println("File not found, skipping deletion:", fileName)
+		return nil
+	}
 
 	// Видаляємо об'єкт
 	err = obj.Delete(context.Background())
 	if err != nil {
+		// Якщо помилка 404 (файл не знайдено) - ігноруємо її
+		if strings.Contains(err.Error(), "404") {
+			fmt.Println("File not found on delete request, skipping:", fileName)
+			return nil
+		}
 		return fmt.Errorf("failed to delete file: %v", err)
 	}
 

@@ -9,12 +9,12 @@ import {
     Text,
     Flex,
     Button,
-    Skeleton,
+    Skeleton, Menu, MenuButton, IconButton, MenuList, MenuItem
 } from "@chakra-ui/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
-import { StarIcon } from "@chakra-ui/icons";
+import { StarIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { z } from "zod";
 
 import { RoomService, type RoomPublic } from "../../client";
@@ -94,8 +94,24 @@ function RoomCard({ room }: { room: RoomType }) {
     };
 
     return (
-        <Box maxW="sm" borderWidth="1px" borderRadius="lg" overflow="hidden" boxShadow="md">
+        <Box maxW="sm" borderWidth="1px" borderRadius="lg" overflow="hidden" boxShadow="md" position="relative">
             <Image src={room.image} alt={room.name_room} objectFit="cover" height="200px" width="100%" />
+            {/* Меню з опціями */}
+            <Box position="absolute" top="10px" right="10px" zIndex={10}>
+                <Menu>
+                    <MenuButton
+                        as={IconButton}
+                        aria-label="Options"
+                        icon={<HamburgerIcon />}
+                        variant="primary"
+                        size="sm"
+                    />
+                    <MenuList>
+                        <MenuItem>Update Room</MenuItem>
+                        <MenuItem>Delete Room</MenuItem>
+                    </MenuList>
+                </Menu>
+            </Box>
             <Box p="6">
                 <Flex alignItems="baseline">
                     <Badge borderRadius="full" px="2" colorScheme={room.status ? "green" : "red"}>
@@ -122,7 +138,7 @@ function RoomCard({ room }: { room: RoomType }) {
                     </Text>
                 </Flex>
 
-                <Button mt={4} colorScheme="blue" width="full" onClick={handleOpenChat}>
+                <Button mt={4} variant="primary" width="full" onClick={handleOpenChat}>
                     View Room
                 </Button>
             </Box>
@@ -141,11 +157,10 @@ function Room() {
             </Heading>
             <RoomGrid />
 
-            {/* ✅ Закріплена кнопка "Add Room" */}
             <Button
                 position="fixed"
                 bottom="100px"
-                right="20px"
+                right="40px"
                 variant="primary"
                 size="lg"
                 borderRadius="full"
@@ -155,8 +170,6 @@ function Room() {
             >
                 + Add Room
             </Button>
-
-            {/* ✅ Модальне вікно Add Room */}
             <AddRoom isOpen={isAddRoomOpen} onClose={() => setIsAddRoomOpen(false)} />
         </Container>
     );

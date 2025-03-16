@@ -4,7 +4,9 @@ import (
 	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
+	"backend/internal/adminpanel/services/utils"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 )
 
@@ -20,7 +22,7 @@ type RoomPublic struct {
 type RoomUpdate struct {
 	NameRoom    string `json:"name_room"`
 	Description string `json:"description"`
-	Image       int    `json:"image"`
+	Image       string `json:"image"`
 	Status      bool   `json:"status"`
 }
 
@@ -77,101 +79,83 @@ func GetAllRooms() (*RoomGetAll, error) { //userId uuid.UUID
 	return response, nil
 }
 
-//
-//func GetBlogById(id uuid.UUID) (*BlogGet, error) {
-//	var blog entities.Blog
-//	var media []*entities.Media
-//
-//	err := repository.GetByID(postgres.DB, id, &blog)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	err = repository.GetAllMediaByID(postgres.DB, id, &media)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	mediaMap := make(map[uuid.UUID][]string)
-//	for _, m := range media {
-//		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
-//	}
-//
-//	return &BlogGet{
-//		ID:       blog.ID,
-//		Title:    blog.Title,
-//		Content:  blog.Content,
-//		Position: blog.Position,
-//		Status:   blog.Status,
-//		AuthorID: blog.AuthorID,
-//		Images:   mediaMap[blog.ID],
-//	}, nil
-//}
-//
-//func UpdateBlogById(id uuid.UUID, updateBlog *BlogUpdate) (*BlogGet, error) {
-//	var blog entities.Blog
-//
-//	// Знаходимо блог за ID
-//	err := repository.GetByID(postgres.DB, id, &blog)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	// Якщо позиція змінилася - зсуваємо інші блоги
-//	if updateBlog.Position != blog.Position {
-//		err = repository.ShiftPositions[entities.Blog](postgres.DB, updateBlog.Position, blog.Language) // Передаємо тільки число
-//		if err != nil {
-//			return nil, err
-//		}
-//		blog.Position = updateBlog.Position
-//	}
-//
-//	// Оновлюємо поля блогу
-//	if updateBlog.Title != "" {
-//		blog.Title = updateBlog.Title
-//	}
-//	if updateBlog.Content != "" {
-//		blog.Content = updateBlog.Content
-//	}
-//
-//	blog.Status = updateBlog.Status
-//
-//	// Зберігаємо оновлений блог
-//	err = postgres.DB.Save(&blog).Error
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	// Повертаємо оновлені дані блогу
-//	return GetBlogById(id)
-//}
-//
-//func DeleteBlogById(id uuid.UUID) error {
-//	var blog entities.Blog
-//	var mediaList []entities.Media
-//
-//	err := repository.DeleteByID(postgres.DB, id, &blog)
-//	if err != nil {
-//		return err
-//	}
-//
-//	err = repository.GetAllMediaByID(postgres.DB, id, &mediaList)
-//	if err != nil {
-//		return err
-//	}
-//	for _, media := range mediaList {
-//		fileName := utils.ExtractFileNameFromURL(media.Url)
-//		fmt.Println("Deleted file:", fileName)
-//		err = utils.DeleteFile(fileName)
-//		if err != nil {
-//			return err
-//		}
-//	}
-//
-//	err = repository.DeleteContentByID(postgres.DB, id, &entities.Media{})
-//	if err != nil {
-//		return err
-//	}
-//
-//	return nil
-//}
+func GetRoomById(roomId uuid.UUID) (*RoomPublic, error) {
+	var room entities.ChatRooms
+
+	err := repository.GetByID(postgres.DB, roomId, &room)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RoomPublic{
+		ID:          room.ID,
+		NameRoom:    room.NameRoom,
+		Description: room.Description,
+		Image:       room.Image,
+		Status:      room.Status,
+		OwnerId:     room.OwnerId,
+	}, nil
+}
+
+func UpdateRoomById(roomId uuid.UUID, updateRoom *RoomUpdate) (*RoomPublic, error) {
+	var room entities.ChatRooms
+
+	// Знаходимо room за ID
+	err := repository.GetByID(postgres.DB, roomId, &room)
+	if err != nil {
+		return nil, err
+	}
+
+	// Оновлюємо поля блогу
+	if updateRoom.NameRoom != "" {
+		room.NameRoom = updateRoom.NameRoom
+	}
+	if updateRoom.Description != "" {
+		room.Description = updateRoom.Description
+	}
+	if updateRoom.Image != "" {
+		room.Image = updateRoom.Image
+	}
+
+	room.Status = updateRoom.Status
+
+	// Зберігаємо оновлений блог
+	err = postgres.DB.Save(&room).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Повертаємо оновлені дані блогу
+	return &RoomPublic{
+		ID:          room.ID,
+		NameRoom:    room.NameRoom,
+		Description: room.Description,
+		Image:       room.Image,
+		Status:      room.Status,
+		OwnerId:     room.OwnerId,
+	}, nil
+}
+
+func DeleteRoomById(roomId uuid.UUID) error {
+	var room entities.ChatRooms
+
+	// Знаходимо room за ID
+	roomGet, err := GetRoomById(roomId)
+	if err != nil {
+		return err
+	}
+
+	fileName := utils.ExtractFileNameFromURL(roomGet.Image)
+	fmt.Println("Deleted file:", fileName)
+	err = utils.DeleteFile(fileName)
+	if err != nil {
+		return err
+	}
+
+	err = repository.DeleteByID(postgres.DB, roomId, &room)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

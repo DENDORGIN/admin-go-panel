@@ -814,4 +814,18 @@ export class RoomService {
       },
     })
   }
+
+  public static updateRoom(
+      id: string,
+      data: JSON,
+  ): CancelablePromise<RoomPublic> {
+    return __request(OpenAPI, {
+      method: "PUT",
+      url: `/api/v1/rooms/${id}`,
+      body: data,
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
 }
