@@ -100,6 +100,7 @@ func main() {
 
 	// Download files
 	r.POST("/api/v1/media/:postId/images", routes.DownloadMediaHandler)
+	r.POST("/api/v1/media/images", routes.DownloadMediaOneImageHandler)
 	r.GET("/api/v1/media/images/:postId", routes.GetAllMediaByBlogIdHandler)
 	r.DELETE("/api/v1/media/images/:postId", routes.DeleteMediaHandler)
 

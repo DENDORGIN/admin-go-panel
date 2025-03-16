@@ -707,6 +707,17 @@ export class MediaService {
     })
   }
 
+  public static downloadOneImage(data: FormData): CancelablePromise<string> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: `/api/v1/media/images`,
+      body: data,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+  }
+
 
   static deleteImage(postId: string, imageUrl: string): CancelablePromise<void> {
     return __request(OpenAPI, {

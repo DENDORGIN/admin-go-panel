@@ -242,4 +242,5 @@ export type RoomCreate = {
   name_room: string;
   description?: string;
   image: string;
+  status: boolean;
 }

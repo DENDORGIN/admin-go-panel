@@ -67,6 +67,24 @@ func DownloadMediaHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, fileUrls)
 }
 
+func DownloadMediaOneImageHandler(ctx *gin.Context) {
+
+	file, err := ctx.FormFile("file")
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse multipart form"})
+		return
+	}
+
+	fileUrl, err := utils.UploadFile(ctx, file)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Повертаємо успішну відповідь
+	ctx.JSON(http.StatusCreated, fileUrl)
+}
+
 func GetAllMediaByBlogIdHandler(ctx *gin.Context) {
 	// Отримуємо ID посту з параметрів запиту
 	blogIdStr := ctx.Param("postId")

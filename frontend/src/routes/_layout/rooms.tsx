@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
     Box,
     Container,
@@ -9,14 +10,15 @@ import {
     Flex,
     Button,
     Skeleton,
-} from "@chakra-ui/react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useNavigate } from "@tanstack/react-router"
-import { createFileRoute } from "@tanstack/react-router"
-import { StarIcon } from "@chakra-ui/icons"
-import { z } from "zod"
+} from "@chakra-ui/react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { StarIcon } from "@chakra-ui/icons";
+import { z } from "zod";
 
-import { RoomService, type RoomPublic } from "../../client"
+import { RoomService, type RoomPublic } from "../../client";
+import AddRoom from "../../components/Rooms/AddRoom";
 
 // 🔹 Типізація кімнат
 export interface RoomType {
@@ -28,47 +30,43 @@ export interface RoomType {
 }
 
 // 🔹 Схема валідації URL-параметрів
-const postsSearchSchema = z.object({
+const roomsSearchSchema = z.object({
     page: z.number().catch(1),
-})
+});
 
 export const Route = createFileRoute("/_layout/rooms")({
     component: Room,
-    validateSearch: (search) => postsSearchSchema.parse(search),
-})
+    validateSearch: (search) => roomsSearchSchema.parse(search),
+});
 
-const PER_PAGE = 6
+const PER_PAGE = 6;
 
-function gePostQueryOptions({ page }: { page: number }) {
+function geRoomQueryOptions({ page }: { page: number }) {
     return {
         queryFn: () =>
             RoomService.readRooms({ skip: (page - 1) * PER_PAGE, limit: PER_PAGE }),
-        queryKey: ["posts", { page }],
-    }
+        queryKey: ["rooms", { page }],
+    };
 }
 
 function RoomGrid() {
-    const { page } = Route.useSearch()
+    const { page } = Route.useSearch();
     const queryClient = useQueryClient();
 
-    const {
-        data: rooms,
-        isPending,
-    } = useQuery({
-        ...gePostQueryOptions({ page }),
-    })
+    const { data: rooms, isPending } = useQuery({
+        ...geRoomQueryOptions({ page }),
+    });
 
-    // 🔹 Перетворення `RoomPublic` → `RoomType`
     const transformedRooms: RoomType[] = Array.isArray(rooms?.Data)
         ? rooms.Data.map((room: RoomPublic) => ({
             ID: room.ID,
             name_room: room.name_room,
             description: room.description || "No description available",
             image: room.image || "https://via.placeholder.com/400",
-            status: room.status ?? false, // Додаємо `status`, якщо його немає
+            status: room.status ?? false,
         }))
-        : []
-    // ✅ Зберігаємо список кімнат у `useQueryClient()`
+        : [];
+
     queryClient.setQueryData(["rooms"], transformedRooms);
 
     return (
@@ -85,21 +83,19 @@ function RoomGrid() {
                     </Text>
                 )}
         </SimpleGrid>
-    )
+    );
 }
 
-// ✅ Додано типізацію для `room`
 function RoomCard({ room }: { room: RoomType }) {
-
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     const handleOpenChat = () => {
-        navigate({ to: `/chat/${room.ID}` }) // Перехід до чату конкретної кімнати
-    }
+        navigate({ to: `/chat/${room.ID}` });
+    };
+
     return (
         <Box maxW="sm" borderWidth="1px" borderRadius="lg" overflow="hidden" boxShadow="md">
             <Image src={room.image} alt={room.name_room} objectFit="cover" height="200px" width="100%" />
-
             <Box p="6">
                 <Flex alignItems="baseline">
                     <Badge borderRadius="full" px="2" colorScheme={room.status ? "green" : "red"}>
@@ -131,18 +127,39 @@ function RoomCard({ room }: { room: RoomType }) {
                 </Button>
             </Box>
         </Box>
-    )
+    );
 }
 
 function Room() {
+    const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
+
     return (
         <Container maxW="full">
+
             <Heading size="lg" textAlign="center" pt={12}>
                 Chat Rooms
             </Heading>
             <RoomGrid />
+
+            {/* ✅ Закріплена кнопка "Add Room" */}
+            <Button
+                position="fixed"
+                bottom="100px"
+                right="20px"
+                variant="primary"
+                size="lg"
+                borderRadius="full"
+                zIndex={1000}
+                boxShadow="lg"
+                onClick={() => setIsAddRoomOpen(true)} // ✅ Використовуємо useState
+            >
+                + Add Room
+            </Button>
+
+            {/* ✅ Модальне вікно Add Room */}
+            <AddRoom isOpen={isAddRoomOpen} onClose={() => setIsAddRoomOpen(false)} />
         </Container>
-    )
+    );
 }
 
-export default Room
+export default Room;
