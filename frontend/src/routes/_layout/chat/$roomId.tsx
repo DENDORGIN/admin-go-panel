@@ -35,7 +35,9 @@ function ChatRoom() {
 
     // ✅ Отримуємо список кімнат із кешу
     const rooms: RoomType[] | undefined = queryClient.getQueryData(["rooms"]);
-    const roomName = rooms?.find(room => room.ID === roomId)?.name_room || "Невідома кімната";
+    const room = rooms?.find(room => room.ID === roomId);
+    const roomName = room?.name_room || "Невідома кімната";
+    const isRoomClosed = room?.status === false; // Перевіряємо статус кімнати
 
     useEffect(() => {
         if (!user) return;
@@ -108,7 +110,7 @@ function ChatRoom() {
     return (
         <Flex direction="column" h="97vh" w={chatWidth} maxW="1920px" p={6} mx="auto">
             <Text fontSize="3xl" color="orange.500" p={3} textAlign="center">
-                {roomName}
+                {roomName} {isRoomClosed && " (ЗАКРИТО)"}
             </Text>
             <Box flex="1" borderWidth={1} borderRadius="lg" boxShadow="md" overflow="hidden" p={4} w="100%">
                 <VStack spacing={5} align="stretch" flex="1" overflowY="auto" p={4} maxH="calc(100vh - 150px)">
@@ -118,21 +120,32 @@ function ChatRoom() {
                     <div ref={messagesEndRef} />
                 </VStack>
             </Box>
-            <HStack mt={4} p={2} borderTop="1px solid lightgray" bg="white" w="100%">
-                <Input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Send message..."
-                    flex="1"
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            e.preventDefault();
-                            sendMessage();
-                        }
-                    }}
-                />
-                <Button onClick={sendMessage} colorScheme="blue">Send</Button>
-            </HStack>
+
+            {/* ✅ Відображаємо форму тільки якщо чат відкритий */}
+            {isRoomClosed ? (
+                <Box textAlign="center" color="red.500" fontWeight="bold" p={4}>
+                    Чат закритий для нових повідомлень
+                </Box>
+            ) : (
+                <HStack mt={4} p={2} borderTop="1px solid lightgray" bg="white" w="100%">
+                    <Input
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Send message..."
+                        flex="1"
+                        isDisabled={isRoomClosed} // Блокування поля введення
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                sendMessage();
+                            }
+                        }}
+                    />
+                    <Button onClick={sendMessage} colorScheme="blue" isDisabled={isRoomClosed}>
+                        Send
+                    </Button>
+                </HStack>
+            )}
         </Flex>
     );
 }
