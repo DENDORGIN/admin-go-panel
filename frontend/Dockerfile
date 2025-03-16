@@ -1,23 +1,39 @@
-# Stage 0, "build-stage", based on Node.js, to build and compile the frontend
-FROM node:20 AS build-stage
+# 1. Використовуємо офіційний образ Node.js для білду
+FROM node:20 AS build
 
+# 2. Встановлюємо робочу директорію всередині контейнера
 WORKDIR /app
 
-COPY package*.json /app/
+# 3. Копіюємо package.json і package-lock.json, щоб кешувати залежності
+COPY package.json package-lock.json ./
 
-RUN npm install
+# 4. Встановлюємо залежності
+RUN npm install --frozen-lockfile
 
-COPY ./ /app/
+# 5. Копіюємо весь код у контейнер
+COPY . .
 
-ARG VITE_API_URL=${VITE_API_URL}
-
+# 6. Створюємо білд
 RUN npm run build
 
+# --- Фаза продакшн-сервера ---
+# 7. Використовуємо офіційний Nginx-образ для деплою
+FROM nginx:latest
 
-# Stage 1, based on Nginx, to have only the compiled app, ready for production with Nginx
-FROM nginx:1
+# 8. Встановлюємо робочу директорію
+WORKDIR /usr/share/nginx/html
 
-COPY --from=build-stage /app/dist/ /usr/share/nginx/html
+# 9. Видаляємо стандартні файли Nginx
+RUN rm -rf ./*
 
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
-COPY ./nginx-backend-not-found.conf /etc/nginx/extra-conf.d/backend-not-found.conf
+# 10. Копіюємо білд із попереднього етапу
+COPY --from=build /app/dist .
+
+# 11. Копіюємо кастомний конфіг Nginx
+COPY default.conf /etc/nginx/conf.d/default.conf
+
+# 12. Відкриваємо порт 80 для HTTP-запитів
+EXPOSE 80
+
+# 13. Запускаємо Nginx
+CMD ["nginx", "-g", "daemon off;"]

@@ -141,7 +141,8 @@ func redirectFromWWW() gin.HandlerFunc {
 func CustomCors() gin.HandlerFunc {
 	config := cors.New(
 		cors.Config{
-			AllowOrigins:     []string{"http://localhost:3000", "http://localhost:5173", "http://localhost:5174"},
+			AllowOrigins: []string{"http://localhost:3000", "http://localhost:5173",
+				"http://localhost:5174", "http://frontend", "http://localhost"},
 			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH"},
 			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 			ExposeHeaders:    []string{"Content-Length"},
