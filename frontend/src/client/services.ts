@@ -828,4 +828,16 @@ export class RoomService {
       },
     })
   }
+
+  public static deleteRoom(
+      id: string
+  ): CancelablePromise<Message> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: `/api/v1/rooms/${id}`,
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
 }

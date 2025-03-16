@@ -9,16 +9,30 @@ import {
     Text,
     Flex,
     Button,
-    Skeleton, Menu, MenuButton, IconButton, MenuList, MenuItem
+    Skeleton,
+    Menu,
+    MenuButton,
+    IconButton,
+    MenuList,
+    MenuItem,
+    useDisclosure,
+    AlertDialog,
+    AlertDialogBody,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogContent,
+    AlertDialogOverlay,
 } from "@chakra-ui/react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { createFileRoute } from "@tanstack/react-router";
 import { StarIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { z } from "zod";
+import { useRef } from "react";
 
 import { RoomService, type RoomPublic } from "../../client";
 import AddRoom from "../../components/Rooms/AddRoom";
+import useCustomToast from "../../hooks/useCustomToast.ts";
 
 // 🔹 Типізація кімнат
 export interface RoomType {
@@ -49,7 +63,7 @@ function geRoomQueryOptions({ page }: { page: number }) {
     };
 }
 
-function RoomGrid() {
+function RoomGrid({ onDeleteRoom }: { onDeleteRoom: (room: RoomType) => void }) {
     const { page } = Route.useSearch();
     const queryClient = useQueryClient();
 
@@ -76,7 +90,9 @@ function RoomGrid() {
                     <Skeleton key={index} height="300px" borderRadius="lg" />
                 ))
                 : transformedRooms.length > 0 ? (
-                    transformedRooms.map((room) => <RoomCard key={room.ID} room={room} />)
+                    transformedRooms.map((room) => (
+                        <RoomCard key={room.ID} room={room} onDelete={() => onDeleteRoom(room)} />
+                    ))
                 ) : (
                     <Text textAlign="center" w="full">
                         No rooms available.
@@ -86,7 +102,7 @@ function RoomGrid() {
     );
 }
 
-function RoomCard({ room }: { room: RoomType }) {
+function RoomCard({ room, onDelete }: { room: RoomType; onDelete: () => void }) {
     const navigate = useNavigate();
 
     const handleOpenChat = () => {
@@ -96,6 +112,7 @@ function RoomCard({ room }: { room: RoomType }) {
     return (
         <Box maxW="sm" borderWidth="1px" borderRadius="lg" overflow="hidden" boxShadow="md" position="relative">
             <Image src={room.image} alt={room.name_room} objectFit="cover" height="200px" width="100%" />
+
             {/* Меню з опціями */}
             <Box position="absolute" top="10px" right="10px" zIndex={10}>
                 <Menu>
@@ -108,10 +125,13 @@ function RoomCard({ room }: { room: RoomType }) {
                     />
                     <MenuList>
                         <MenuItem>Update Room</MenuItem>
-                        <MenuItem>Delete Room</MenuItem>
+                        <MenuItem onClick={onDelete} color="red.500">
+                            Delete Room
+                        </MenuItem>
                     </MenuList>
                 </Menu>
             </Box>
+
             <Box p="6">
                 <Flex alignItems="baseline">
                     <Badge borderRadius="full" px="2" colorScheme={room.status ? "green" : "red"}>
@@ -147,15 +167,50 @@ function RoomCard({ room }: { room: RoomType }) {
 }
 
 function Room() {
+    const cancelRef = useRef<HTMLButtonElement | null>(null); // 🛠 Додано useRef
     const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
+    const { isOpen, onOpen, onClose } = useDisclosure();
+    const [selectedRoom, setSelectedRoom] = useState<RoomType | null>(null);
+    const queryClient = useQueryClient();
+    const showToast = useCustomToast();
+
+    const deleteMutation = useMutation({
+        mutationFn: async (roomId: string) => {
+            await RoomService.deleteRoom(roomId);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["rooms"] });
+            showToast("Success!", "Room is deleted.", "success");
+            onClose();
+        },
+        onError: (error: any) => {
+            console.error("Error deleting room:", error);
+
+            if (error?.status === 401) {
+                showToast("Unauthorized", "You are not authorized to perform this action.", "error");
+            } else {
+                showToast("Error", error.message || "Something went wrong. Please try again.", "error");
+            }
+        },
+    });
+
+    const handleDeleteRoom = (room: RoomType) => {
+        setSelectedRoom(room);
+        onOpen();
+    };
+
+    const confirmDelete = () => {
+        if (selectedRoom) {
+            deleteMutation.mutate(selectedRoom.ID);
+        }
+    };
 
     return (
         <Container maxW="full">
-
             <Heading size="lg" textAlign="center" pt={12}>
                 Chat Rooms
             </Heading>
-            <RoomGrid />
+            <RoomGrid onDeleteRoom={handleDeleteRoom} />
 
             <Button
                 position="fixed"
@@ -166,11 +221,34 @@ function Room() {
                 borderRadius="full"
                 zIndex={1000}
                 boxShadow="lg"
-                onClick={() => setIsAddRoomOpen(true)} // ✅ Використовуємо useState
+                onClick={() => setIsAddRoomOpen(true)}
             >
                 + Add Room
             </Button>
             <AddRoom isOpen={isAddRoomOpen} onClose={() => setIsAddRoomOpen(false)} />
+
+            <AlertDialog isOpen={isOpen} leastDestructiveRef={cancelRef} onClose={onClose}>
+                <AlertDialogOverlay>
+                    <AlertDialogContent>
+                        <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                            Delete Room
+                        </AlertDialogHeader>
+
+                        <AlertDialogBody>
+                            Are you sure? You can't undo this action afterwards.
+                        </AlertDialogBody>
+
+                        <AlertDialogFooter>
+                            <Button ref={cancelRef} onClick={onClose}>
+                                Cancel
+                            </Button>
+                            <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+                                Delete
+                            </Button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialogOverlay>
+            </AlertDialog>
         </Container>
     );
 }
