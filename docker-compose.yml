@@ -1,17 +1,22 @@
-version: '3'
+version: '3.8'
+
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
     ports:
       - "5180:5180"
     env_file:
-      - ./backend/.env
+      - .env.${ENV:-development}
+    restart: always
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
     ports:
       - "80:80"
     env_file:
-      - ./frontend/.env
+      - .env.${ENV:-development}
     depends_on:
       - backend
+    restart: always

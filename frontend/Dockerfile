@@ -13,6 +13,9 @@ RUN npm install --frozen-lockfile
 # 5. Копіюємо весь код у контейнер
 COPY . .
 
+ARG MODE=development
+ENV NODE_ENV=$MODE
+
 # 6. Створюємо білд
 RUN npm run build
 

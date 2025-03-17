@@ -12,7 +12,8 @@ dist
 dist-ssr
 *.local
 openapi.json
-.env
+.env.development
+.env.production
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
