@@ -28,11 +28,11 @@ WORKDIR /app
 # 7. Копіюємо зібраний бінарник
 COPY --from=builder /app/main .
 
-# 8. Копіюємо файл .env.development
-COPY .env.development .env
+# 8. Копіюємо файл .env
+COPY .env .env
 
 # 9. Виставляємо порт
 EXPOSE 5180
 
-# 10. Запускаємо сервіс з .env.development змінними
+# 10. Запускаємо сервіс з .env змінними
 CMD ["sh", "-c", "export $(cat .env | xargs) && ./main"]
