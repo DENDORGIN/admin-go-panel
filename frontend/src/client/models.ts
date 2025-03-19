@@ -101,7 +101,7 @@ export type PostPublic = {
   status: boolean
   ID: string
   position: number
-  autor_id: string
+  owner_id: string
 }
 
 export type DownloadImage = {

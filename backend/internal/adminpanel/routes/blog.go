@@ -22,7 +22,7 @@ func CreateBlogHandler(ctx *gin.Context) {
 		return
 	}
 
-	blog.AuthorID = userID
+	blog.OwnerID = userID
 
 	newBlog, err := models.CreateBlog(&blog)
 	if err != nil {
@@ -66,7 +66,7 @@ func GetBlogByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	if blog.AuthorID != userID {
+	if blog.OwnerID != userID {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}
@@ -98,7 +98,7 @@ func UpdateBlogByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	if blog.AuthorID != userID {
+	if blog.OwnerID != userID {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}
@@ -130,7 +130,7 @@ func DeleteBlogByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	if blog.AuthorID != userID || !isSuperUser {
+	if blog.OwnerID != userID || !isSuperUser {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}

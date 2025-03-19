@@ -351,13 +351,7 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
                   <Box display="grid" gridTemplateColumns="repeat(auto-fill, minmax(100px, 1fr))" gap={4}>
                     {existingImages.map((image, index) => (
                         <Box key={index} position="relative">
-                          <img
-                              src={image}
-                              alt={`Uploaded ${index}`}
-                              width="100"
-                              height="100"
-                              style={{ borderRadius: "5px" }}
-                          />
+                          <img src={image} alt={`Uploaded ${index}`} width="100" height="100" style={{ borderRadius: "5px" }} />
                           <IconButton
                               icon={<CloseIcon />}
                               aria-label="Remove existing image"

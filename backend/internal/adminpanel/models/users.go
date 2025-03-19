@@ -20,7 +20,7 @@ type UserResponse struct {
 	IsSuperUser bool      `json:"isSuperUser"`
 
 	Calendar []entities.Calendar `gorm:"foreignKey:UserID" json:"calendars"`
-	Blog     []entities.Blog     `gorm:"foreignKey:AutorID" json:"blogs"`
+	Blog     []entities.Blog     `gorm:"foreignKey:OwnerID" json:"blogs"`
 }
 
 type AllUsers struct {

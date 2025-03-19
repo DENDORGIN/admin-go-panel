@@ -66,7 +66,7 @@ func GetBlogByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	if blog.AuthorID != userID {
+	if blog.OwnerID != userID {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}

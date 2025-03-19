@@ -17,7 +17,7 @@ type BlogPost struct {
 	Position int       `json:"position"`
 	Language string    `json:"language"`
 	Status   bool      `json:"status"`
-	AuthorID uuid.UUID `json:"author_id"`
+	OwnerID  uuid.UUID `json:"owner_id"`
 }
 
 type BlogGet struct {
@@ -27,7 +27,7 @@ type BlogGet struct {
 	Position int       `json:"position"`
 	Language string    `json:"language"`
 	Status   bool      `json:"status"`
-	AuthorID uuid.UUID `json:"author_id"`
+	OwnerID  uuid.UUID `json:"owner_id"`
 	Images   []string  `json:"images"`
 }
 
@@ -71,7 +71,7 @@ func CreateBlog(b *entities.Blog) (*BlogPost, error) {
 		Position: b.Position,
 		Language: b.Language,
 		Status:   b.Status,
-		AuthorID: b.AuthorID,
+		OwnerID:  b.OwnerID,
 	}, nil
 }
 
@@ -81,7 +81,7 @@ func GetAllBlogs(userId uuid.UUID) (*BlogGetAll, error) {
 	response := &BlogGetAll{}
 
 	// Отримуємо всі блоги автора
-	err := postgres.DB.Where("author_id = ?", userId).Order("position ASC").Find(&blogs).Error
+	err := postgres.DB.Where("owner_id = ?", userId).Order("position ASC").Find(&blogs).Error
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func GetAllBlogs(userId uuid.UUID) (*BlogGetAll, error) {
 			Content:  blog.Content,
 			Position: blog.Position,
 			Status:   blog.Status,
-			AuthorID: blog.AuthorID,
+			OwnerID:  blog.OwnerID,
 			Images:   mediaMap[blog.ID],
 		})
 	}
@@ -147,7 +147,7 @@ func GetBlogById(id uuid.UUID) (*BlogGet, error) {
 		Content:  blog.Content,
 		Position: blog.Position,
 		Status:   blog.Status,
-		AuthorID: blog.AuthorID,
+		OwnerID:  blog.OwnerID,
 		Images:   mediaMap[blog.ID],
 	}, nil
 }

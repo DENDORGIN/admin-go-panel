@@ -70,8 +70,8 @@ type Blog struct {
 	Position  int       `gorm:"not null" json:"position"`
 	Language  string    `gorm:"not null" json:"language"`
 	Status    bool      `gorm:"default:false" json:"status"`
-	AuthorID  uuid.UUID `gorm:"not null;index" json:"-"`
-	User      User      `gorm:"foreignKey:AuthorID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
+	OwnerID   uuid.UUID `gorm:"not null;index" json:"-"`
+	User      User      `gorm:"foreignKey:OwnerID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
