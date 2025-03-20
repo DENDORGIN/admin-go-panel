@@ -15,6 +15,7 @@ import (
 type UserResponse struct {
 	ID          uuid.UUID `json:"ID"`
 	FullName    string    `json:"fullName"`
+	Avatar      string    `json:"avatar"`
 	Email       string    `json:"email"`
 	IsActive    bool      `json:"isActive"`
 	IsSuperUser bool      `json:"isSuperUser"`
@@ -83,6 +84,7 @@ func GetUserById(id uuid.UUID) (*UserResponse, error) {
 	userResponse := &UserResponse{
 		ID:          user.ID,
 		FullName:    user.FullName,
+		Avatar:      user.Avatar,
 		Email:       user.Email,
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
@@ -211,6 +213,7 @@ func TransformUsers(users []*entities.User) []*UserResponse {
 		userResponse := &UserResponse{
 			ID:          user.ID,
 			FullName:    user.FullName,
+			Avatar:      user.Avatar,
 			Email:       user.Email,
 			IsActive:    user.IsActive,
 			IsSuperUser: user.IsSuperUser,

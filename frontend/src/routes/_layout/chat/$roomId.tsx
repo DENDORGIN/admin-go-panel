@@ -16,6 +16,7 @@ interface MessageType {
     id: string;
     user_id: string;
     full_name: string;
+    avatar: string;
     room_id: string;
     message: string;
     created_at: string;
@@ -106,6 +107,7 @@ function ChatRoom() {
                 id: crypto.randomUUID(),
                 user_id: user?.ID,
                 full_name: user?.fullName,
+                avatar: user?.avatar,
                 room_id: roomId,
                 message: input,
                 created_at: new Date().toISOString(),
