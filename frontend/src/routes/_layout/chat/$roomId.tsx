@@ -5,6 +5,7 @@ import { Box, Input, Button, VStack, HStack, Text, Flex, useColorModeValue } fro
 import useAuth from "../../../hooks/useAuth";
 import { RoomType } from "../rooms";
 import { useBreakpointValue } from "@chakra-ui/react";
+import MessageBubble from "../../../components/Chat/Messages.tsx"; // ✅ Імпортуємо компонент повідомлень
 
 export const Route = createFileRoute("/_layout/chat/$roomId")({
     component: ChatRoom,
@@ -166,23 +167,6 @@ function ChatRoom() {
                     </Button>
                 </HStack>
             )}
-        </Flex>
-    );
-}
-
-// ✅ Компонент повідомлення
-function MessageBubble({ msg, isMe }: { msg: MessageType; isMe: boolean }) {
-    return (
-        <Flex justify={isMe ? "flex-end" : "flex-start"}>
-            <Box bg={isMe ? "blue.500" : "gray.200"} color={isMe ? "white" : "black"} p={3} borderRadius="lg" maxW="70%">
-                <Text fontSize="sm" fontWeight="bold">
-                    {isMe ? "Ви" : msg.full_name}
-                </Text>
-                <Text>{msg.message}</Text>
-                <Text fontSize="xs" color={isMe ? "white" : "gray.500"} mt={1}>
-                    {new Date(msg.created_at).toLocaleTimeString()}
-                </Text>
-            </Box>
         </Flex>
     );
 }

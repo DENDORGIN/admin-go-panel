@@ -147,6 +147,11 @@ function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => 
                     <Badge borderRadius="full" px="2" colorScheme={room.status ? "green" : "red"}>
                         {room.status ? "Active" : "Inactive"}
                     </Badge>
+                    {room.is_channel && (
+                        <Badge variant="outline" borderRadius="full" px="3" colorScheme="orange" ml={3}>
+                            Channel
+                        </Badge>
+                    )}
                 </Flex>
 
                 <Text mt="1" fontWeight="bold" fontSize="lg" noOfLines={1}>
