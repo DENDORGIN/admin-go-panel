@@ -232,6 +232,7 @@ export type RoomPublic = {
   description?: string;
   image: string;
   status: boolean;
+  is_channel: boolean;
   owner_id: string;
 }
 
@@ -244,6 +245,7 @@ export type RoomCreate = {
   description?: string;
   image: string;
   status: boolean;
+  is_channel: boolean;
 }
 
 export type RoomUpdate = {

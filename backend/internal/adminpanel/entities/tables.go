@@ -137,6 +137,7 @@ type ChatRooms struct {
 	Description string     `gorm:"type:string" json:"description"`
 	Image       string     `gorm:"not null" json:"image"`
 	Status      bool       `gorm:"default:false" json:"status"`
+	IsChannel   bool       `gorm:"default:false" json:"is_channel"`
 	OwnerId     uuid.UUID  `gorm:"type:uuid;" json:"owner_id"`
 	CreatedAt   time.Time  `gorm:"type:time" json:"created_at"`
 	Messages    []Messages `gorm:"foreignKey:RoomId;constraint:OnDelete:CASCADE" json:"messages"`

@@ -20,8 +20,6 @@ interface MessageType {
     created_at: string;
 }
 
-
-
 function ChatRoom() {
     const { user } = useAuth();
     const { roomId } = useParams({ from: "/_layout/chat/$roomId" });
@@ -37,7 +35,9 @@ function ChatRoom() {
     const rooms: RoomType[] | undefined = queryClient.getQueryData(["rooms"]);
     const room = rooms?.find(room => room.ID === roomId);
     const roomName = room?.name_room || "Невідома кімната";
-    const isRoomClosed = room?.status === false; // Перевіряємо статус кімнати
+    const isRoomClosed = room?.status === false;
+    const isChannel = room?.is_channel ?? false;
+    const isOwner = room?.owner_id === user?.ID;
 
     useEffect(() => {
         if (!user) return;
@@ -98,14 +98,22 @@ function ChatRoom() {
     }, [messages]);
 
     const sendMessage = () => {
+        if ((isChannel && !isOwner) || isRoomClosed) return;
+
         if (ws.current && ws.current.readyState === WebSocket.OPEN && input.trim()) {
-            const message = { id: crypto.randomUUID(), user_id: user?.ID,
-                full_name: user?.fullName, room_id: roomId,
-                message: input, created_at: new Date().toISOString() };
+            const message = {
+                id: crypto.randomUUID(),
+                user_id: user?.ID,
+                full_name: user?.fullName,
+                room_id: roomId,
+                message: input,
+                created_at: new Date().toISOString(),
+            };
             ws.current.send(JSON.stringify(message));
             setInput("");
         }
     };
+
     // 🎨 Додаємо підтримку темної теми
     const inputBg = useColorModeValue("white", "gray.700");
     const inputColor = useColorModeValue("black", "white");
@@ -114,7 +122,7 @@ function ChatRoom() {
     return (
         <Flex direction="column" h="97vh" w={chatWidth} maxW="1920px" p={6} mx="auto">
             <Text fontSize="3xl" color="orange.500" p={3} textAlign="center">
-                {roomName} {isRoomClosed && " (ЗАКРИТО)"}
+                {roomName} {isRoomClosed && " (CLOSED)"} {isChannel && " (CHANNEL)"}
             </Text>
             <Box flex="1" borderWidth={1} borderRadius="lg" boxShadow="md" overflow="hidden" p={4} w="100%">
                 <VStack spacing={5} align="stretch" flex="1" overflowY="auto" p={4} maxH="calc(100vh - 150px)">
@@ -130,6 +138,10 @@ function ChatRoom() {
                 <Box textAlign="center" color="red.500" fontWeight="bold" p={4}>
                     Chat is closed for new messages
                 </Box>
+            ) : isChannel && !isOwner ? (
+                <Box textAlign="center" color="gray.500" fontWeight="bold" p={4}>
+                    Only the owner can send messages in this channel.
+                </Box>
             ) : (
                 <HStack mt={4} p={2} borderTop="1px solid lightgray" bg={useColorModeValue("white", "gray.800")} w="100%">
                     <Input
@@ -137,7 +149,7 @@ function ChatRoom() {
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Send message..."
                         flex="1"
-                        isDisabled={isRoomClosed}
+                        isDisabled={isRoomClosed || (isChannel && !isOwner)}
                         bg={inputBg}
                         color={inputColor}
                         borderColor={inputBorder}
@@ -149,7 +161,7 @@ function ChatRoom() {
                             }
                         }}
                     />
-                    <Button onClick={sendMessage} variant="primary" isDisabled={isRoomClosed}>
+                    <Button onClick={sendMessage} variant="primary" isDisabled={isRoomClosed || (isChannel && !isOwner)}>
                         Send
                     </Button>
                 </HStack>
@@ -162,24 +174,13 @@ function ChatRoom() {
 function MessageBubble({ msg, isMe }: { msg: MessageType; isMe: boolean }) {
     return (
         <Flex justify={isMe ? "flex-end" : "flex-start"}>
-            <Box
-                bg={isMe ? "blue.500" : "gray.200"}
-                color={isMe ? "white" : "black"}
-                p={3}
-                borderRadius="lg"
-                maxW="70%"
-            >
+            <Box bg={isMe ? "blue.500" : "gray.200"} color={isMe ? "white" : "black"} p={3} borderRadius="lg" maxW="70%">
                 <Text fontSize="sm" fontWeight="bold">
                     {isMe ? "Ви" : msg.full_name}
                 </Text>
                 <Text>{msg.message}</Text>
                 <Text fontSize="xs" color={isMe ? "white" : "gray.500"} mt={1}>
-                    {new Date(msg.created_at).toLocaleTimeString("pl-PL", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                        hour12: false,
-                    })}
+                    {new Date(msg.created_at).toLocaleTimeString()}
                 </Text>
             </Box>
         </Flex>

@@ -60,6 +60,7 @@ const AddRoom = ({ isOpen, onClose }: AddRoomProps) => {
       name_room: "",
       description: "",
       status: false,
+      is_channel: false,
       image: "",
     },
   });
@@ -137,6 +138,7 @@ const AddRoom = ({ isOpen, onClose }: AddRoomProps) => {
       name_room: data.name_room,
       description: data.description,
       status: data.status,
+      is_channel: data.is_channel,
       image: imageUrl, // Додаємо URL зображення
     };
 
@@ -198,7 +200,20 @@ const AddRoom = ({ isOpen, onClose }: AddRoomProps) => {
               </FormLabel>
               <Switch id="status" {...register("status")} colorScheme="teal" />
             </FormControl>
+
+            <FormControl mt={4}>
+              <FormLabel htmlFor="status" display="flex" alignItems="center" gap={2}>
+                <Box width="12px" height="12px" borderRadius="full" bg={watch("is_channel")? "green.500" : "red.500"} />
+                Is Channel
+              </FormLabel>
+              <Switch id="is_channel" {...register("is_channel")} colorScheme="teal" />
+            </FormControl>
+
           </ModalBody>
+
+
+
+
           <ModalFooter gap={3}>
             <Button variant="primary" type="submit" isLoading={isSubmitting}>
               Save

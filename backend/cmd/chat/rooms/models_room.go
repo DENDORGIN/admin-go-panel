@@ -15,6 +15,7 @@ type RoomPublic struct {
 	Description string    `json:"description"`
 	Image       string    `json:"image"`
 	Status      bool      `json:"status"`
+	IsChannel   bool      `json:"is_channel"`
 	OwnerId     uuid.UUID `json:"owner_id"`
 }
 
@@ -48,6 +49,7 @@ func CreateRoom(room *entities.ChatRooms) (*RoomPublic, error) {
 		Description: room.Description,
 		Image:       room.Image,
 		Status:      room.Status,
+		IsChannel:   room.IsChannel,
 		OwnerId:     room.OwnerId,
 	}, nil
 }
@@ -70,6 +72,7 @@ func GetAllRooms() (*RoomGetAll, error) { //userId uuid.UUID
 			Description: room.Description,
 			Image:       room.Image,
 			Status:      room.Status,
+			IsChannel:   room.IsChannel,
 			OwnerId:     room.OwnerId,
 		})
 	}
@@ -92,6 +95,7 @@ func GetRoomById(roomId uuid.UUID) (*RoomPublic, error) {
 		Description: room.Description,
 		Image:       room.Image,
 		Status:      room.Status,
+		IsChannel:   room.IsChannel,
 		OwnerId:     room.OwnerId,
 	}, nil
 }
@@ -131,6 +135,7 @@ func UpdateRoomById(roomId uuid.UUID, updateRoom *RoomUpdate) (*RoomPublic, erro
 		Description: room.Description,
 		Image:       room.Image,
 		Status:      room.Status,
+		IsChannel:   room.IsChannel,
 		OwnerId:     room.OwnerId,
 	}, nil
 }

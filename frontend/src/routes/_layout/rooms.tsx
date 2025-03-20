@@ -44,6 +44,7 @@ export interface RoomType {
     description: string;
     image: string;
     status: boolean;
+    is_channel: boolean;
     owner_id: string;
 }
 
@@ -82,6 +83,7 @@ function RoomGrid({ onDeleteRoom, onEditRoom }: { onDeleteRoom: (room: RoomType)
             description: room.description || "No description available",
             image: room.image || "https://via.placeholder.com/400",
             status: room.status ?? false,
+            is_channel: room.is_channel ?? false,
             owner_id: room.owner_id,
         }))
         : [];
