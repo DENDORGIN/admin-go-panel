@@ -6,6 +6,24 @@ import (
 	"time"
 )
 
+type Tenant struct {
+	ID         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	Name       string    `gorm:"unique;not null"`
+	Domain     string    `gorm:"unique;not null"`
+	DBHost     string
+	DBPort     string
+	DBUser     string
+	DBPassword string
+	DBName     string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+func (tenant *Tenant) BeforeCreate(*gorm.DB) error {
+	tenant.ID = uuid.New()
+	return nil
+}
+
 type User struct {
 	ID          uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
 	FullName    string    `gorm:"not null" json:"fullName"`

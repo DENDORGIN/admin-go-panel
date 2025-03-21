@@ -1,5 +1,10 @@
 package entities
 
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type Parameters struct {
 	Language string
 	Skip     int

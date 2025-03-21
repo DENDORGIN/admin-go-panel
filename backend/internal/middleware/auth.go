@@ -1,4 +1,4 @@
-package routes
+package middleware
 
 import (
 	"backend/internal/adminpanel/services/utils"
@@ -29,6 +29,8 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 		c.Set("id", claims.ID)
 		c.Set("email", claims.Email)
+		c.Set("tenant", claims.Tenant)
+		c.Set("tenant_id", claims.TenantID)
 		c.Next()
 	}
 }

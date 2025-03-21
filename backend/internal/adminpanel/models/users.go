@@ -29,11 +29,6 @@ type AllUsers struct {
 	Count int             `json:"count"`
 }
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 type UpdateUser struct {
 	FullName string `json:"fullName,omitempty"`
 	Email    string `json:"email,omitempty"`
@@ -103,9 +98,9 @@ func GetUserByIdFull(id uuid.UUID) (*entities.User, error) {
 	return &user, nil
 }
 
-func GetUserByEmail(email string) (*entities.User, error) {
+func GetUserByEmail(db *gorm.DB, email string) (*entities.User, error) {
 	var user entities.User
-	result := postgres.DB.Where("email = ?", email).First(&user)
+	result := db.Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -173,8 +168,8 @@ func UpdateCurrentUserPassword(id uuid.UUID, password *UpdatePassword) (string, 
 	return "update password successfully", nil
 }
 
-func ResetCurrentUserPassword(email string, password string) (string, error) {
-	user, err := GetUserByEmail(email)
+func ResetCurrentUserPassword(db *gorm.DB, email string, password string) (string, error) {
+	user, err := GetUserByEmail(db, email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return "", errors.New("user not found")

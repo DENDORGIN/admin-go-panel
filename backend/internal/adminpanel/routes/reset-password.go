@@ -4,6 +4,7 @@ import (
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -15,8 +16,14 @@ type ResetPasswordRequest struct {
 func RequestPasswordRecover(ctx *gin.Context) {
 	email := ctx.Param("email")
 
+	db, exists := ctx.Get("DB")
+	if !exists {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "DB connection missing"})
+		return
+	}
+
 	// Перевірка чи існує користувач з таким email
-	user, err := models.GetUserByEmail(email)
+	user, err := models.GetUserByEmail(db.(*gorm.DB), email)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
@@ -40,6 +47,11 @@ func RequestPasswordRecover(ctx *gin.Context) {
 
 func ResetPassword(ctx *gin.Context) {
 	var req ResetPasswordRequest
+	db, exists := ctx.Get("DB")
+	if !exists {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "DB connection missing"})
+		return
+	}
 
 	// Отримуємо токен і новий пароль із тіла запиту
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -60,7 +72,7 @@ func ResetPassword(ctx *gin.Context) {
 	}
 
 	// Зміна пароля
-	_, err = models.ResetCurrentUserPassword(claims.Email, req.NewPassword)
+	_, err = models.ResetCurrentUserPassword(db.(*gorm.DB), claims.Email, req.NewPassword)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
