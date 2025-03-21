@@ -11,6 +11,9 @@ import {
   type UserRegister,
   UsersService,
 } from "../client"
+
+import { updateOpenApiConfig } from "../client/core/OpenApiConfig.ts"
+
 import useCustomToast from "./useCustomToast"
 
 const isLoggedIn = () => {
@@ -54,12 +57,16 @@ const useAuth = () => {
     },
   })
 
-  const login = async (data: AccessToken) => {
-    const response = await LoginService.loginAccessToken({
-      formData: data,
-    })
+  // адаптований метод login
+  const login = async (data: AccessToken & { domain: string }) => {
+    localStorage.setItem("tenant", data.domain)
+    updateOpenApiConfig() // tenant встановлено
+
+    const response = await LoginService.loginAccessToken({ formData: data })
     localStorage.setItem("access_token", response.access_token)
+    updateOpenApiConfig() // token встановлено
   }
+
 
   const loginMutation = useMutation({
     mutationFn: login,
@@ -81,8 +88,11 @@ const useAuth = () => {
     },
   })
 
+  // адаптований метод logout
   const logout = () => {
     localStorage.removeItem("access_token")
+    localStorage.removeItem("tenant")
+    updateOpenApiConfig() // очистили конфігурацію
     navigate({ to: "/login" })
   }
 
