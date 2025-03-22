@@ -70,9 +70,12 @@ const useAuth = () => {
 
   const loginMutation = useMutation({
     mutationFn: login,
-    onSuccess: () => {
-      navigate({ to: "/" })
+    onSuccess: (_data, variables) => {
+      const domain = variables.domain
+      const port = window.location.port // 5173
+      window.location.href = `http://${domain}.localhost:${port}/`
     },
+
     onError: (err: ApiError) => {
       let errDetail = (err.body as any)?.detail
 

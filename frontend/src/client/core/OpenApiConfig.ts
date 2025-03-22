@@ -1,15 +1,10 @@
 import { OpenAPI } from "./OpenAPI"
 
 export const updateOpenApiConfig = () => {
-    const tenant = localStorage.getItem("tenant")
     const token = localStorage.getItem("access_token")
-
-    OpenAPI.BASE = tenant
-        ? `https://${tenant}.denborgin.com`
-        : "https://denborgin.com"
-
-    OpenAPI.TOKEN = token || undefined
+    const domain = localStorage.getItem("tenant") || "localhost"
+    const backendPort = import.meta.env.DEV ? ":5180" : ""
+    OpenAPI.TOKEN = async () => token || ""
+    OpenAPI.BASE = `http://${domain}.localhost${backendPort}`
 }
 
-// Викликати одразу при старті додатку
-updateOpenApiConfig()

@@ -68,9 +68,9 @@ func GetAllUsers(ctx *gin.Context, limit int, skip int) ([]*entities.User, error
 	return users, nil
 }
 
-func GetUserById(id uuid.UUID) (*UserResponse, error) {
+func GetUserById(db *gorm.DB, id uuid.UUID) (*UserResponse, error) {
 	var user entities.User
-	err := repository.GetByID(postgres.DB, id, &user)
+	err := repository.GetByID(db, id, &user)
 	if err != nil {
 		return nil, err
 	}

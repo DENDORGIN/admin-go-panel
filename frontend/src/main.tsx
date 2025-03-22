@@ -14,8 +14,17 @@ import { StrictMode } from "react"
 import { OpenAPI } from "./client"
 import theme from "./theme"
 
-// @ts-ignore
-OpenAPI.BASE = import.meta.env.VITE_API_URL
+function getTenantFromHost(): string {
+  const hostname = window.location.hostname
+  const parts = hostname.split(".")
+  return parts.length > 1 ? parts[0] : "localhost"
+}
+
+const tenant = getTenantFromHost()
+const backendPort = process.env.NODE_ENV === 'development' ? ":5180" : ""
+OpenAPI.BASE = `http://${tenant}.localhost${backendPort}`
+
+
 OpenAPI.TOKEN = async () => {
   return localStorage.getItem("access_token") || ""
 }

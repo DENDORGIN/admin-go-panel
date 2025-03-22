@@ -21,13 +21,12 @@ func LoginHandler(ctx *gin.Context) {
 		return
 	}
 
-	db, exists := ctx.Get("DB")
-	if !exists {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "DB connection missing"})
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
 		return
 	}
 
-	user, err := models.GetUserByEmail(db.(*gorm.DB), loginRequest.Email)
+	user, err := models.GetUserByEmail(db, loginRequest.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -75,12 +74,17 @@ func CreateUser(ctx *gin.Context) {
 }
 
 func ReadUserMe(ctx *gin.Context) {
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
 	userID, ok := utils.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	user, err := models.GetUserById(userID)
+	user, err := models.GetUserById(db, userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
