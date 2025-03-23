@@ -50,7 +50,7 @@ function ChatRoom() {
             return;
         }
 
-        const wsUrl = `ws://localhost:5180/ws/chat?token=${token}&room_id=${roomId}`;
+        const wsUrl = `wss://dbgone.com/ws/chat?token=${token}&room_id=${roomId}`;
         console.log("🔗 Підключення до:", wsUrl);
 
         ws.current = new WebSocket(wsUrl);
