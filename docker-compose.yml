@@ -7,16 +7,16 @@ services:
     ports:
       - "5180:5180"
     env_file:
-      - .env.${ENV:-development}
+      - .env.production
     restart: always
 
   frontend:
     build:
       context: ./frontend
     ports:
-      - "80:80"
+      - "5173:80"
     env_file:
-      - .env.${ENV:-development}
+      - .env.production
     depends_on:
       - backend
     restart: always

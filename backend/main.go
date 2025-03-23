@@ -55,14 +55,14 @@ func main() {
 	})
 
 	//Auth
-	r.POST("/api/v1/login/access-token", routes.LoginHandler)
+	r.POST("/v1/login/access-token", routes.LoginHandler)
 
 	// Password recovery
-	r.POST("/api/v1/password-recovery/:email", routes.RequestPasswordRecover)
-	r.POST("/api/v1/reset-password/", routes.ResetPassword)
+	r.POST("/v1/password-recovery/:email", routes.RequestPasswordRecover)
+	r.POST("/v1/reset-password/", routes.ResetPassword)
 
 	//Users
-	r.POST("/api/v1/users/signup", routes.CreateUser)
+	r.POST("/v1/users/signup", routes.CreateUser)
 
 	// Chat routes
 	r.GET("/ws/chat", chat.HandleWebSocket)
@@ -71,52 +71,52 @@ func main() {
 	r.Use(routes.AuthMiddleware())
 
 	// User routes
-	r.GET("/api/v1/users/me", routes.ReadUserMe)
-	r.GET("/api/v1/users/", routes.ReadAllUsers)
-	r.POST("/api/v1/users/", routes.CreateUser)
-	r.PATCH("/api/v1/users/me", routes.UpdateCurrentUser)
-	r.PATCH("/api/v1/users/me/password/", routes.UpdatePasswordCurrentUser)
-	r.DELETE("/api/v1/users/:id", routes.DeleteUser)
+	r.GET("/v1/users/me", routes.ReadUserMe)
+	r.GET("/v1/users/", routes.ReadAllUsers)
+	r.POST("/v1/users/", routes.CreateUser)
+	r.PATCH("/v1/users/me", routes.UpdateCurrentUser)
+	r.PATCH("v1/users/me/password/", routes.UpdatePasswordCurrentUser)
+	r.DELETE("/v1/users/:id", routes.DeleteUser)
 
 	// Calendar
-	r.GET("/api/v1/calendar/events", routes.GetAllEventsHandler)
-	r.POST("/api/v1/calendar/events", routes.CreateEventHandler)
-	r.PUT("/api/v1/calendar/events/:id", routes.UpdateCalendarEventHandler)
-	r.DELETE("/api/v1/calendar/events/:id", routes.DeleteEvent)
+	r.GET("/v1/calendar/events", routes.GetAllEventsHandler)
+	r.POST("/v1/calendar/events", routes.CreateEventHandler)
+	r.PUT("/v1/calendar/events/:id", routes.UpdateCalendarEventHandler)
+	r.DELETE("/v1/calendar/events/:id", routes.DeleteEvent)
 
 	// Blogs routes
-	r.POST("/api/v1/blog/", routes.CreateBlogHandler)
-	r.GET("/api/v1/blog/", routes.GetAllBlogsHandler)
-	r.GET("/api/v1/blog/:id", routes.GetBlogByIdHandler)
-	r.PUT("/api/v1/blog/:id", routes.UpdateBlogByIdHandler)
-	r.DELETE("/api/v1/blog/:id", routes.DeleteBlogByIdHandler)
+	r.POST("/v1/blog/", routes.CreateBlogHandler)
+	r.GET("/v1/blog/", routes.GetAllBlogsHandler)
+	r.GET("/v1/blog/:id", routes.GetBlogByIdHandler)
+	r.PUT("/v1/blog/:id", routes.UpdateBlogByIdHandler)
+	r.DELETE("/v1/blog/:id", routes.DeleteBlogByIdHandler)
 
 	// Items routes
-	r.POST("/api/v1/items/", routes.CreateItemHandler)
-	r.GET("/api/v1/items/", routes.GetAllItemsHandler)
-	r.GET("/api/v1/items/:id", routes.GetItemByID)
-	r.PUT("/api/v1/items/:id", routes.UpdateItemByIdHandler)
-	r.DELETE("/api/v1/items/:id", routes.DeleteItemByIdHandler)
+	r.POST("/v1/items/", routes.CreateItemHandler)
+	r.GET("/v1/items/", routes.GetAllItemsHandler)
+	r.GET("/v1/items/:id", routes.GetItemByID)
+	r.PUT("/v1/items/:id", routes.UpdateItemByIdHandler)
+	r.DELETE("/v1/items/:id", routes.DeleteItemByIdHandler)
 
 	// Download files
-	r.POST("/api/v1/media/:postId/images", routes.DownloadMediaHandler)
-	r.POST("/api/v1/media/images", routes.DownloadMediaOneImageHandler)
-	r.GET("/api/v1/media/images/:postId", routes.GetAllMediaByBlogIdHandler)
-	r.DELETE("/api/v1/media/images/:postId", routes.DeleteMediaHandler)
-	r.DELETE("/api/v1/media/images/url", routes.DeleteImageFromUrl)
+	r.POST("/v1/media/:postId/images", routes.DownloadMediaHandler)
+	r.POST("/v1/media/images", routes.DownloadMediaOneImageHandler)
+	r.GET("/v1/media/images/:postId", routes.GetAllMediaByBlogIdHandler)
+	r.DELETE("/v1/media/images/:postId", routes.DeleteMediaHandler)
+	r.DELETE("/v1/media/images/url", routes.DeleteImageFromUrl)
 
 	// Properties routes
-	r.POST("/api/v1/properties/", routes.CreatePropertiesHandler)
+	r.POST("/v1/properties/", routes.CreatePropertiesHandler)
 	//r.GET("/api/v1/properties/", routes.GetAllPropertiesHandler)
-	r.GET("/api/v1/properties/:id", routes.GetPropertyByIDHandler)
-	r.PUT("/api/v1/properties/:id", routes.UpdatePropertyHandler)
-	r.DELETE("/api/v1/properties/:id", routes.DeletePropertyHandler)
+	r.GET("/v1/properties/:id", routes.GetPropertyByIDHandler)
+	r.PUT("/v1/properties/:id", routes.UpdatePropertyHandler)
+	r.DELETE("/v1/properties/:id", routes.DeletePropertyHandler)
 
 	// Chat room routes
-	r.POST("/api/v1/rooms/", rooms.CreateRoomHandler)
-	r.GET("/api/v1/rooms/", rooms.GetAllRoomsHandler)
-	r.PUT("/api/v1/rooms/:id", rooms.UpdateRoomByIdHandler)
-	r.DELETE("/api/v1/rooms/:id", rooms.DeleteRoomByIdHandler)
+	r.POST("/v1/rooms/", rooms.CreateRoomHandler)
+	r.GET("/v1/rooms/", rooms.GetAllRoomsHandler)
+	r.PUT("/v1/rooms/:id", rooms.UpdateRoomByIdHandler)
+	r.DELETE("/v1/rooms/:id", rooms.DeleteRoomByIdHandler)
 
 	// Run the server
 	if err := r.Run(port); err != nil {
