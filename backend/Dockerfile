@@ -17,7 +17,7 @@ RUN go build -o main ./main.go
 FROM ubuntu:22.04
 
 # Додаємо пакет timezones в контейнер
-RUN apt-get update && apt-get install -y tzdata
+RUN apt-get update && apt-get install -y tzdata --no-install-recommends ca-certificates
 
 # Встановлюємо часовий пояс
 ENV TZ=Europe/Warsaw
