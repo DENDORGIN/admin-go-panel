@@ -14,6 +14,8 @@ import { StrictMode } from "react"
 import { OpenAPI } from "./client"
 import theme from "./theme"
 
+// @ts-ignore
+OpenAPI.BASE = import.meta.env.VITE_API_DOMAIN
 function getTenantFromHost(): string {
   const hostname = window.location.hostname
   const parts = hostname.split(".")

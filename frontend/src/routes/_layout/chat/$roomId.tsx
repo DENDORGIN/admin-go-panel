@@ -49,8 +49,8 @@ function ChatRoom() {
             console.error("JWT токен не знайдено!");
             return;
         }
-
-        const wsUrl = `ws://localhost:5180/ws/chat?token=${token}&room_id=${roomId}`;
+        const baseWsUrl = import.meta.env.VITE_WS_URL;
+        const wsUrl = `${baseWsUrl}/ws/chat?token=${token}&room_id=${roomId}`;
         console.log("🔗 Підключення до:", wsUrl);
 
         ws.current = new WebSocket(wsUrl);
