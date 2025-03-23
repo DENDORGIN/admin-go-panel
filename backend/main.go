@@ -52,6 +52,8 @@ func main() {
 	// Choose DB
 	r.Use(middleware.TenantMiddleware())
 
+	//reminder.StartReminderJobs()
+
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Healthy",

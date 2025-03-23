@@ -6,7 +6,7 @@ import (
 	"backend/internal/adminpanel/services/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	_ "github.com/lib/pq"
+	//_ "github.com/lib/pq"
 	pg "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"

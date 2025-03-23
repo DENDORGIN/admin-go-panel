@@ -3,16 +3,17 @@ package reminder
 import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/models"
+	"gorm.io/gorm"
 	"log"
 	"time"
 )
 
-func StartReminderJobs() {
-	go scheduleReminders()
+func StartReminderJobs(db *gorm.DB) {
+	go scheduleReminders(db)
 	log.Println("✅ The reminder has been launched!")
 }
 
-func scheduleReminders() {
+func scheduleReminders(db *gorm.DB) {
 	// Завантажуємо часовий пояс Варшави
 	warsawLoc, err := time.LoadLocation("Europe/Warsaw")
 	if err != nil {
@@ -23,7 +24,7 @@ func scheduleReminders() {
 
 		time.Sleep(1 * time.Minute) // Перевіряємо кожну хвилину
 
-		events, err := models.GetUpcomingReminders()
+		events, err := models.GetUpcomingReminders(db)
 		if err != nil {
 			log.Println("❌ Error receiving events:", err)
 			continue
@@ -40,12 +41,12 @@ func scheduleReminders() {
 
 			log.Printf("📌 Event '%s' should be reminded at %s (via %v)", event.Title, reminderTime, timeUntilReminder)
 
-			scheduleReminder(event, reminderTime)
+			scheduleReminder(db, event, reminderTime)
 		}
 	}
 }
 
-func scheduleReminder(event entities.Calendar, reminderTime time.Time) {
+func scheduleReminder(db *gorm.DB, event entities.Calendar, reminderTime time.Time) {
 	// Завантажуємо часовий пояс Варшави
 	warsawLoc, err := time.LoadLocation("Europe/Warsaw")
 	if err != nil {
@@ -58,11 +59,11 @@ func scheduleReminder(event entities.Calendar, reminderTime time.Time) {
 
 	if timeUntilReminder <= 0 {
 		log.Printf("⚠️ Reminder time for event '%s' has expired! Execute immediately.", event.Title)
-		go SendReminder(event)
+		go SendReminder(db, event)
 		return
 	}
 
 	time.AfterFunc(timeUntilReminder, func() {
-		SendReminder(event)
+		SendReminder(db, event)
 	})
 }

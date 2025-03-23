@@ -1,7 +1,6 @@
 package models
 
 import (
-	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
@@ -56,23 +55,23 @@ type ItemGetAll struct {
 	Count int
 }
 
-func CreateItem(i *entities.Items) (*ItemsPost, error) {
+func CreateItem(db *gorm.DB, i *entities.Items) (*ItemsPost, error) {
 	if i.Title == "" {
 		return nil, errors.New("the item title cannot be empty")
 	}
-	err := repository.GetPosition(postgres.DB, i.Position, &entities.Items{})
+	err := repository.GetPosition(db, i.Position, &entities.Items{})
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 
 	// Якщо позиція існує, зсуваємо всі наступні
 	if err == nil {
-		if shiftErr := repository.ShiftPositions[entities.Items](postgres.DB, i.Position, i.Language); shiftErr != nil {
+		if shiftErr := repository.ShiftPositions[entities.Items](db, i.Position, i.Language); shiftErr != nil {
 			return nil, shiftErr
 		}
 	}
 
-	err = repository.CreateEssence(postgres.DB, i)
+	err = repository.CreateEssence(db, i)
 	if err != nil {
 		return nil, err
 	}
@@ -91,25 +90,25 @@ func CreateItem(i *entities.Items) (*ItemsPost, error) {
 	}, nil
 }
 
-func GetItemById(itemId uuid.UUID) (*ItemGet, error) {
+func GetItemById(db *gorm.DB, itemId uuid.UUID) (*ItemGet, error) {
 	var item entities.Items
 	var property entities.Property
 	var media []*entities.Media
 
 	// Get item
-	err := repository.GetByID(postgres.DB, itemId, &item)
+	err := repository.GetByID(db, itemId, &item)
 	if err != nil {
 		return nil, err
 	}
 
 	// Get property by item ID
-	err = repository.GetAllContentByID(postgres.DB, itemId, &property)
+	err = repository.GetAllContentByID(db, itemId, &property)
 	if err != nil {
 		return nil, err
 	}
 
 	//Get Media by item ID
-	err = repository.GetAllMediaByID(postgres.DB, itemId, &media)
+	err = repository.GetAllMediaByID(db, itemId, &media)
 	if err != nil {
 		return nil, err
 	}
@@ -147,16 +146,16 @@ func GetItemById(itemId uuid.UUID) (*ItemGet, error) {
 
 }
 
-func UpdateItemById(itemId uuid.UUID, updateItem *ItemUpdate) (*ItemGet, error) {
+func UpdateItemById(db *gorm.DB, itemId uuid.UUID, updateItem *ItemUpdate) (*ItemGet, error) {
 	var item *entities.Items
 
-	err := repository.GetByID(postgres.DB, itemId, &item)
+	err := repository.GetByID(db, itemId, &item)
 	if err != nil {
 		return nil, err
 	}
 
 	if updateItem.Position != item.Position {
-		err = repository.ShiftPositions[entities.Items](postgres.DB, updateItem.Position, item.Language)
+		err = repository.ShiftPositions[entities.Items](db, updateItem.Position, item.Language)
 		if err != nil {
 			return nil, err
 		}
@@ -184,31 +183,31 @@ func UpdateItemById(itemId uuid.UUID, updateItem *ItemUpdate) (*ItemGet, error) 
 		item.Status = updateItem.Status
 	}
 
-	err = postgres.DB.Save(&item).Error
+	err = db.Save(&item).Error
 	if err != nil {
 		return nil, err
 	}
 
-	return GetItemById(itemId)
+	return GetItemById(db, itemId)
 }
 
-func DeleteItemById(id uuid.UUID) error {
+func DeleteItemById(db *gorm.DB, id uuid.UUID) error {
 	var item entities.Items
 	var property entities.Property
 	var mediaList []entities.Media
 
-	err := repository.DeleteByID(postgres.DB, id, &item)
+	err := repository.DeleteByID(db, id, &item)
 	if err != nil {
 		return err
 	}
 
 	// Delete property by content_id
-	err = repository.DeleteContentByID(postgres.DB, id, &property)
+	err = repository.DeleteContentByID(db, id, &property)
 	if err != nil {
 		return err
 	}
 
-	err = repository.GetAllMediaByID(postgres.DB, id, &mediaList)
+	err = repository.GetAllMediaByID(db, id, &mediaList)
 	if err != nil {
 		return err
 	}
@@ -219,7 +218,7 @@ func DeleteItemById(id uuid.UUID) error {
 		}
 	}
 	// Delete media by content_id
-	err = repository.DeleteContentByID(postgres.DB, id, &entities.Media{})
+	err = repository.DeleteContentByID(db, id, &entities.Media{})
 	if err != nil {
 		return err
 	}
@@ -227,7 +226,7 @@ func DeleteItemById(id uuid.UUID) error {
 	return nil
 }
 
-func GetAllItems(userId uuid.UUID, isSuperUser bool, parameters *entities.Parameters) (*ItemGetAll, error) {
+func GetAllItems(db *gorm.DB, userId uuid.UUID, isSuperUser bool, parameters *entities.Parameters) (*ItemGetAll, error) {
 	if parameters == nil {
 		parameters = &entities.Parameters{}
 	}
@@ -249,7 +248,7 @@ func GetAllItems(userId uuid.UUID, isSuperUser bool, parameters *entities.Parame
 	response := &ItemGetAll{}
 
 	// Формуємо базовий запит
-	query := postgres.DB
+	query := db
 
 	// Якщо не суперюзер, додаємо фільтр за власником
 	if !isSuperUser {
@@ -277,7 +276,7 @@ func GetAllItems(userId uuid.UUID, isSuperUser bool, parameters *entities.Parame
 	}
 
 	if len(itemIDs) > 0 {
-		err = postgres.DB.Where("content_id IN (?)", itemIDs).Find(&media).Error
+		err = db.Where("content_id IN (?)", itemIDs).Find(&media).Error
 		if err != nil {
 			return nil, err
 		}
@@ -292,7 +291,7 @@ func GetAllItems(userId uuid.UUID, isSuperUser bool, parameters *entities.Parame
 	// Отримуємо властивості
 	propertyMap := make(map[uuid.UUID]PropertyGet)
 	for _, item := range items {
-		property, err := GetPropertyByItemId(item.ID)
+		property, err := GetPropertyByItemId(db, item.ID)
 		if err != nil {
 			return nil, err
 		}

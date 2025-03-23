@@ -16,6 +16,11 @@ func CreateRoomHandler(ctx *gin.Context) {
 		return
 	}
 
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
 	var room entities.ChatRooms
 	if err := ctx.ShouldBindJSON(&room); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -24,7 +29,7 @@ func CreateRoomHandler(ctx *gin.Context) {
 
 	room.OwnerId = userID
 
-	newBlog, err := CreateRoom(&room)
+	newBlog, err := CreateRoom(db, &room)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -39,7 +44,12 @@ func GetAllRoomsHandler(ctx *gin.Context) {
 		return
 	}
 
-	blogs, err := GetAllRooms()
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	blogs, err := GetAllRooms(db)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -59,8 +69,12 @@ func GetBlogByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
 		return
 	}
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
 
-	blog, err := models.GetBlogById(id)
+	blog, err := models.GetBlogById(db, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -80,6 +94,11 @@ func UpdateRoomByIdHandler(ctx *gin.Context) {
 		return
 	}
 
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
@@ -92,7 +111,7 @@ func UpdateRoomByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	room, err := UpdateRoomById(id, &update)
+	room, err := UpdateRoomById(db, id, &update)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -113,18 +132,23 @@ func DeleteRoomByIdHandler(ctx *gin.Context) {
 		return
 	}
 
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
 	roomId, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
 		return
 	}
 
-	room, err := GetRoomById(roomId)
+	room, err := GetRoomById(db, roomId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	isSuperUser, err := utils.GetIsSuperUser(userID)
+	isSuperUser, err := utils.GetIsSuperUser(db, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -134,7 +158,7 @@ func DeleteRoomByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}
-	err = DeleteRoomById(roomId)
+	err = DeleteRoomById(db, roomId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

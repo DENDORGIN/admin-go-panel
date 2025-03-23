@@ -65,7 +65,12 @@ func CreateUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	newUser, err := models.CreateUser(user)
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	newUser, err := models.CreateUser(db, user)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -110,8 +115,12 @@ func ReadAllUsers(ctx *gin.Context) {
 	if err != nil || skip < 0 {
 		skip = 0
 	}
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
 
-	users, err := models.GetAllUsers(ctx, limit, skip)
+	users, err := models.GetAllUsers(db, limit, skip)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -130,13 +139,18 @@ func UpdateCurrentUser(ctx *gin.Context) {
 		return
 	}
 
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
 	var updateUser models.UpdateUser
 	if err := ctx.ShouldBindJSON(&updateUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	updatedUser, err := models.UpdateUserById(userID, &updateUser)
+	updatedUser, err := models.UpdateUserById(db, userID, &updateUser)
 	if err != nil {
 		if err.Error() == "user not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -155,12 +169,17 @@ func UpdatePasswordCurrentUser(ctx *gin.Context) {
 		return
 	}
 
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
 	var updatePassword models.UpdatePassword
 	if err := ctx.ShouldBindJSON(&updatePassword); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	message, err := models.UpdateCurrentUserPassword(userID, &updatePassword)
+	message, err := models.UpdateCurrentUserPassword(db, userID, &updatePassword)
 	if err != nil {
 		if err.Error() == "user not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -187,14 +206,18 @@ func DeleteUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
 
-	isSuperUser, err := utils.GetIsSuperUser(userID)
+	isSuperUser, err := utils.GetIsSuperUser(db, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	isTargetSuperUser, err := utils.GetIsSuperUser(id)
+	isTargetSuperUser, err := utils.GetIsSuperUser(db, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -210,7 +233,7 @@ func DeleteUser(ctx *gin.Context) {
 		return
 	}
 
-	err = models.DeleteUserById(id)
+	err = models.DeleteUserById(db, id)
 	if err != nil {
 		if err.Error() == "user not found" {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})

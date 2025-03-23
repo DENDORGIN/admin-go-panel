@@ -26,6 +26,11 @@ func DownloadMediaHandler(ctx *gin.Context) {
 		return
 	}
 
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
 	form, err := ctx.MultipartForm()
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse multipart form"})
@@ -56,7 +61,7 @@ func DownloadMediaHandler(ctx *gin.Context) {
 		}
 
 		// Зберігаємо дані про файл в базі даних
-		_, err = models.DownloadFiles(&media)
+		_, err = models.DownloadFiles(db, &media)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -94,6 +99,11 @@ func GetAllMediaByBlogIdHandler(ctx *gin.Context) {
 		return
 	}
 
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
 	// Перевіряємо, чи ID посту �� валідним UUID
 	blogId, err := uuid.Parse(blogIdStr)
 	if err != nil {
@@ -102,7 +112,7 @@ func GetAllMediaByBlogIdHandler(ctx *gin.Context) {
 	}
 
 	// Отримуємо всі медіафайли для даного блога
-	media, err := models.GetAllMediaByBlogId(blogId)
+	media, err := models.GetAllMediaByBlogId(db, blogId)
 	if err != nil {
 		log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -125,6 +135,11 @@ func DeleteMediaHandler(ctx *gin.Context) {
 		return
 	}
 
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
 	if req.ImageUrl == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Image URL is required"})
 		return
@@ -141,7 +156,7 @@ func DeleteMediaHandler(ctx *gin.Context) {
 		return
 	}
 	// Отримуємо список медіа за Blog ID
-	mediaList, err := models.GetAllMediaByBlogId(mediaId)
+	mediaList, err := models.GetAllMediaByBlogId(db, mediaId)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Media not found"})
 		return
@@ -162,7 +177,7 @@ func DeleteMediaHandler(ctx *gin.Context) {
 	}
 
 	// Видаляємо файл
-	err = models.DeleteFiles(mediaToDelete.ID)
+	err = models.DeleteFiles(db, mediaToDelete.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

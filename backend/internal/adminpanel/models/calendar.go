@@ -1,7 +1,6 @@
 package models
 
 import (
-	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"errors"
@@ -43,7 +42,7 @@ type CalendarEventUpdate struct {
 	SendMail       bool      `json:"sendEmail"`
 }
 
-func CreateEvent(c *entities.Calendar) (*CalendarEvent, error) {
+func CreateEvent(db *gorm.DB, c *entities.Calendar) (*CalendarEvent, error) {
 	if c.Title == "" {
 		return nil, errors.New("the event name cannot be empty")
 	}
@@ -65,7 +64,7 @@ func CreateEvent(c *entities.Calendar) (*CalendarEvent, error) {
 
 	log.Printf("📌 The event '%s' reminds us of %s ", c.Title, reminderTime)
 
-	if err := postgres.DB.Create(c).Error; err != nil {
+	if err := db.Create(c).Error; err != nil {
 		return nil, err
 	}
 
@@ -87,11 +86,11 @@ func CreateEvent(c *entities.Calendar) (*CalendarEvent, error) {
 	}, nil
 }
 
-func GetAllEvents(userId uuid.UUID) ([]CalendarEvent, error) {
+func GetAllEvents(db *gorm.DB, userId uuid.UUID) ([]CalendarEvent, error) {
 	var events []entities.Calendar
 	var response []CalendarEvent
 
-	err := postgres.DB.Where("user_id =?", userId).Find(&events).Error
+	err := db.Where("user_id =?", userId).Find(&events).Error
 	if err != nil {
 		return nil, err
 	}
@@ -125,10 +124,10 @@ func GetAllEvents(userId uuid.UUID) ([]CalendarEvent, error) {
 	return response, nil
 }
 
-func GetEventById(eventId uuid.UUID) (*CalendarEvent, error) {
+func GetEventById(db *gorm.DB, eventId uuid.UUID) (*CalendarEvent, error) {
 	var calendar entities.Calendar
 
-	err := repository.GetByID(postgres.DB, eventId, &calendar)
+	err := repository.GetByID(db, eventId, &calendar)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("event not found")
@@ -153,10 +152,10 @@ func GetEventById(eventId uuid.UUID) (*CalendarEvent, error) {
 	}, nil
 }
 
-func CalendarUpdateEvent(eventId uuid.UUID, eventUpdate *CalendarEventUpdate) (*CalendarEvent, error) {
+func CalendarUpdateEvent(db *gorm.DB, eventId uuid.UUID, eventUpdate *CalendarEventUpdate) (*CalendarEvent, error) {
 	var event entities.Calendar
 
-	err := repository.GetByID(postgres.DB, eventId, &event)
+	err := repository.GetByID(db, eventId, &event)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("event not found")
@@ -198,7 +197,7 @@ func CalendarUpdateEvent(eventId uuid.UUID, eventUpdate *CalendarEventUpdate) (*
 		event.Weekend = eventUpdate.Weekend
 	}
 
-	err = postgres.DB.Save(&event).Error
+	err = db.Save(&event).Error
 	if err != nil {
 		return nil, err
 	}
@@ -224,8 +223,8 @@ func CalendarUpdateEvent(eventId uuid.UUID, eventUpdate *CalendarEventUpdate) (*
 	}, nil
 }
 
-func DeleteEventById(eventId uuid.UUID) error {
-	err := repository.DeleteByID(postgres.DB, eventId, &entities.Calendar{})
+func DeleteEventById(db *gorm.DB, eventId uuid.UUID) error {
+	err := repository.DeleteByID(db, eventId, &entities.Calendar{})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("event not found")
@@ -235,14 +234,14 @@ func DeleteEventById(eventId uuid.UUID) error {
 	return nil
 }
 
-func GetUpcomingReminders() ([]entities.Calendar, error) {
+func GetUpcomingReminders(db *gorm.DB) ([]entities.Calendar, error) {
 	var upcomingEvents []entities.Calendar
 	now := time.Now().UTC()
 
 	//log.Printf("🕒 Локальний час сервера: %v", now)
 	//log.Printf("🌍 UTC час сервера: %v", now.UTC())
 
-	err := postgres.DB.
+	err := db.
 		Where("start_date - (INTERVAL '1 minute' * reminder_offset) <= ? AND send_email = ?", now, false).
 		Find(&upcomingEvents).Error
 
@@ -256,6 +255,6 @@ func GetUpcomingReminders() ([]entities.Calendar, error) {
 }
 
 // MarkReminderSent Позначити подію як відправлену
-func MarkReminderSent(eventID uuid.UUID) error {
-	return postgres.DB.Model(&entities.Calendar{}).Where("id = ?", eventID).Update("send_email", true).Error
+func MarkReminderSent(db *gorm.DB, eventID uuid.UUID) error {
+	return db.Model(&entities.Calendar{}).Where("id = ?", eventID).Update("send_email", true).Error
 }
