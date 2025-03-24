@@ -30,6 +30,7 @@ type AllUsers struct {
 type UpdateUser struct {
 	FullName string `json:"fullName,omitempty"`
 	Email    string `json:"email,omitempty"`
+	Avatar   string `json:"avatar"`
 }
 
 type UpdatePassword struct {
@@ -124,6 +125,10 @@ func UpdateUserById(db *gorm.DB, id uuid.UUID, updateUser *UpdateUser) (*UserRes
 		user.Email = updateUser.Email
 	}
 
+	if updateUser.Avatar != "" {
+		user.Avatar = updateUser.Avatar
+	}
+
 	if err = db.Save(&user).Error; err != nil {
 		return nil, err
 	}
@@ -131,6 +136,7 @@ func UpdateUserById(db *gorm.DB, id uuid.UUID, updateUser *UpdateUser) (*UserRes
 		ID:          user.ID,
 		FullName:    user.FullName,
 		Email:       user.Email,
+		Avatar:      user.Avatar,
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
 	}, nil
