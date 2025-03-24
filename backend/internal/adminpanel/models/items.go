@@ -179,9 +179,7 @@ func UpdateItemById(db *gorm.DB, itemId uuid.UUID, updateItem *ItemUpdate) (*Ite
 	if updateItem.Category != "" {
 		item.Category = updateItem.Category
 	}
-	if updateItem.Status != false && updateItem.Status != true {
-		item.Status = updateItem.Status
-	}
+	item.Status = updateItem.Status
 
 	err = db.Save(&item).Error
 	if err != nil {
