@@ -120,7 +120,7 @@ function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => 
     };
 
     return (
-        <Box maxW="sm" borderWidth="1px" borderRadius="lg" overflow="hidden" boxShadow="md" position="relative">
+        <Box maxW="sm" borderWidth="1px" borderRadius="lg" overflow="hidden" boxShadow="md" position="relative" mt="12">
             <Image src={room.image} alt={room.name_room} objectFit="cover" height="200px" width="100%" />
 
             {/* Меню з опціями */}
