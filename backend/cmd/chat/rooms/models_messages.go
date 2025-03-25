@@ -1,9 +1,9 @@
 package rooms
 
 import (
-	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/entities"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Message struct {
@@ -16,12 +16,12 @@ type Message struct {
 	CreatedAt string `json:"created_at"`
 }
 
-func GetAllMessages(roomId uuid.UUID) ([]Message, error) {
+func GetAllMessages(db *gorm.DB, roomId uuid.UUID) ([]Message, error) {
 	var messages []entities.Messages
 	var response []Message
 
 	// Отримуємо всі повідомлення для кімнати
-	err := postgres.DB.Where("room_id = ?", roomId).Order("created_at ASC").Find(&messages).Error
+	err := db.Where("room_id = ?", roomId).Order("created_at ASC").Find(&messages).Error
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func GetAllMessages(roomId uuid.UUID) ([]Message, error) {
 		FullName string
 		Avatar   string // Додаємо поле Avatar
 	}
-	err = postgres.DB.Table("users").
+	err = db.Table("users").
 		Select("id, full_name, avatar"). // Запитуємо ще й аватар
 		Where("id IN (?)", keys(userIDs)).
 		Find(&users).Error

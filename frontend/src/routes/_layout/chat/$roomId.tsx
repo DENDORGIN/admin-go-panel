@@ -5,7 +5,8 @@ import { Box, Input, Button, VStack, HStack, Text, Flex, useColorModeValue } fro
 import useAuth from "../../../hooks/useAuth";
 import { RoomType } from "../rooms";
 import { useBreakpointValue } from "@chakra-ui/react";
-import MessageBubble from "../../../components/Chat/Messages.tsx"; // ✅ Імпортуємо компонент повідомлень
+import MessageBubble from "../../../components/Chat/Messages.tsx";
+import { getWsUrl } from "../../../utils/urls.ts"
 
 export const Route = createFileRoute("/_layout/chat/$roomId")({
     component: ChatRoom,
@@ -49,8 +50,8 @@ function ChatRoom() {
             console.error("JWT токен не знайдено!");
             return;
         }
-        const baseWsUrl = import.meta.env.VITE_WS_URL;
-        const wsUrl = `${baseWsUrl}/ws/chat?token=${token}&room_id=${roomId}`;
+        const wsUrl = getWsUrl("chat", { token, room_id: roomId })
+
         console.log("🔗 Підключення до:", wsUrl);
 
         ws.current = new WebSocket(wsUrl);

@@ -2,7 +2,6 @@ package chat
 
 import (
 	"backend/cmd/chat/rooms"
-	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/services/utils"
 	"encoding/json"
@@ -34,28 +33,34 @@ type MessagePayload struct {
 	Message string    `json:"message"`
 }
 
-func HandleWebSocket(c *gin.Context) {
-	token := c.Query("token")
+func HandleWebSocket(ctx *gin.Context) {
+	token := ctx.Query("token")
 	_, err := utils.VerifyResetToken(token)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		return
 	}
-	roomID, err := uuid.Parse(c.Query("room_id"))
+
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	roomID, err := uuid.Parse(ctx.Query("room_id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room_id"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room_id"})
 		return
 	}
 
 	user, err := utils.ParseJWTToken(token)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		return
 	}
 
 	fmt.Printf("Клієнт з ID %s підключився до кімнати %s\n", user.ID, roomID)
 
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		fmt.Println("Помилка WebSocket:", err)
 		return
@@ -71,7 +76,7 @@ func HandleWebSocket(c *gin.Context) {
 	mutex.Unlock()
 
 	// 🔹 Отримуємо історію повідомлень кімнати
-	history, err := rooms.GetAllMessages(roomID)
+	history, err := rooms.GetAllMessages(db, roomID)
 	if err != nil {
 		log.Println("❌ Не вдалося отримати історію чату:", err)
 	} else {
@@ -105,7 +110,7 @@ func HandleWebSocket(c *gin.Context) {
 			Message:   payload.Message,
 			CreatedAt: time.Now(),
 		}
-		postgres.DB.Create(&message)
+		db.Create(&message)
 
 		// Відправляємо нове повідомлення всім користувачам у кімнаті
 		broadcastMessage(roomID, msg)
