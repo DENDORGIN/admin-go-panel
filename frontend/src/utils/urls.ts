@@ -52,3 +52,5 @@ export function getWsUrl(path: string, params: Record<string, string> = {}): str
     const query = new URLSearchParams(params).toString()
     return `${wsBase}/ws/${path}?${query}`
 }
+
+console.log("Tenant:", getTenantSubdomain())
