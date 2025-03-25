@@ -12,8 +12,6 @@ import {
   UsersService,
 } from "../client"
 
-import { updateOpenApiConfig } from "../client/core/OpenApiConfig.ts"
-
 import useCustomToast from "./useCustomToast"
 
 const isLoggedIn = () => {
@@ -25,6 +23,7 @@ const useAuth = () => {
   const navigate = useNavigate()
   const showToast = useCustomToast()
   const queryClient = useQueryClient()
+
   const { data: user, isLoading } = useQuery<UserPublic | null, Error>({
     queryKey: ["currentUser"],
     queryFn: UsersService.readUserMe,
@@ -33,14 +32,14 @@ const useAuth = () => {
 
   const signUpMutation = useMutation({
     mutationFn: (data: UserRegister) =>
-      UsersService.registerUser({ requestBody: data }),
+        UsersService.registerUser({ requestBody: data }),
 
     onSuccess: () => {
       navigate({ to: "/login" })
       showToast(
-        "Account created.",
-        "Your account has been created successfully.",
-        "success",
+          "Account created.",
+          "Your account has been created successfully.",
+          "success"
       )
     },
     onError: (err: ApiError) => {
@@ -57,25 +56,17 @@ const useAuth = () => {
     },
   })
 
-  // адаптований метод login
   const login = async (data: AccessToken & { domain: string }) => {
-    localStorage.setItem("tenant", data.domain)
-    updateOpenApiConfig() // tenant встановлено
-
     const response = await LoginService.loginAccessToken({ formData: data })
     localStorage.setItem("access_token", response.access_token)
-    updateOpenApiConfig() // token встановлено
   }
-
 
   const loginMutation = useMutation({
     mutationFn: login,
-    onSuccess: (_data, variables) => {
-      const domain = variables.domain
-      const port = window.location.port // 5173
-      window.location.href = `http://${domain}.localhost:${port}/`
+    onSuccess: () => {
+      // просто оновлюємо сторінку, бо tenant вже визначається через window.location
+      window.location.reload()
     },
-
     onError: (err: ApiError) => {
       let errDetail = (err.body as any)?.detail
 
@@ -91,11 +82,8 @@ const useAuth = () => {
     },
   })
 
-  // адаптований метод logout
   const logout = () => {
     localStorage.removeItem("access_token")
-    localStorage.removeItem("tenant")
-    updateOpenApiConfig() // очистили конфігурацію
     navigate({ to: "/login" })
   }
 
