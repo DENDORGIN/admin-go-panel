@@ -17,6 +17,11 @@ func CreateItemHandler(ctx *gin.Context) {
 		return
 	}
 
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
 	var item entities.Items
 	if err := ctx.ShouldBindJSON(&item); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -25,7 +30,7 @@ func CreateItemHandler(ctx *gin.Context) {
 
 	item.OwnerID = userID
 
-	newItem, err := models.CreateItem(&item)
+	newItem, err := models.CreateItem(db, &item)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -45,8 +50,12 @@ func GetItemByID(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
 		return
 	}
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
 
-	item, err := models.GetItemById(itemId)
+	item, err := models.GetItemById(db, itemId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -72,6 +81,10 @@ func UpdateItemByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
 		return
 	}
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
 
 	var update models.ItemUpdate
 	if err := ctx.ShouldBindJSON(&update); err != nil {
@@ -79,7 +92,7 @@ func UpdateItemByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	item, err := models.UpdateItemById(id, &update)
+	item, err := models.UpdateItemById(db, id, &update)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -101,7 +114,12 @@ func GetAllItemsHandler(ctx *gin.Context) {
 		return
 	}
 
-	isSuperUser, _ := utils.GetIsSuperUser(userID)
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	isSuperUser, _ := utils.GetIsSuperUser(db, userID)
 
 	language := ctx.DefaultQuery("language", "pl")
 	skip, _ := strconv.Atoi(ctx.DefaultQuery("skip", "0"))
@@ -113,7 +131,7 @@ func GetAllItemsHandler(ctx *gin.Context) {
 		Limit:    limit,
 	}
 
-	items, err := models.GetAllItems(userID, isSuperUser, params)
+	items, err := models.GetAllItems(db, userID, isSuperUser, params)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -127,6 +145,10 @@ func DeleteItemByIdHandler(ctx *gin.Context) {
 	if !ok {
 		return
 	}
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
 
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -134,12 +156,12 @@ func DeleteItemByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	item, err := models.GetItemById(id)
+	item, err := models.GetItemById(db, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	isSuperUser, err := utils.GetIsSuperUser(userID)
+	isSuperUser, err := utils.GetIsSuperUser(db, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -149,7 +171,7 @@ func DeleteItemByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}
-	err = models.DeleteItemById(id)
+	err = models.DeleteItemById(db, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

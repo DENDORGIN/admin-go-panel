@@ -1,12 +1,12 @@
 package rooms
 
 import (
-	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
 	"errors"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type RoomPublic struct {
@@ -31,7 +31,7 @@ type RoomGetAll struct {
 	Count int
 }
 
-func CreateRoom(room *entities.ChatRooms) (*RoomPublic, error) {
+func CreateRoom(db *gorm.DB, room *entities.ChatRooms) (*RoomPublic, error) {
 	if room.NameRoom == "" {
 		return nil, errors.New("the item title cannot be empty")
 	}
@@ -39,7 +39,7 @@ func CreateRoom(room *entities.ChatRooms) (*RoomPublic, error) {
 		return nil, errors.New("the image cannot be empty")
 	}
 
-	err := repository.CreateEssence(postgres.DB, room)
+	err := repository.CreateEssence(db, room)
 	if err != nil {
 		return nil, err
 	}
@@ -54,13 +54,13 @@ func CreateRoom(room *entities.ChatRooms) (*RoomPublic, error) {
 	}, nil
 }
 
-func GetAllRooms() (*RoomGetAll, error) { //userId uuid.UUID
+func GetAllRooms(db *gorm.DB) (*RoomGetAll, error) { //userId uuid.UUID
 	var rooms []*entities.ChatRooms
 	response := &RoomGetAll{}
 
 	// Отримуємо всі кімнати автора
 	//err := postgres.DB.Where("owner_id = ?", userId).Find(&rooms).Error
-	err := postgres.DB.Find(&rooms).Error
+	err := db.Find(&rooms).Error
 	if err != nil {
 		return nil, err
 	}
@@ -81,10 +81,10 @@ func GetAllRooms() (*RoomGetAll, error) { //userId uuid.UUID
 	return response, nil
 }
 
-func GetRoomById(roomId uuid.UUID) (*RoomPublic, error) {
+func GetRoomById(db *gorm.DB, roomId uuid.UUID) (*RoomPublic, error) {
 	var room entities.ChatRooms
 
-	err := repository.GetByID(postgres.DB, roomId, &room)
+	err := repository.GetByID(db, roomId, &room)
 	if err != nil {
 		return nil, err
 	}
@@ -100,11 +100,11 @@ func GetRoomById(roomId uuid.UUID) (*RoomPublic, error) {
 	}, nil
 }
 
-func UpdateRoomById(roomId uuid.UUID, updateRoom *RoomUpdate) (*RoomPublic, error) {
+func UpdateRoomById(db *gorm.DB, roomId uuid.UUID, updateRoom *RoomUpdate) (*RoomPublic, error) {
 	var room entities.ChatRooms
 
 	// Знаходимо room за ID
-	err := repository.GetByID(postgres.DB, roomId, &room)
+	err := repository.GetByID(db, roomId, &room)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func UpdateRoomById(roomId uuid.UUID, updateRoom *RoomUpdate) (*RoomPublic, erro
 	room.Status = updateRoom.Status
 
 	// Зберігаємо оновлений блог
-	err = postgres.DB.Save(&room).Error
+	err = db.Save(&room).Error
 	if err != nil {
 		return nil, err
 	}
@@ -140,11 +140,11 @@ func UpdateRoomById(roomId uuid.UUID, updateRoom *RoomUpdate) (*RoomPublic, erro
 	}, nil
 }
 
-func DeleteRoomById(roomId uuid.UUID) error {
+func DeleteRoomById(db *gorm.DB, roomId uuid.UUID) error {
 	var room entities.ChatRooms
 
 	// Знаходимо room за ID
-	roomGet, err := GetRoomById(roomId)
+	roomGet, err := GetRoomById(db, roomId)
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func DeleteRoomById(roomId uuid.UUID) error {
 		return err
 	}
 
-	err = repository.DeleteByID(postgres.DB, roomId, &room)
+	err = repository.DeleteByID(db, roomId, &room)
 	if err != nil {
 		return err
 	}

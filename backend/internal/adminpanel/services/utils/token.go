@@ -11,16 +11,20 @@ import (
 var jwtSecret = []byte(os.Getenv("JWT_SECRET_KEY"))
 
 type Claims struct {
-	ID    uuid.UUID `json:"id"`
-	Email string    `json:"email"`
+	ID       uuid.UUID `json:"id"`
+	Email    string    `json:"email"`
+	Tenant   string    `json:"tenant"`
+	TenantID uuid.UUID `json:"tenant_id"`
 	jwt.RegisteredClaims
 }
 
-func GenerateJWTToken(email string, id uuid.UUID) (string, error) {
+func GenerateJWTToken(email string, id uuid.UUID, tenant string, tenantID uuid.UUID) (string, error) {
 	claims := jwt.MapClaims{
-		"id":    id.String(),
-		"email": email,
-		"exp":   time.Now().Add(time.Hour * 24 * 7).Unix(),
+		"id":        id.String(),
+		"email":     email,
+		"tenant":    tenant,
+		"tenant_id": tenantID.String(),
+		"exp":       time.Now().Add(time.Hour * 24 * 7).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)

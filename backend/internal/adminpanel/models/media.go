@@ -1,7 +1,6 @@
 package models
 
 import (
-	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
@@ -17,10 +16,10 @@ type MediaPublic struct {
 	ContentID uuid.UUID `json:"content_id"`
 }
 
-func DownloadFiles(media *entities.Media) (*MediaPublic, error) {
+func DownloadFiles(db *gorm.DB, media *entities.Media) (*MediaPublic, error) {
 	media.ID = uuid.New()
 
-	if err := postgres.DB.Create(&media).Error; err != nil {
+	if err := db.Create(&media).Error; err != nil {
 		return nil, err
 	}
 
@@ -32,11 +31,11 @@ func DownloadFiles(media *entities.Media) (*MediaPublic, error) {
 	}, nil
 }
 
-func GetAllMediaByBlogId(blogID uuid.UUID) ([]MediaPublic, error) {
+func GetAllMediaByBlogId(db *gorm.DB, blogID uuid.UUID) ([]MediaPublic, error) {
 	var media []entities.Media
 	var listMedia []MediaPublic
 
-	err := repository.GetAllMediaByID(postgres.DB, blogID, &media)
+	err := repository.GetAllMediaByID(db, blogID, &media)
 	if err != nil {
 		return nil, gorm.ErrRecordNotFound
 	}
@@ -52,9 +51,9 @@ func GetAllMediaByBlogId(blogID uuid.UUID) ([]MediaPublic, error) {
 	return listMedia, nil
 }
 
-//func GetMediaByUrl(url string) (*MediaPublic, error) {
+//func GetMediaByUrl(db *gorm.DB, url string) (*MediaPublic, error) {
 //	var media entities.Media
-//	result := postgres.DB.Where("url =?", url).First(&media)
+//	result := db.Where("url =?", url).First(&media)
 //	if result.Error != nil {
 //		return nil, result.Error
 //	}
@@ -69,13 +68,13 @@ func GetAllMediaByBlogId(blogID uuid.UUID) ([]MediaPublic, error) {
 //	}, nil
 //}
 
-func DeleteFiles(id uuid.UUID) error {
-	err := DeleteInBucket(id)
+func DeleteFiles(db *gorm.DB, id uuid.UUID) error {
+	err := DeleteInBucket(db, id)
 	if err != nil {
 		return err
 	}
 
-	err = repository.DeleteByID(postgres.DB, id, &entities.Media{})
+	err = repository.DeleteByID(db, id, &entities.Media{})
 
 	if err != nil {
 		return errors.New("user not found")
@@ -83,10 +82,10 @@ func DeleteFiles(id uuid.UUID) error {
 	return nil
 }
 
-func DeleteInBucket(id uuid.UUID) error {
+func DeleteInBucket(db *gorm.DB, id uuid.UUID) error {
 	var media *entities.Media
 
-	err := repository.GetByID(postgres.DB, id, &media)
+	err := repository.GetByID(db, id, &media)
 	if err != nil {
 		return err
 	}

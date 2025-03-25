@@ -1,7 +1,6 @@
 package models
 
 import (
-	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"errors"
@@ -35,8 +34,8 @@ type PropertyUpdate struct {
 	Style    string `json:"style"`
 }
 
-func CreateProperty(c *entities.Property) (*PropertyGet, error) {
-	err := repository.CreateEssence(postgres.DB, c)
+func CreateProperty(db *gorm.DB, c *entities.Property) (*PropertyGet, error) {
+	err := repository.CreateEssence(db, c)
 	if err != nil {
 		return nil, err
 	}
@@ -55,9 +54,9 @@ func CreateProperty(c *entities.Property) (*PropertyGet, error) {
 	}, nil
 }
 
-func GetPropertyById(id uuid.UUID) (*PropertyGet, error) {
+func GetPropertyById(db *gorm.DB, id uuid.UUID) (*PropertyGet, error) {
 	var property entities.Property
-	err := repository.GetByID(postgres.DB, id, &property)
+	err := repository.GetByID(db, id, &property)
 	if err != nil {
 		return nil, err
 	}
@@ -76,9 +75,9 @@ func GetPropertyById(id uuid.UUID) (*PropertyGet, error) {
 	}, nil
 }
 
-func GetPropertyByItemId(itemid uuid.UUID) (*PropertyGet, error) {
+func GetPropertyByItemId(db *gorm.DB, itemid uuid.UUID) (*PropertyGet, error) {
 	var property entities.Property
-	err := repository.GetAllContentByID(postgres.DB, itemid, &property)
+	err := repository.GetAllContentByID(db, itemid, &property)
 	if err != nil {
 		// Якщо запис не знайдено — повертаємо пусту структуру без помилки
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -102,9 +101,9 @@ func GetPropertyByItemId(itemid uuid.UUID) (*PropertyGet, error) {
 	}, nil
 }
 
-func UpdateProperty(id uuid.UUID, update *PropertyUpdate) (*PropertyGet, error) {
+func UpdateProperty(db *gorm.DB, id uuid.UUID, update *PropertyUpdate) (*PropertyGet, error) {
 	var property entities.Property
-	err := repository.GetByID(postgres.DB, id, &property)
+	err := repository.GetByID(db, id, &property)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +135,7 @@ func UpdateProperty(id uuid.UUID, update *PropertyUpdate) (*PropertyGet, error) 
 	if update.Style != "" {
 		property.Style = update.Style
 	}
-	err = postgres.DB.Save(&property).Error
+	err = db.Save(&property).Error
 	if err != nil {
 		return nil, err
 	}
@@ -155,8 +154,8 @@ func UpdateProperty(id uuid.UUID, update *PropertyUpdate) (*PropertyGet, error) 
 	}, nil
 }
 
-func DeleteProperty(id uuid.UUID) error {
-	err := repository.DeleteByID(postgres.DB, id, &entities.Property{})
+func DeleteProperty(db *gorm.DB, id uuid.UUID) error {
+	err := repository.DeleteByID(db, id, &entities.Property{})
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil
 	}

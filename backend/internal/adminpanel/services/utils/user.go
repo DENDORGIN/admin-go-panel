@@ -1,11 +1,11 @@
 package utils
 
 import (
-	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -25,9 +25,9 @@ func GetUserIDFromContext(ctx *gin.Context) (uuid.UUID, bool) {
 	return userID, true
 }
 
-func GetIsSuperUser(id uuid.UUID) (bool, error) {
+func GetIsSuperUser(db *gorm.DB, id uuid.UUID) (bool, error) {
 	var user entities.User
-	err := repository.GetByID(postgres.DB, id, &user)
+	err := repository.GetByID(db, id, &user)
 	if err != nil {
 		return false, err
 	}

@@ -5,7 +5,7 @@ import (
 	"backend/cmd/chat/rooms"
 	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/routes"
-	"backend/internal/adminpanel/services/reminder"
+	"backend/internal/middleware"
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -35,18 +35,24 @@ func main() {
 		log.Fatal(http.ListenAndServe(":6060", nil))
 	}()
 
-	postgres.InitDB()
+	//postgres.InitDB()
+	postgres.InitAdminDB()
 
 	port := os.Getenv("APP_RUN_PORT")
 	fmt.Println(port)
 	gin.SetMode(gin.ReleaseMode)
 
 	// Запуск планувальника
-	reminder.StartReminderJobs()
+	//reminder.StartReminderJobs()
 
 	r := gin.New()
 	r.Use(redirectFromWWW())
 	r.Use(CustomCors())
+
+	// Choose DB
+	r.Use(middleware.TenantMiddleware())
+
+	//reminder.StartReminderJobs()
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -68,7 +74,7 @@ func main() {
 	r.GET("/ws/chat", chat.HandleWebSocket)
 
 	//Protecting routes with JWT middleware
-	r.Use(routes.AuthMiddleware())
+	r.Use(middleware.AuthMiddleware())
 
 	// User routes
 	r.GET("/v1/users/me", routes.ReadUserMe)
@@ -139,15 +145,23 @@ func redirectFromWWW() gin.HandlerFunc {
 }
 
 func CustomCors() gin.HandlerFunc {
-	config := cors.New(
-		cors.Config{
-			AllowOrigins: []string{"http://localhost:3000", "http://localhost:5173",
-				"http://localhost:5174", "http://frontend", "http://localhost"},
-			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH"},
-			AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-			ExposeHeaders:    []string{"Content-Length"},
-			AllowCredentials: true,
-			MaxAge:           12 * 60 * 60, // 12 hours
-		})
-	return config
+	config := cors.Config{
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * 60 * 60, // 12 годин
+		AllowOriginFunc: func(origin string) bool {
+			// дозволяємо всі субдомени localhost:5173
+			if strings.HasSuffix(origin, ".localhost:5173") {
+				return true
+			}
+			// або прямий localhost
+			if origin == "http://localhost:5173" {
+				return true
+			}
+			return false
+		},
+	}
+	return cors.New(config)
 }

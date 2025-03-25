@@ -3,12 +3,17 @@ package routes
 import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/models"
+	"backend/internal/adminpanel/services/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
 )
 
 func CreatePropertiesHandler(ctx *gin.Context) {
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
 
 	var property entities.Property
 	if err := ctx.ShouldBindJSON(&property); err != nil {
@@ -16,7 +21,7 @@ func CreatePropertiesHandler(ctx *gin.Context) {
 		return
 	}
 
-	newProps, err := models.CreateProperty(&property)
+	newProps, err := models.CreateProperty(db, &property)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -31,8 +36,12 @@ func GetPropertyByIDHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid property ID"})
 		return
 	}
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
 
-	property, err := models.GetPropertyById(id)
+	property, err := models.GetPropertyById(db, id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -47,6 +56,10 @@ func UpdatePropertyHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid property ID"})
 		return
 	}
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
 
 	var update models.PropertyUpdate
 	if err := ctx.ShouldBindJSON(&update); err != nil {
@@ -54,7 +67,7 @@ func UpdatePropertyHandler(ctx *gin.Context) {
 		return
 	}
 
-	updatedProperty, err := models.UpdateProperty(id, &update)
+	updatedProperty, err := models.UpdateProperty(db, id, &update)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -69,7 +82,11 @@ func DeletePropertyHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid property ID"})
 		return
 	}
-	err = models.DeleteProperty(id)
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+	err = models.DeleteProperty(db, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

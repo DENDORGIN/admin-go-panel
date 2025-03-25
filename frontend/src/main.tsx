@@ -13,9 +13,10 @@ import { routeTree } from "./routeTree.gen"
 import { StrictMode } from "react"
 import { OpenAPI } from "./client"
 import theme from "./theme"
+import { getApiUrl } from "./utils/urls"
 
-// @ts-ignore
-OpenAPI.BASE = import.meta.env.VITE_API_DOMAIN
+
+OpenAPI.BASE = getApiUrl()
 OpenAPI.TOKEN = async () => {
   return localStorage.getItem("access_token") || ""
 }

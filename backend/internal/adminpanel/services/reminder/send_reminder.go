@@ -5,12 +5,13 @@ import (
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
 	"fmt"
+	"gorm.io/gorm"
 	"log"
 	"time"
 )
 
-func SendReminder(event entities.Calendar) {
-	user, err := models.GetUserById(event.UserID)
+func SendReminder(db *gorm.DB, event entities.Calendar) {
+	user, err := models.GetUserById(db, event.UserID)
 	if err != nil {
 		log.Printf("⚠️ Event '%s' has no user email, skipped.\n", event.Title)
 		return
@@ -39,7 +40,7 @@ func SendReminder(event entities.Calendar) {
 	log.Printf("✅ A reminder has been sent: %s (%s)\n", event.Title, user.Email)
 
 	// Позначаємо подію як "нагадування відправлено"
-	err = models.MarkReminderSent(event.ID)
+	err = models.MarkReminderSent(db, event.ID)
 	if err != nil {
 		log.Printf("❌ Event update error '%s': %v\n", event.Title, err)
 	}

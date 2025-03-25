@@ -15,8 +15,13 @@ type ResetPasswordRequest struct {
 func RequestPasswordRecover(ctx *gin.Context) {
 	email := ctx.Param("email")
 
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
 	// Перевірка чи існує користувач з таким email
-	user, err := models.GetUserByEmail(email)
+	user, err := models.GetUserByEmail(db, email)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
@@ -40,6 +45,10 @@ func RequestPasswordRecover(ctx *gin.Context) {
 
 func ResetPassword(ctx *gin.Context) {
 	var req ResetPasswordRequest
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
 
 	// Отримуємо токен і новий пароль із тіла запиту
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -60,7 +69,7 @@ func ResetPassword(ctx *gin.Context) {
 	}
 
 	// Зміна пароля
-	_, err = models.ResetCurrentUserPassword(claims.Email, req.NewPassword)
+	_, err = models.ResetCurrentUserPassword(db, claims.Email, req.NewPassword)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

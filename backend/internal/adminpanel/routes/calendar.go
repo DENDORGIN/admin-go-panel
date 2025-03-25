@@ -16,6 +16,11 @@ func CreateEventHandler(ctx *gin.Context) {
 		return
 	}
 
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
 	var event entities.Calendar
 	if err := ctx.ShouldBindJSON(&event); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -24,7 +29,7 @@ func CreateEventHandler(ctx *gin.Context) {
 
 	event.UserID = userID
 
-	newEvent, err := models.CreateEvent(&event)
+	newEvent, err := models.CreateEvent(db, &event)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -44,6 +49,10 @@ func UpdateCalendarEventHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Event ID is required"})
 		return
 	}
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
 
 	eventId, err := uuid.Parse(eventIdStr)
 	if err != nil {
@@ -56,7 +65,7 @@ func UpdateCalendarEventHandler(ctx *gin.Context) {
 		return
 	}
 
-	event, err := models.GetEventById(eventId)
+	event, err := models.GetEventById(db, eventId)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
 		return
@@ -66,7 +75,7 @@ func UpdateCalendarEventHandler(ctx *gin.Context) {
 		return
 	}
 
-	updatedEvent, err := models.CalendarUpdateEvent(eventId, &updateEvent)
+	updatedEvent, err := models.CalendarUpdateEvent(db, eventId, &updateEvent)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -80,8 +89,12 @@ func GetAllEventsHandler(ctx *gin.Context) {
 	if !ok {
 		return
 	}
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
 
-	events, err := models.GetAllEvents(userID)
+	events, err := models.GetAllEvents(db, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -101,6 +114,10 @@ func DeleteEvent(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Event ID is required"})
 		return
 	}
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
 
 	eventId, err := uuid.Parse(eventIdStr)
 	if err != nil {
@@ -108,7 +125,7 @@ func DeleteEvent(ctx *gin.Context) {
 		return
 	}
 
-	getEvent, err := models.GetEventById(eventId)
+	getEvent, err := models.GetEventById(db, eventId)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
 		return
@@ -119,7 +136,7 @@ func DeleteEvent(ctx *gin.Context) {
 		return
 	}
 
-	err = models.DeleteEventById(eventId)
+	err = models.DeleteEventById(db, eventId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

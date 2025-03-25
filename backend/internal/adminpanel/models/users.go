@@ -1,13 +1,11 @@
 package models
 
 import (
-	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -29,14 +27,10 @@ type AllUsers struct {
 	Count int             `json:"count"`
 }
 
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 type UpdateUser struct {
 	FullName string `json:"fullName,omitempty"`
 	Email    string `json:"email,omitempty"`
+	Avatar   string `json:"avatar"`
 }
 
 type UpdatePassword struct {
@@ -44,8 +38,8 @@ type UpdatePassword struct {
 	NewPassword     string `json:"newPassword"`
 }
 
-func CreateUser(user *entities.User) (*UserResponse, error) {
-	if postgres.DB == nil {
+func CreateUser(db *gorm.DB, user *entities.User) (*UserResponse, error) {
+	if db == nil {
 		return nil, fmt.Errorf("database connection is not initialized")
 	}
 	hashedPassword, err := utils.HashPassword(user.Password)
@@ -53,7 +47,7 @@ func CreateUser(user *entities.User) (*UserResponse, error) {
 		return nil, err
 	}
 	user.Password = hashedPassword
-	if err = postgres.DB.Create(user).Error; err != nil {
+	if err = db.Create(user).Error; err != nil {
 		return nil, err
 	}
 	return &UserResponse{
@@ -65,17 +59,17 @@ func CreateUser(user *entities.User) (*UserResponse, error) {
 	}, err
 }
 
-func GetAllUsers(ctx *gin.Context, limit int, skip int) ([]*entities.User, error) {
+func GetAllUsers(db *gorm.DB, limit int, skip int) ([]*entities.User, error) {
 	var users []*entities.User
-	if err := postgres.DB.Limit(limit).Offset(skip).Find(&users).Error; err != nil {
+	if err := db.Limit(limit).Offset(skip).Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
 }
 
-func GetUserById(id uuid.UUID) (*UserResponse, error) {
+func GetUserById(db *gorm.DB, id uuid.UUID) (*UserResponse, error) {
 	var user entities.User
-	err := repository.GetByID(postgres.DB, id, &user)
+	err := repository.GetByID(db, id, &user)
 	if err != nil {
 		return nil, err
 	}
@@ -92,9 +86,9 @@ func GetUserById(id uuid.UUID) (*UserResponse, error) {
 	return userResponse, nil
 }
 
-func GetUserByIdFull(id uuid.UUID) (*entities.User, error) {
+func GetUserByIdFull(db *gorm.DB, id uuid.UUID) (*entities.User, error) {
 	var user entities.User
-	err := repository.GetByID(postgres.DB, id, &user)
+	err := repository.GetByID(db, id, &user)
 
 	if err != nil {
 		return nil, err
@@ -103,9 +97,9 @@ func GetUserByIdFull(id uuid.UUID) (*entities.User, error) {
 	return &user, nil
 }
 
-func GetUserByEmail(email string) (*entities.User, error) {
+func GetUserByEmail(db *gorm.DB, email string) (*entities.User, error) {
 	var user entities.User
-	result := postgres.DB.Where("email = ?", email).First(&user)
+	result := db.Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -115,8 +109,8 @@ func GetUserByEmail(email string) (*entities.User, error) {
 	return &user, nil
 }
 
-func UpdateUserById(id uuid.UUID, updateUser *UpdateUser) (*UserResponse, error) {
-	user, err := GetUserByIdFull(id)
+func UpdateUserById(db *gorm.DB, id uuid.UUID, updateUser *UpdateUser) (*UserResponse, error) {
+	user, err := GetUserByIdFull(db, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
@@ -131,20 +125,25 @@ func UpdateUserById(id uuid.UUID, updateUser *UpdateUser) (*UserResponse, error)
 		user.Email = updateUser.Email
 	}
 
-	if err = postgres.DB.Save(&user).Error; err != nil {
+	if updateUser.Avatar != "" {
+		user.Avatar = updateUser.Avatar
+	}
+
+	if err = db.Save(&user).Error; err != nil {
 		return nil, err
 	}
 	return &UserResponse{
 		ID:          user.ID,
 		FullName:    user.FullName,
 		Email:       user.Email,
+		Avatar:      user.Avatar,
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
 	}, nil
 }
 
-func UpdateCurrentUserPassword(id uuid.UUID, password *UpdatePassword) (string, error) {
-	user, err := GetUserByIdFull(id)
+func UpdateCurrentUserPassword(db *gorm.DB, id uuid.UUID, password *UpdatePassword) (string, error) {
+	user, err := GetUserByIdFull(db, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return "", errors.New("user not found")
@@ -166,15 +165,15 @@ func UpdateCurrentUserPassword(id uuid.UUID, password *UpdatePassword) (string, 
 
 	user.Password = hashedPassword
 
-	if err = postgres.DB.Save(&user).Error; err != nil {
+	if err = db.Save(&user).Error; err != nil {
 		return "", err
 	}
 
 	return "update password successfully", nil
 }
 
-func ResetCurrentUserPassword(email string, password string) (string, error) {
-	user, err := GetUserByEmail(email)
+func ResetCurrentUserPassword(db *gorm.DB, email string, password string) (string, error) {
+	user, err := GetUserByEmail(db, email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return "", errors.New("user not found")
@@ -189,16 +188,16 @@ func ResetCurrentUserPassword(email string, password string) (string, error) {
 
 	user.Password = hashedPassword
 
-	if err = postgres.DB.Save(&user).Error; err != nil {
+	if err = db.Save(&user).Error; err != nil {
 		return "", err
 	}
 
 	return "update password successfully", nil
 }
 
-func DeleteUserById(id uuid.UUID) error {
+func DeleteUserById(db *gorm.DB, id uuid.UUID) error {
 
-	err := repository.DeleteByID(postgres.DB, id, &entities.User{})
+	err := repository.DeleteByID(db, id, &entities.User{})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("user not found")
