@@ -15,17 +15,6 @@ import { OpenAPI } from "./client"
 import theme from "./theme"
 import { getApiUrl } from "./utils/urls"
 
-// @ts-ignore
-// OpenAPI.BASE = import.meta.env.VITE_API_DOMAIN
-// function getTenantFromHost(): string {
-//   const hostname = window.location.hostname
-//   const parts = hostname.split(".")
-//   return parts.length > 1 ? parts[0] : "localhost"
-// }
-//
-// const tenant = getTenantFromHost()
-// const backendPort = process.env.NODE_ENV === 'development' ? ":5180" : ""
-// OpenAPI.BASE = `http://${tenant}.localhost${backendPort}`
 
 OpenAPI.BASE = getApiUrl()
 OpenAPI.TOKEN = async () => {
