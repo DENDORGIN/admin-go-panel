@@ -152,14 +152,17 @@ func CustomCors() gin.HandlerFunc {
 		AllowCredentials: true,
 		MaxAge:           12 * 60 * 60, // 12 годин
 		AllowOriginFunc: func(origin string) bool {
-			// дозволяємо всі субдомени localhost:5173
-			if strings.HasSuffix(origin, ".localhost:5173") {
+			// ✅ дозволити субдомени localhost (для dev)
+			if strings.HasSuffix(origin, ".localhost:5173") || origin == "http://localhost:5173" {
 				return true
 			}
-			// або прямий localhost
-			if origin == "http://localhost:5173" {
+
+			// ✅ дозволити всі субдомени *.dbgone.com (для продакшену)
+			if strings.HasSuffix(origin, ".dbgone.com") || origin == "https://dbgone.com" {
 				return true
 			}
+
+			// ❌ інакше відхиляємо
 			return false
 		},
 	}

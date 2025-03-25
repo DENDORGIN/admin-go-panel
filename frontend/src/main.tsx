@@ -21,6 +21,10 @@ OpenAPI.TOKEN = async () => {
   return localStorage.getItem("access_token") || ""
 }
 
+// console.log("🌐 Tenant:", getTenantSubdomain())
+// console.log("🔗 OpenAPI.BASE:", getApiUrl())
+
+
 const queryClient = new QueryClient()
 
 const router = createRouter({ routeTree })
