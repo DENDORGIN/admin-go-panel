@@ -56,29 +56,27 @@ function Login() {
     },
   })
 
-  const onSubmit: SubmitHandler<AccessToken & { domain: string }> = async (
-      data,
-  ) => {
+  const onSubmit: SubmitHandler<AccessToken & { domain: string }> = async (data) => {
     if (isSubmitting) return
 
     resetError()
 
     const currentSubdomain = getCurrentSubdomain()
 
+    // якщо користувач на неправильному субдомені — редірект
     if (!currentSubdomain || currentSubdomain !== data.domain) {
-      localStorage.setItem("tenant", data.domain)
       redirectToSubdomain(data.domain, "/login")
       return
     }
 
     try {
-      localStorage.setItem("tenant", data.domain)
       await loginMutation.mutateAsync(data)
       console.log("✅ Login successful")
     } catch {
-      // error handled by useAuth
+      // handled in useAuth
     }
   }
+
 
   return (
       <Container
