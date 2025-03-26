@@ -32,6 +32,14 @@ func TenantMiddleware() gin.HandlerFunc {
 
 		c.Set("DB", tenantDB)
 		c.Set("tenant", tenant)
+
+		if !tenant.Migrated {
+			postgres.InitDB(c)
+
+			// Після успішної міграції позначаємо як завершену
+			db.Model(&tenant).Update("migrated", true)
+		}
+
 		c.Next()
 	}
 }

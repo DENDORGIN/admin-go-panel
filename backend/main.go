@@ -5,6 +5,7 @@ import (
 	"backend/cmd/chat/rooms"
 	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/routes"
+	"backend/internal/adminpanel/services/tenant"
 	"backend/internal/middleware"
 	"fmt"
 	"github.com/gin-contrib/cors"
@@ -35,7 +36,6 @@ func main() {
 		log.Fatal(http.ListenAndServe(":6060", nil))
 	}()
 
-	//postgres.InitDB()
 	postgres.InitAdminDB()
 
 	port := os.Getenv("APP_RUN_PORT")
@@ -48,6 +48,10 @@ func main() {
 	r := gin.New()
 	r.Use(redirectFromWWW())
 	r.Use(CustomCors())
+
+	r.POST("/api/v1/tenant", tenant.TenantHandler)
+	r.POST("/admin/migrate-all", tenant.MigrateAllTenantsHandler)
+	r.GET("/admin/migrate-all/status", tenant.GetMigrationStatusHandler)
 
 	// Choose DB
 	r.Use(middleware.TenantMiddleware())
@@ -152,17 +156,15 @@ func CustomCors() gin.HandlerFunc {
 		AllowCredentials: true,
 		MaxAge:           12 * 60 * 60, // 12 годин
 		AllowOriginFunc: func(origin string) bool {
-			// ✅ дозволити субдомени localhost (для dev)
+
 			if strings.HasSuffix(origin, ".localhost:5173") || origin == "http://localhost:5173" {
 				return true
 			}
 
-			// ✅ дозволити всі субдомени *.dbgone.com (для продакшену)
 			if strings.HasSuffix(origin, ".dbgone.com") || origin == "https://dbgone.com" {
 				return true
 			}
 
-			// ❌ інакше відхиляємо
 			return false
 		},
 	}

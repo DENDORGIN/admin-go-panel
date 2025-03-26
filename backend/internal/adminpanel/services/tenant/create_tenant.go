@@ -68,18 +68,31 @@ func CreateTenant(adminDB *gorm.DB, tenant *entities.Tenant) error {
 	}
 
 	// Крок 5: Підключення до нової бази компанії
+	// 🆕 Підключення до бази від імені **нового користувача**
 	tenantDSN := fmt.Sprintf(
-		"host=%s port=%s user=postgres password=%s dbname=%s sslmode=disable",
-		tenant.DBHost, tenant.DBPort, os.Getenv("POSTGRES_PASSWORD"), tenant.DBName,
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		tenant.DBHost, tenant.DBPort, tenant.DBUser, tenant.DBPassword, tenant.DBName,
 	)
 
 	tenantDB, err := gorm.Open(pg.Open(tenantDSN), &gorm.Config{})
 	if err != nil {
-		return fmt.Errorf("cannot connect to tenant DB: %w", err)
+		return fmt.Errorf("cannot connect to tenant DB as tenant user: %w", err)
 	}
 
 	// Крок 6: Міграція таблиць
-	if err := tenantDB.AutoMigrate(&entities.User{}); err != nil {
+	// Міграція від імені tenant-користувача → він стане власником таблиць
+	if err := tenantDB.AutoMigrate(
+		&entities.User{},
+		&entities.Calendar{},
+		&entities.Blog{},
+		&entities.Media{},
+		&entities.Items{},
+		&entities.Property{},
+		&entities.ChatRooms{},
+		&entities.Messages{},
+		&entities.DirectMessage{},
+		&entities.Conversations{},
+	); err != nil {
 		return fmt.Errorf("migration failed: %w", err)
 	}
 

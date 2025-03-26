@@ -8,13 +8,14 @@ import (
 
 type Tenant struct {
 	ID         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	Name       string    `gorm:"unique;not null"`
-	Domain     string    `gorm:"unique;not null"`
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
+	Name       string    `gorm:"unique;not null" json:"name"`
+	Domain     string    `gorm:"unique;not null" json:"domain"`
+	DBHost     string    `json:"db_host"`
+	DBPort     string    `json:"db_port"`
+	DBUser     string    `json:"db_user"`
+	DBPassword string    `json:"db_password"`
+	DBName     string    `json:"db_name"`
+	Migrated   bool      `gorm:"default:false" json:"migrated"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
@@ -164,5 +165,39 @@ type ChatRooms struct {
 
 func (chatRoom *ChatRooms) BeforeCreate(*gorm.DB) error {
 	chatRoom.ID = uuid.New()
+	return nil
+}
+
+type DirectMessage struct {
+	ID             uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	ConversationID uuid.UUID `gorm:"not null"`
+	SenderID       uuid.UUID `gorm:"type:uuid;not null"`
+	Text           string    `gorm:"type:text;not null"`
+	Read           bool      `gorm:"default:false"`
+	CreatedAt      time.Time
+
+	Sender       User          `gorm:"foreignKey:SenderID"`
+	Conversation Conversations `gorm:"foreignKey:ConversationID"`
+}
+
+func (dm *DirectMessage) BeforeCreate(*gorm.DB) error {
+	dm.ID = uuid.New()
+	return nil
+}
+
+type Conversations struct {
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	User1ID   uuid.UUID `gorm:"type:uuid;not null"`
+	User2ID   uuid.UUID `gorm:"type:uuid;not null"`
+	CreatedAt time.Time
+
+	User1 User `gorm:"foreignKey:User1ID"`
+	User2 User `gorm:"foreignKey:User2ID"`
+
+	DirectMessage []DirectMessage `gorm:"foreignKey:ConversationID"`
+}
+
+func (c *Conversations) BeforeCreate(*gorm.DB) error {
+	c.ID = uuid.New()
 	return nil
 }
