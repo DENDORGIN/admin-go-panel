@@ -30,7 +30,7 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe }) => {
             <Box bg={bgColor} color={textColor} p={3} borderRadius="lg" maxW="70%">
 
                 <Text fontSize="sm" fontWeight="bold">
-                    {isMe ? "Ви" : msg.full_name}
+                    {isMe ? "You" : msg.full_name}
                 </Text>
                 <Text>{msg.message}</Text>
 

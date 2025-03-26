@@ -58,7 +58,7 @@ func GetAllRoomsHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, blogs)
 }
 
-func GetBlogByIdHandler(ctx *gin.Context) {
+func GetRoomByIdHandler(ctx *gin.Context) {
 	userID, ok := utils.GetUserIDFromContext(ctx)
 	if !ok {
 		return
