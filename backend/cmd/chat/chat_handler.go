@@ -65,7 +65,12 @@ func HandleWebSocket(ctx *gin.Context) {
 		fmt.Println("Помилка WebSocket:", err)
 		return
 	}
-	defer conn.Close()
+	defer func(conn *websocket.Conn) {
+		err := conn.Close()
+		if err != nil {
+
+		}
+	}(conn)
 
 	// Додаємо користувача в мапу клієнтів
 	mutex.Lock()

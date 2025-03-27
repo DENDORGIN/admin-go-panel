@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/cmd/chat"
+	"backend/cmd/chat/direct"
 	"backend/cmd/chat/rooms"
 	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/routes"
@@ -77,6 +78,10 @@ func main() {
 	// Chat routes
 	r.GET("/ws/chat", chat.HandleWebSocket)
 
+	hub := direct.NewHub()
+	go hub.Run()
+	r.GET("/ws/direct", direct.ServeWs(hub))
+
 	//Protecting routes with JWT middleware
 	r.Use(middleware.AuthMiddleware())
 
@@ -127,6 +132,9 @@ func main() {
 	r.GET("/v1/rooms/", rooms.GetAllRoomsHandler)
 	r.PUT("/v1/rooms/:id", rooms.UpdateRoomByIdHandler)
 	r.DELETE("/v1/rooms/:id", rooms.DeleteRoomByIdHandler)
+
+	// Direct messages routes
+	r.GET("/v1/direct/:user_id/messages", direct.GetMessagesHandler)
 
 	// Run the server
 	if err := r.Run(port); err != nil {

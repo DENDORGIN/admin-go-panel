@@ -1,7 +1,11 @@
 package direct
 
+import (
+	"github.com/google/uuid"
+)
+
 type Hub struct {
-	Clients    map[string]*Client
+	Clients    map[uuid.UUID]*Client
 	Broadcast  chan []byte
 	Register   chan *Client
 	Unregister chan *Client
@@ -9,7 +13,7 @@ type Hub struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		Clients:    make(map[string]*Client),
+		Clients:    make(map[uuid.UUID]*Client),
 		Broadcast:  make(chan []byte),
 		Register:   make(chan *Client),
 		Unregister: make(chan *Client),
