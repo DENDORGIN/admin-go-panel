@@ -3,7 +3,6 @@ package main
 import (
 	"backend/cmd/chat"
 	"backend/cmd/chat/direct"
-	"backend/cmd/chat/rooms"
 	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/routes"
 	"backend/internal/adminpanel/services/tenant"
@@ -128,13 +127,13 @@ func main() {
 	r.DELETE("/v1/properties/:id", routes.DeletePropertyHandler)
 
 	// Chat room routes
-	r.POST("/v1/rooms/", rooms.CreateRoomHandler)
-	r.GET("/v1/rooms/", rooms.GetAllRoomsHandler)
-	r.PUT("/v1/rooms/:id", rooms.UpdateRoomByIdHandler)
-	r.DELETE("/v1/rooms/:id", rooms.DeleteRoomByIdHandler)
+	r.POST("/v1/rooms/", routes.CreateRoomHandler)
+	r.GET("/v1/rooms/", routes.GetAllRoomsHandler)
+	r.PUT("/v1/rooms/:id", routes.UpdateRoomByIdHandler)
+	r.DELETE("/v1/rooms/:id", routes.DeleteRoomByIdHandler)
 
 	// Direct messages routes
-	r.GET("/v1/direct/:user_id/messages", direct.GetMessagesHandler)
+	r.GET("/v1/direct/:user_id/messages", routes.GetMessagesHandler)
 
 	// Run the server
 	if err := r.Run(port); err != nil {

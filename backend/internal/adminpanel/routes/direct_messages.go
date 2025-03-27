@@ -1,4 +1,4 @@
-package direct
+package routes
 
 import (
 	"backend/internal/adminpanel/entities"
