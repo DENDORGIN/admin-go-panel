@@ -1,6 +1,7 @@
-package rooms
+package routes
 
 import (
+	"backend/cmd/chat/rooms"
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
@@ -29,7 +30,7 @@ func CreateRoomHandler(ctx *gin.Context) {
 
 	room.OwnerId = userID
 
-	newBlog, err := CreateRoom(db, &room)
+	newBlog, err := rooms.CreateRoom(db, &room)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -49,7 +50,7 @@ func GetAllRoomsHandler(ctx *gin.Context) {
 		return
 	}
 
-	blogs, err := GetAllRooms(db)
+	blogs, err := rooms.GetAllRooms(db)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -105,13 +106,13 @@ func UpdateRoomByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	var update RoomUpdate
+	var update rooms.RoomUpdate
 	if err = ctx.ShouldBindJSON(&update); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	room, err := UpdateRoomById(db, id, &update)
+	room, err := rooms.UpdateRoomById(db, id, &update)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -143,7 +144,7 @@ func DeleteRoomByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	room, err := GetRoomById(db, roomId)
+	room, err := rooms.GetRoomById(db, roomId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -158,7 +159,7 @@ func DeleteRoomByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}
-	err = DeleteRoomById(db, roomId)
+	err = rooms.DeleteRoomById(db, roomId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

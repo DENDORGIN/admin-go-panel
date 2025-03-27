@@ -1,18 +1,30 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Box, Input, Button, VStack, HStack, Text, Flex, useColorModeValue } from "@chakra-ui/react";
+import {
+    Box,
+    Input,
+    Button,
+    VStack,
+    HStack,
+    Text,
+    Flex,
+    useColorModeValue,
+    useDisclosure,
+} from "@chakra-ui/react";
+import { AttachmentIcon } from "@chakra-ui/icons";
 import useAuth from "../../../hooks/useAuth";
 import { RoomType } from "../rooms";
 import { useBreakpointValue } from "@chakra-ui/react";
 import MessageBubble from "../../../components/Chat/Messages.tsx";
-import { getWsUrl } from "../../../utils/urls.ts"
+import { getWsUrl } from "../../../utils/urls.ts";
+import FilePreviewModal from "../../../components/Modals/FilePreviewModal";
+import { MediaService } from "../../../client";
 
 export const Route = createFileRoute("/_layout/chat/$roomId")({
     component: ChatRoom,
 });
 
-// 🔹 Типізація повідомлення
 interface MessageType {
     id: string;
     user_id: string;
@@ -20,7 +32,9 @@ interface MessageType {
     avatar: string;
     room_id: string;
     message: string;
+    content_url?: string[];
     created_at: string;
+    isLoading?: boolean;
 }
 
 function ChatRoom() {
@@ -34,7 +48,11 @@ function ChatRoom() {
 
     const chatWidth = useBreakpointValue({ base: "100%", md: "80%", lg: "50%" });
 
-    // ✅ Отримуємо список кімнат із кешу
+    const [files, setFiles] = useState<File[]>([]);
+    const [filePreviews, setFilePreviews] = useState<{ name: string; size: string; preview: string; file: File }[]>([]);
+    const [fileMessage, setFileMessage] = useState("");
+    const { isOpen, onOpen, onClose } = useDisclosure();
+
     const rooms: RoomType[] | undefined = queryClient.getQueryData(["rooms"]);
     const room = rooms?.find(room => room.ID === roomId);
     const roomName = room?.name_room || "Невідома кімната";
@@ -50,29 +68,38 @@ function ChatRoom() {
             console.error("JWT токен не знайдено!");
             return;
         }
-        const wsUrl = getWsUrl("chat", { token, room_id: roomId })
-
-        console.log("🔗 Підключення до:", wsUrl);
+        const wsUrl = getWsUrl("chat", { token, room_id: roomId });
 
         ws.current = new WebSocket(wsUrl);
 
-        ws.current.onopen = () => {
-            console.log("✅ WebSocket відкрито");
-        };
+        ws.current.onopen = () => console.log("✅ WebSocket відкрито");
 
         ws.current.onmessage = (event) => {
             try {
                 const receivedData = JSON.parse(event.data);
-
-                // Якщо це масив (тобто історія повідомлень)
                 if (Array.isArray(receivedData)) {
-                    console.log("📜 Отримано історію повідомлень:", receivedData);
                     setMessages(receivedData);
-                }
-                // Якщо це окреме повідомлення
-                else if (receivedData && receivedData.message) {
-                    console.log("📩 Нове повідомлення:", receivedData);
-                    setMessages((prev) => [...prev, receivedData]);
+                } else if (receivedData?.type === "update_message") {
+                    setMessages((prev) =>
+                        prev.map((msg) =>
+                            msg.id === receivedData.id
+                                ? { ...msg, content_url: receivedData.content_url, isLoading: false }
+                                : msg
+                        )
+                    );
+                } else if (receivedData && receivedData.message !== undefined) {
+                    setMessages((prev) => {
+                        const exists = prev.find((m) => m.id === receivedData.id);
+                        if (exists) {
+                            return prev.map((msg) =>
+                                msg.id === receivedData.id
+                                    ? { ...msg, ...receivedData, isLoading: false }
+                                    : msg
+                            );
+                        } else {
+                            return [...prev, { ...receivedData, isLoading: false }];
+                        }
+                    });
                 }
             } catch (error) {
                 console.error("❌ Помилка парсингу повідомлення:", error);
@@ -89,7 +116,6 @@ function ChatRoom() {
 
         return () => {
             if (ws.current) {
-                console.log("🔌 Закриваємо WebSocket...");
                 ws.current.close();
                 ws.current = null;
             }
@@ -102,15 +128,15 @@ function ChatRoom() {
 
     const sendMessage = () => {
         if ((isChannel && !isOwner) || isRoomClosed) return;
-
         if (ws.current && ws.current.readyState === WebSocket.OPEN && input.trim()) {
             const message = {
                 id: crypto.randomUUID(),
                 user_id: user?.ID,
-                full_name: user?.fullName,
-                avatar: user?.avatar,
+                full_name: user?.fullName || "",
+                avatar: user?.avatar || "",
                 room_id: roomId,
                 message: input,
+                content_url: [],
                 created_at: new Date().toISOString(),
             };
             ws.current.send(JSON.stringify(message));
@@ -118,7 +144,69 @@ function ChatRoom() {
         }
     };
 
-    // 🎨 Додаємо підтримку темної теми
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files) return;
+        const selectedFiles = Array.from(e.target.files);
+        const previews = selectedFiles.map((file) => ({
+            name: file.name,
+            size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+            preview: URL.createObjectURL(file),
+            file,
+        }));
+        setFilePreviews(previews);
+        setFiles(selectedFiles);
+        onOpen();
+    };
+
+    const removeFile = (index: number) => {
+        const updated = [...filePreviews];
+        URL.revokeObjectURL(updated[index].preview);
+        updated.splice(index, 1);
+        setFilePreviews(updated);
+        setFiles(updated.map(f => f.file));
+    };
+
+    const uploadSelectedFiles = async () => {
+        if (!files.length || !user) return;
+
+        const messageId = crypto.randomUUID();
+        const formData = new FormData();
+        files.forEach(file => formData.append("files", file));
+
+        const placeholderMessage: MessageType = {
+            id: messageId,
+            user_id: user.ID,
+            full_name: user.fullName || "",
+            avatar: user.avatar || "",
+            room_id: roomId,
+            message: fileMessage,
+            content_url: [],
+            created_at: new Date().toISOString(),
+            isLoading: true,
+        };
+        setMessages(prev => [...prev, placeholderMessage]);
+        ws.current?.send(JSON.stringify(placeholderMessage));
+        onClose(); // ⬅️ Закриваємо одразу модалку
+
+        try {
+            const res = await MediaService.downloadImages(messageId, formData);
+            const fileUrls = res.map((f: { url: string }) => f.url);
+
+            const updateMessage = {
+                type: "update_message",
+                id: messageId,
+                content_url: fileUrls,
+            };
+            ws.current?.send(JSON.stringify(updateMessage));
+
+            setFiles([]);
+            setFilePreviews([]);
+            setFileMessage("");
+        } catch (err) {
+            console.error("Помилка при завантаженні файлів:", err);
+        }
+    };
+
     const inputBg = useColorModeValue("white", "gray.700");
     const inputColor = useColorModeValue("black", "white");
     const inputBorder = useColorModeValue("gray.300", "gray.600");
@@ -137,7 +225,6 @@ function ChatRoom() {
                 </VStack>
             </Box>
 
-            {/* ✅ Відображаємо форму тільки якщо чат відкритий */}
             {isRoomClosed ? (
                 <Box textAlign="center" color="red.500" fontWeight="bold" p={4}>
                     Chat is closed for new messages
@@ -165,11 +252,25 @@ function ChatRoom() {
                             }
                         }}
                     />
+                    <input type="file" id="file-upload" hidden onChange={handleFileSelect} multiple />
+                    <Button as="label" htmlFor="file-upload" leftIcon={<AttachmentIcon />} variant="outline">
+                        Файл
+                    </Button>
                     <Button onClick={sendMessage} variant="primary" isDisabled={isRoomClosed || (isChannel && !isOwner)}>
                         Send
                     </Button>
                 </HStack>
             )}
+
+            <FilePreviewModal
+                isOpen={isOpen}
+                onClose={onClose}
+                files={filePreviews}
+                onRemove={removeFile}
+                onUpload={uploadSelectedFiles}
+                message={fileMessage}
+                onMessageChange={setFileMessage}
+            />
         </Flex>
     );
 }
