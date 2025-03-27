@@ -696,7 +696,7 @@ export class BlogService {
 export class MediaService {
 
 
-  public static downloadImages(postId: string, data: FormData): CancelablePromise<void> {
+  public static downloadImages(postId: string, data: FormData): Promise<{ url: string }[]> {
     return __request(OpenAPI, {
       method: "POST",
       url: `/v1/media/${postId}/images`,

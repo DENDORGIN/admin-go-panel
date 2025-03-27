@@ -147,7 +147,9 @@ type Messages struct {
 }
 
 func (message *Messages) BeforeCreate(*gorm.DB) error {
-	message.ID = uuid.New()
+	if message.ID == uuid.Nil {
+		message.ID = uuid.New()
+	}
 	return nil
 }
 
