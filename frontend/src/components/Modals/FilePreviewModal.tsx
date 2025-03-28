@@ -48,7 +48,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
         <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>
             <ModalOverlay />
             <ModalContent>
-                <ModalHeader>Попередній перегляд файлів</ModalHeader>
+                <ModalHeader>Preview files</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
                     <List spacing={3} mb={4}>
@@ -83,16 +83,16 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                     </List>
 
                     <Input
-                        placeholder="Додайте повідомлення до файлу..."
+                        placeholder="Add message..."
                         value={message}
                         onChange={(e) => onMessageChange(e.target.value)}
                     />
                 </ModalBody>
                 <ModalFooter>
-                    <Button onClick={onUpload} colorScheme="blue" mr={3}>
-                        Завантажити
+                    <Button onClick={onUpload} colorScheme="teal" variant="outline" mr={3}>
+                        Download
                     </Button>
-                    <Button onClick={onClose}>Скасувати</Button>
+                    <Button onClick={onClose} variant="outline">Cancel</Button>
                 </ModalFooter>
             </ModalContent>
         </Modal>
