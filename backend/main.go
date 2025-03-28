@@ -81,6 +81,11 @@ func main() {
 	go hub.Run()
 	r.GET("/ws/direct", direct.ServeWs(hub))
 
+	// Link preview
+	r.GET("/link-preview", routes.FetchLinkPreview)
+
+	r.Run(":" + port)
+
 	//Protecting routes with JWT middleware
 	r.Use(middleware.AuthMiddleware())
 

@@ -258,3 +258,10 @@ export type RoomUpdate = {
   image?: string;
   status: boolean;
 }
+
+export type PreviewDto = {
+  title: string;
+  description: string;
+  image: string;
+  url: string;
+}
