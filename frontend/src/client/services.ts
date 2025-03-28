@@ -21,7 +21,7 @@ import {
   UserRegister,
   UserUpdate,
   UserUpdateMe,
-  UsersPublic, Properties, UpdateProperties, RoomPublic, RoomsPublic,
+  UsersPublic, Properties, UpdateProperties, RoomPublic, RoomsPublic, PreviewDto
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -850,5 +850,21 @@ export class RoomService {
         422: "Validation Error",
       },
     })
+  }
+}
+
+
+
+
+export class PreviewService {
+
+  public static getPreview(url: string): CancelablePromise<PreviewDto> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/link-preview",
+      query: {
+        url, // ?url=https://...
+      },
+    });
   }
 }
