@@ -2,7 +2,7 @@
 
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import {
     Box,
     VStack,
@@ -56,14 +56,17 @@ function ChatRoom() {
     const sortedUsers = getSortedUsers(messages);
     const onlineIds = getOnlineUserIds(sortedUsers);
 
-    const chatUser: { ID: string; fullName: string; avatar: string } | null =
-        user && user.fullName && user.avatar
+    const chatUser = useMemo(() => {
+        return user && user.fullName && user.avatar
             ? {
                 ID: user.ID,
                 fullName: user.fullName ?? "",
                 avatar: user.avatar ?? "",
             }
             : null;
+    }, [user?.ID, user?.fullName, user?.avatar]);
+
+
 
     const ws = useChatSocket({
         roomId,
@@ -80,8 +83,20 @@ function ChatRoom() {
     });
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        const container = messagesContainerRef.current;
+        if (!container) return;
+
+        const isAtBottom =
+            container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
+
+        if (isAtBottom) {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
     }, [messages]);
+
+
+    const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+
 
     const sendMessage = () => {
         if ((isChannel && !isOwner) || isRoomClosed || !user) return;
@@ -165,10 +180,21 @@ function ChatRoom() {
                 </Text>
 
                 <Box flex="1" borderWidth={1} borderRadius="lg" boxShadow="md" overflow="hidden" p={4} w="100%">
-                    <VStack spacing={5} align="stretch" flex="1" overflowY="auto" p={4} maxH="calc(100vh - 150px)">
-                        {messages.map((msg) => (
-                            <MessageBubble key={msg.id} msg={msg} isMe={msg.user_id === user?.ID} />
+                    <VStack
+                        ref={messagesContainerRef}
+                        spacing={5} align="stretch"
+                        flex="1" overflowY="auto"
+                        p={4}
+                        maxH="calc(100vh - 150px)">
+                        {messages.map((msg, index) => (
+                            <MessageBubble
+                                key={msg.id}
+                                msg={msg}
+                                isMe={msg.user_id === user?.ID}
+                                isLast={index === messages.length - 1} // 🔥 тут
+                            />
                         ))}
+
                         <div ref={messagesEndRef} />
                     </VStack>
                 </Box>

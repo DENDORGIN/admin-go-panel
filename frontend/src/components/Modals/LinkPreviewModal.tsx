@@ -7,7 +7,7 @@ import { PreviewDto } from "../../client";
 const LinkPreview = ({ url }: { url: string }) => {
     const preview = useLinkPreview(url);
     if (!preview) return null;
-    console.log("LinkPreview received URL:", url);
+    // console.log("LinkPreview received URL:", url);
 
 
     return (

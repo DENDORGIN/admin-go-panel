@@ -39,39 +39,42 @@ type MessagePayload struct {
 }
 
 func HandleWebSocket(ctx *gin.Context) {
+	// ⛔️ Витягуємо всі параметри, але нічого не пишемо в респонс!
 	token := ctx.Query("token")
-	_, err := utils.VerifyResetToken(token)
+	roomIDStr := ctx.Query("room_id")
+
+	user, err := utils.ParseJWTToken(token)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		log.Println("❌ Невалідний токен:", err)
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	roomID, err := uuid.Parse(roomIDStr)
+	if err != nil {
+		log.Println("❌ Невалідний room_id:", err)
+		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 
 	db, ok := utils.GetDBFromContext(ctx)
 	if !ok {
+		log.Println("❌ DB context відсутній")
+		ctx.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
-	roomID, err := uuid.Parse(ctx.Query("room_id"))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid room_id"})
-		return
-	}
-
-	user, err := utils.ParseJWTToken(token)
-	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-		return
-	}
-
-	fmt.Printf("Клієнт з ID %s підключився до кімнати %s\n", user.ID, roomID)
-
+	// ✅ Тепер апгрейдимо WebSocket
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
-		fmt.Println("Помилка WebSocket:", err)
+		log.Println("❌ Помилка апгрейду WS:", err)
 		return
 	}
 	defer conn.Close()
 
+	fmt.Printf("🔌 Користувач %s приєднався до кімнати %s\n", user.ID, roomID)
+
+	// 🔐 Реєструємо клієнта
 	mutex.Lock()
 	if clients[roomID] == nil {
 		clients[roomID] = make(map[*websocket.Conn]bool)
@@ -79,40 +82,39 @@ func HandleWebSocket(ctx *gin.Context) {
 	clients[roomID][conn] = true
 	mutex.Unlock()
 
-	history, err := rooms.GetAllMessages(db, roomID)
-	if err != nil {
-		log.Println("❌ Не вдалося отримати історію чату:", err)
-	} else {
-		historyData, _ := json.Marshal(history)
-		conn.WriteMessage(websocket.TextMessage, historyData)
+	// 📜 Надсилаємо історію
+	if history, err := rooms.GetAllMessages(db, roomID); err == nil {
+		if historyData, err := json.Marshal(history); err == nil {
+			conn.WriteMessage(websocket.TextMessage, historyData)
+		}
 	}
 
+	// 🔄 Обробка вхідних повідомлень
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			log.Println("Користувач відключився:", user.ID)
+			log.Println("🔌 Відключився користувач:", user.ID)
 			mutex.Lock()
 			delete(clients[roomID], conn)
 			mutex.Unlock()
 			break
 		}
 
-		// Розпарсимо як raw JSON
 		var raw map[string]interface{}
 		if err := json.Unmarshal(msg, &raw); err != nil {
-			log.Println("❌ JSON помилка:", err)
+			log.Println("❌ Невірний JSON:", err)
 			continue
 		}
 
+		// 🔄 Оновлення повідомлення (наприклад, після завантаження файлів)
 		if raw["type"] == "update_message" {
 			messageIDStr, _ := raw["id"].(string)
 			messageID, err := uuid.Parse(messageIDStr)
 			if err != nil {
-				log.Println("❌ Невалідний ID:", messageIDStr)
+				log.Println("❌ Невалідний ID повідомлення:", messageIDStr)
 				continue
 			}
 
-			// ✅ Отримуємо оновлене повідомлення з медіа
 			allMessages, err := rooms.GetAllMessages(db, roomID)
 			if err != nil {
 				log.Println("❌ GetAllMessages помилка:", err)
@@ -121,20 +123,19 @@ func HandleWebSocket(ctx *gin.Context) {
 
 			for _, msg := range allMessages {
 				if msg.ID == messageID.String() {
-					// 🔄 Повністю оновлене повідомлення (із content_url із таблиці media)
-					out, _ := json.Marshal(msg)
-					broadcastMessage(roomID, out)
+					if out, err := json.Marshal(msg); err == nil {
+						broadcastMessage(roomID, out)
+					}
 					break
 				}
 			}
-
 			continue
 		}
 
-		// 📨 Звичайне повідомлення
+		// 📨 Створення нового повідомлення
 		var payload MessagePayload
 		if err := json.Unmarshal(msg, &payload); err != nil {
-			log.Println("❌ Payload decode error:", err)
+			log.Println("❌ Неможливо розпарсити повідомлення:", err)
 			continue
 		}
 
