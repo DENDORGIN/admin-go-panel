@@ -4,9 +4,19 @@ import {
     Image,
     Textarea,
     useColorModeValue,
+    useDisclosure
 } from "@chakra-ui/react";
 import { AttachmentIcon } from "@chakra-ui/icons";
 import { useRef, useEffect } from "react";
+
+
+
+import Picker from '@emoji-mart/react';
+import data from '@emoji-mart/data';
+
+import { Popover, PopoverTrigger, PopoverContent, IconButton } from "@chakra-ui/react";
+import { FaSmile } from "react-icons/fa";
+
 
 interface InputBarProps {
     value: string;
@@ -31,6 +41,8 @@ const InputBar: React.FC<InputBarProps> = ({
 
     const inputBg = useColorModeValue("#FFFFFF", "#1A202C");
     const inputColor = useColorModeValue("black", "white");
+    const { isOpen, onOpen, onClose } = useDisclosure();
+
 
     useEffect(() => {
         if (textareaRef.current) {
@@ -63,6 +75,29 @@ const InputBar: React.FC<InputBarProps> = ({
                 <AttachmentIcon color="teal.400" boxSize="20px" />
             </Button>
             <input type="file" id={fileInputId} hidden onChange={onFileSelect} multiple />
+
+            <Popover isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
+                <PopoverTrigger>
+                    <IconButton
+                        aria-label="Emoji picker"
+                        icon={<FaSmile />}
+                        variant="ghost"
+                        size="sm"
+                        onClick={onOpen}
+                    />
+                </PopoverTrigger>
+                <PopoverContent zIndex={10}>
+                    <Picker
+                        data={data}
+                        onEmojiSelect={(emoji: any) => {
+                            onChange(value + emoji.native);
+                            onClose();
+                        }}
+                    />
+                </PopoverContent>
+            </Popover>
+
+
 
             <Textarea
                 ref={textareaRef}
