@@ -265,3 +265,15 @@ export type PreviewDto = {
   image: string;
   url: string;
 }
+
+export interface MessageType {
+  id: string;
+  user_id: string;
+  full_name: string;
+  avatar: string;
+  room_id: string;
+  message: string;
+  content_url?: string[];
+  created_at: string;
+  isLoading?: boolean;
+}
