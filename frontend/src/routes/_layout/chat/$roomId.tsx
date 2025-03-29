@@ -53,6 +53,8 @@ function ChatRoom() {
     const isChannel = room?.is_channel ?? false;
     const isOwner = user?.ID && room?.owner_id === user.ID;
 
+    const isInteractionDisabled = !room || isRoomClosed || (isChannel && !isOwner);
+
     const sortedUsers = getSortedUsers(messages);
     const onlineIds = getOnlineUserIds(sortedUsers);
 
@@ -66,14 +68,17 @@ function ChatRoom() {
             : null;
     }, [user?.ID, user?.fullName, user?.avatar]);
 
-
-
     const ws = useChatSocket({
         roomId,
         token: typeof window !== "undefined" ? localStorage.getItem("access_token") : null,
         user: chatUser,
         onMessagesUpdate: setMessages,
-        onNewMessage: (msg) => setMessages((prev) => [...prev, msg]),
+        onNewMessage: (msg) =>
+            setMessages((prev) => {
+                const exists = prev.some((m) => m.id === msg.id);
+                return exists ? prev : [...prev, msg];
+            }),
+
         onMessageUpdate: (data) =>
             setMessages((prev) =>
                 prev.map((msg) =>
@@ -94,12 +99,10 @@ function ChatRoom() {
         }
     }, [messages]);
 
-
     const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
-
     const sendMessage = () => {
-        if ((isChannel && !isOwner) || isRoomClosed || !user) return;
+        if (isInteractionDisabled || !user) return;
         if (ws.current && ws.current.readyState === WebSocket.OPEN && input.trim()) {
             const message: MessageType = {
                 id: crypto.randomUUID(),
@@ -117,7 +120,11 @@ function ChatRoom() {
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files) return;
+        if (!e.target.files || isInteractionDisabled || !user) {
+            console.warn("🚫 Завантаження файлів заборонено");
+            return;
+        }
+
         const selectedFiles = Array.from(e.target.files);
         const previews = selectedFiles.map((file) => ({
             name: file.name,
@@ -131,7 +138,10 @@ function ChatRoom() {
     };
 
     const uploadSelectedFiles = async () => {
-        if (!files.length || !user) return;
+        if (!files.length || !user || isInteractionDisabled) {
+            console.warn("🚫 Відправка файлів заборонена");
+            return;
+        }
 
         const messageId = crypto.randomUUID();
         const formData = new FormData();
@@ -191,7 +201,7 @@ function ChatRoom() {
                                 key={msg.id}
                                 msg={msg}
                                 isMe={msg.user_id === user?.ID}
-                                isLast={index === messages.length - 1} // 🔥 тут
+                                isLast={index === messages.length - 1}
                             />
                         ))}
 
@@ -204,7 +214,7 @@ function ChatRoom() {
                     onChange={setInput}
                     onSend={sendMessage}
                     onFileSelect={handleFileSelect}
-                    disabled={isRoomClosed || (isChannel && !isOwner)}
+                    disabled={isInteractionDisabled}
                     iconSrc={sendMessageIcon}
                 />
 
@@ -222,6 +232,7 @@ function ChatRoom() {
                     onUpload={uploadSelectedFiles}
                     message={fileMessage}
                     onMessageChange={setFileMessage}
+                    isDisabled={isInteractionDisabled}
                 />
             </Flex>
         </Flex>

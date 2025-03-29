@@ -14,7 +14,7 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay,
-    Text,
+    Text, Tooltip
 } from "@chakra-ui/react";
 import { CloseIcon } from "@chakra-ui/icons";
 
@@ -33,6 +33,7 @@ interface FilePreviewModalProps {
     onUpload: () => void;
     message: string;
     onMessageChange: (value: string) => void;
+    isDisabled?: boolean;
 }
 
 const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
@@ -43,6 +44,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                                                                onUpload,
                                                                message,
                                                                onMessageChange,
+                                                               isDisabled
                                                            }) => {
     return (
         <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>
@@ -89,11 +91,31 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                     />
                 </ModalBody>
                 <ModalFooter>
-                    <Button onClick={onUpload} colorScheme="teal" variant="outline" mr={3}>
-                        Download
-                    </Button>
+                    <Box mr={3}>
+                        <Tooltip
+                            label={
+                                isDisabled
+                                    ? "Неможливо завантажити: кімната закрита або ви не власник каналу"
+                                    : ""
+                            }
+                            isDisabled={!isDisabled}
+                            hasArrow
+                            placement="top"
+                        >
+                            <Button
+                                onClick={onUpload}
+                                colorScheme="teal"
+                                variant="outline"
+                                isDisabled={isDisabled}
+                                cursor={isDisabled ? "not-allowed" : "pointer"}
+                            >
+                                Download
+                            </Button>
+                        </Tooltip>
+                    </Box>
                     <Button onClick={onClose} variant="outline">Cancel</Button>
                 </ModalFooter>
+
             </ModalContent>
         </Modal>
     );
