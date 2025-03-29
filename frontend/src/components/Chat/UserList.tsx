@@ -16,9 +16,9 @@ import {
     useDisclosure,
 } from "@chakra-ui/react";
 import { FaUsers } from "react-icons/fa";
-
 import { useBreakpointValue } from "@chakra-ui/react";
-import React from "react";
+import React, { useState } from "react";
+import UserProfileModal from "../Modals/UserProfileModal"; // переконайся в правильному шляху
 
 interface User {
     id: string;
@@ -36,6 +36,27 @@ const UserList: React.FC<Props> = ({ users, onlineIds }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const isMobile = useBreakpointValue({ base: true, md: false });
 
+    const {
+        isOpen: isProfileOpen,
+        onOpen: openProfile,
+        onClose: closeProfile,
+    } = useDisclosure();
+
+    const [selectedUser, setSelectedUser] = useState<null | {
+        user_id: string;
+        full_name: string;
+        avatar: string;
+    }>(null);
+
+    const handleUserClick = (user: User) => {
+        setSelectedUser({
+            user_id: user.id,
+            full_name: user.full_name,
+            avatar: user.avatar,
+        });
+        openProfile();
+    };
+
     const list = (
         <VStack align="stretch" spacing={1}>
             {users.map((user) => (
@@ -43,8 +64,12 @@ const UserList: React.FC<Props> = ({ users, onlineIds }) => {
                     key={user.id}
                     spacing={3}
                     cursor="pointer"
-                    _hover={{ bg: useColorModeValue("gray.100", "gray.700"), borderRadius: "md" }}
+                    _hover={{
+                        bg: useColorModeValue("gray.100", "gray.700"),
+                        borderRadius: "md",
+                    }}
                     p={2}
+                    onClick={() => handleUserClick(user)}
                 >
                     <Box position="relative">
                         <Image
@@ -94,7 +119,7 @@ const UserList: React.FC<Props> = ({ users, onlineIds }) => {
                         <DrawerOverlay />
                         <DrawerContent>
                             <DrawerCloseButton />
-                            <DrawerHeader></DrawerHeader>
+                            <DrawerHeader>Учасники</DrawerHeader>
                             <DrawerBody>{list}</DrawerBody>
                         </DrawerContent>
                     </Drawer>
@@ -111,6 +136,18 @@ const UserList: React.FC<Props> = ({ users, onlineIds }) => {
                     {list}
                 </Box>
             )}
+
+            {/* 👤 Модалка профілю */}
+            <UserProfileModal
+                isOpen={isProfileOpen}
+                onClose={closeProfile}
+                user={selectedUser}
+                onStartPrivateChat={(userId) => {
+                    // TODO: реалізуй логіку відкриття приватного чату
+                    console.log("🟢 Старт приватного чату з:", userId);
+                }}
+            />
+
         </>
     );
 };
