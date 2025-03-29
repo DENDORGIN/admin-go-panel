@@ -6,7 +6,7 @@ import {
     useColorModeValue,
     Image,
     Link,
-    VStack,
+    SimpleGrid,
     Spinner,
     Fade,
     Tooltip
@@ -114,8 +114,8 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast }) => {
                 color={textColor}
                 p={3}
                 borderRadius="lg"
-                maxW="70%"
-                maxH="300px"
+                maxW="80%"
+                maxH="auto"
                 overflowY="auto"
                 wordBreak="break-word"
                 whiteSpace="pre-wrap"
@@ -141,7 +141,12 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast }) => {
 
                         <Fade in={!msg.isLoading}>
                             {hasFiles && (
-                                <VStack spacing={2} mt={2} align="start">
+                                <SimpleGrid
+                                    columns={msg.content_url!.length === 1 ? 1 : 2}
+                                    spacing={2}
+                                    mt={2}
+                                    w="100%"
+                                >
                                     {msg.content_url!.map((url, index) => {
                                         if (!url || typeof url !== "string") return null;
 
@@ -152,6 +157,8 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast }) => {
                                                 alt={`file-${index}`}
                                                 borderRadius="md"
                                                 maxW="100%"
+                                                maxH="200px"
+                                                objectFit="cover"
                                             />
                                         ) : (
                                             <Link
@@ -171,7 +178,8 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast }) => {
                                             </Link>
                                         );
                                     })}
-                                </VStack>
+                                </SimpleGrid>
+
                             )}
                         </Fade>
                     </>
