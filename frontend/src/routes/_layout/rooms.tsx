@@ -91,7 +91,7 @@ function RoomGrid({ onDeleteRoom, onEditRoom }: { onDeleteRoom: (room: RoomType)
     queryClient.setQueryData(["rooms"], transformedRooms);
 
     return (
-        <SimpleGrid columns={[1, 2, 3]} spacing={6} py={6}>
+        <SimpleGrid columns={[1, 2, 3, 4, 5, 6]} spacing={6} py={6}>
             {isPending
                 ? [...Array(6)].map((_, index) => (
                     <Skeleton key={index} height="300px" borderRadius="lg" />
@@ -121,7 +121,7 @@ function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => 
 
     return (
         <Box maxW="sm" borderWidth="1px" borderRadius="lg" overflow="hidden" boxShadow="md" position="relative" mt="12">
-            <Image src={room.image} alt={room.name_room} objectFit="cover" height="200px" width="100%" />
+            <Image src={room.image} alt={room.name_room} objectFit="cover" height="150px" width="100%" />
 
             {/* Меню з опціями */}
             <Box position="absolute" top="10px" right="10px" zIndex={10}>
@@ -235,13 +235,13 @@ function Room() {
 
             <Button
                 position="fixed"
-                bottom="100px"
-                right="40px"
+                bottom="50px"
+                right="20px"
                 variant="primary"
-                size="lg"
+                size="sm"
                 borderRadius="full"
                 zIndex={1000}
-                boxShadow="lg"
+                boxShadow="sm"
                 onClick={() => setIsAddRoomOpen(true)}
             >
                 + Add Room
