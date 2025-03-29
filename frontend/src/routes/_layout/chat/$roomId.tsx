@@ -76,8 +76,11 @@ function ChatRoom() {
         onNewMessage: (msg) =>
             setMessages((prev) => {
                 const exists = prev.some((m) => m.id === msg.id);
-                return exists ? prev : [...prev, msg];
+                return exists
+                    ? prev.map((m) => (m.id === msg.id ? { ...msg, isLoading: false } : m))
+                    : [...prev, msg];
             }),
+
 
         onMessageUpdate: (data) =>
             setMessages((prev) =>

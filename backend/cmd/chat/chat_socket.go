@@ -115,13 +115,13 @@ func HandleWebSocket(ctx *gin.Context) {
 				continue
 			}
 
-			allMessages, err := rooms.GetAllMessages(db, roomID)
+			// Після оновлення медіа
+			updatedMessages, err := rooms.GetAllMessages(db, roomID)
 			if err != nil {
-				log.Println("❌ GetAllMessages помилка:", err)
+				log.Println("❌ GetAllMessages error:", err)
 				continue
 			}
-
-			for _, msg := range allMessages {
+			for _, msg := range updatedMessages {
 				if msg.ID == messageID.String() {
 					if out, err := json.Marshal(msg); err == nil {
 						broadcastMessage(roomID, out)
@@ -129,6 +129,7 @@ func HandleWebSocket(ctx *gin.Context) {
 					break
 				}
 			}
+
 			continue
 		}
 
