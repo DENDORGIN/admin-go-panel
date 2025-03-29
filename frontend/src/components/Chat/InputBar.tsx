@@ -81,8 +81,13 @@ const InputBar: React.FC<InputBarProps> = ({
                     <IconButton
                         aria-label="Emoji picker"
                         icon={<FaSmile />}
+                        color="teal.400"
                         variant="ghost"
-                        size="sm"
+                        _hover={{ transform: "scale(1.1)" }}
+                        _active={{ transform: "scale(0.95)" }}
+                        transition="all 0.1s ease-in-out"
+                        cursor="pointer"
+                        p={2}
                         onClick={onOpen}
                     />
                 </PopoverTrigger>
