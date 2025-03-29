@@ -3,19 +3,19 @@ package utils
 import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"net/http"
+	"log"
 )
 
 func GetDBFromContext(ctx *gin.Context) (*gorm.DB, bool) {
 	dbRaw, exists := ctx.Get("DB")
 	if !exists {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "DB connection missing"})
+		log.Println("❌ DB connection missing")
 		return nil, false
 	}
 
 	db, ok := dbRaw.(*gorm.DB)
 	if !ok {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid DB format"})
+		log.Println("❌ Invalid DB format")
 		return nil, false
 	}
 

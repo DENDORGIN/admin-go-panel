@@ -24,18 +24,23 @@ export const useChatSocket = ({
                                   onMessageUpdate,
                               }: UseChatSocketProps) => {
     const ws = useRef<WebSocket | null>(null);
+    const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const isUnmounted = useRef(false);
 
-    useEffect(() => {
-        if (!token || !user) return;
+    const connect = () => {
+        if (!token || !user?.ID) return;
 
         const wsUrl = getWsUrl("chat", { token, room_id: roomId });
-        ws.current = new WebSocket(wsUrl);
+        const socket = new WebSocket(wsUrl);
+        ws.current = socket;
 
-        ws.current.onopen = () => {
+        console.log("🌐 Підключення до WebSocket:", wsUrl);
+
+        socket.onopen = () => {
             console.log("✅ WebSocket відкрито");
         };
 
-        ws.current.onmessage = (event) => {
+        socket.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
                 if (Array.isArray(data)) {
@@ -50,19 +55,32 @@ export const useChatSocket = ({
             }
         };
 
-        ws.current.onclose = (event) => {
+        socket.onclose = (event) => {
             console.warn("❌ WebSocket закрито. Код:", event.code, "Причина:", event.reason);
+            if (!isUnmounted.current) {
+                reconnectTimer.current = setTimeout(() => {
+                    console.log("🔄 Спроба повторного підключення...");
+                    connect();
+                }, 3000);
+            }
         };
 
-        ws.current.onerror = (error) => {
+        socket.onerror = (error) => {
             console.error("⚠️ WebSocket помилка:", error);
         };
+    };
+
+    useEffect(() => {
+        isUnmounted.current = false;
+        connect();
 
         return () => {
+            isUnmounted.current = true;
+            if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
             ws.current?.close();
             ws.current = null;
         };
-    }, [token, user, roomId]);
+    }, [roomId, token, user?.ID]);
 
     return ws;
 };

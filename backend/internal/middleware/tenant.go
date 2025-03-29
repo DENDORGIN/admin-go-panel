@@ -9,24 +9,38 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// 🔹 Окрема утиліта
+func isWebSocketRequest(c *gin.Context) bool {
+	return strings.Contains(strings.ToLower(c.Request.Header.Get("Connection")), "upgrade") &&
+		strings.ToLower(c.Request.Header.Get("Upgrade")) == "websocket"
+}
+
+// 🔸 Основний middleware
 func TenantMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		host := c.Request.Host
-		host = strings.Split(host, ":")[0] // прибрати порт, якщо є
-
-		subdomain := strings.Split(host, ".")[0] // беремо тільки субдомен
+		host = strings.Split(host, ":")[0]
+		subdomain := strings.Split(host, ".")[0]
 
 		var tenant entities.Tenant
 		db := postgres.GetDB()
 
 		if err := db.Where("domain = ?", subdomain).First(&tenant).Error; err != nil {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Tenant not found"})
+			if isWebSocketRequest(c) {
+				c.AbortWithStatus(http.StatusNotFound)
+			} else {
+				c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Tenant not found"})
+			}
 			return
 		}
 
 		tenantDB, err := postgres.Manager.GetConnection(tenant)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "DB connection error"})
+			if isWebSocketRequest(c) {
+				c.AbortWithStatus(http.StatusInternalServerError)
+			} else {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "DB connection error"})
+			}
 			return
 		}
 
@@ -35,8 +49,6 @@ func TenantMiddleware() gin.HandlerFunc {
 
 		if !tenant.Migrated {
 			postgres.InitDB(c)
-
-			// Після успішної міграції позначаємо як завершену
 			db.Model(&tenant).Update("migrated", true)
 		}
 

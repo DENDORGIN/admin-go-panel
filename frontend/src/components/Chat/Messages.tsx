@@ -14,7 +14,7 @@ import {
 import { useDisclosure } from "@chakra-ui/react";
 import UserProfileModal from "../Modals/UserProfileModal";
 import LinkPreview from "../Modals/LinkPreviewModal";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface MessageProps {
     msg: {
@@ -28,6 +28,7 @@ interface MessageProps {
         isLoading?: boolean;
     };
     isMe: boolean;
+    isLast?: boolean;
 }
 
 function parseMessageWithLinks(text: string) {
@@ -56,7 +57,7 @@ function parseMessageWithLinks(text: string) {
     });
 }
 
-const MessageBubble: React.FC<MessageProps> = ({ msg, isMe }) => {
+const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast }) => {
     const bgColor = useColorModeValue(
         isMe ? "teal.500" : "cyan.100",
         isMe ? "teal.400" : "cyan.600"
@@ -78,8 +79,13 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe }) => {
     };
     const url = extractFirstLink(msg.message || "");
 
+    const scrollRef = useRef<HTMLDivElement | null>(null);
 
-
+    useEffect(() => {
+        if (isLast && scrollRef.current) {
+            scrollRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [isLast]);
 
     return (
         <Flex justify={isMe ? "flex-end" : "flex-start"}>
@@ -102,8 +108,8 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe }) => {
                 </Tooltip>
             )}
 
-
             <Box
+                ref={scrollRef}
                 bg={bgColor}
                 color={textColor}
                 p={3}
@@ -114,8 +120,7 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe }) => {
                 wordBreak="break-word"
                 whiteSpace="pre-wrap"
             >
-
-            <Text fontSize="sm" fontWeight="bold">
+                <Text fontSize="sm" fontWeight="bold">
                     {isMe ? "" : msg.full_name}
                 </Text>
 
@@ -126,18 +131,13 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe }) => {
                         {msg.message && (
                             <>
                                 <Text mt={1}>{parseMessageWithLinks(msg.message)}</Text>
-
-                                {/* Превʼю лише якщо є посилання */}
                                 {url && (
                                     <Box mt={3}>
                                         <LinkPreview url={url} />
                                     </Box>
                                 )}
-
                             </>
                         )}
-
-
 
                         <Fade in={!msg.isLoading}>
                             {hasFiles && (
@@ -160,12 +160,15 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe }) => {
                                                 isExternal
                                                 color="teal.200"
                                                 textDecoration="underline"
-                                                _hover={{ color: "teal.300", textDecoration: "none", transform: "scale(1.02)" }}
+                                                _hover={{
+                                                    color: "teal.300",
+                                                    textDecoration: "none",
+                                                    transform: "scale(1.02)"
+                                                }}
                                                 transition="all 0.2s ease-in-out"
                                             >
                                                 📎 Файл {index + 1}
                                             </Link>
-
                                         );
                                     })}
                                 </VStack>
@@ -178,10 +181,9 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe }) => {
                     {new Date(msg.created_at).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
-                        hour12: false // змінити на true для 12-годинного формату
+                        hour12: false
                     })}
                 </Text>
-
             </Box>
             <UserProfileModal isOpen={isOpen} onClose={onClose} user={selectedUser} />
         </Flex>

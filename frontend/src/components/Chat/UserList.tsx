@@ -15,7 +15,8 @@ import {
     useColorModeValue,
     useDisclosure,
 } from "@chakra-ui/react";
-import { AttachmentIcon } from "@chakra-ui/icons";
+import { FaUsers } from "react-icons/fa";
+
 import { useBreakpointValue } from "@chakra-ui/react";
 import React from "react";
 
@@ -77,17 +78,19 @@ const UserList: React.FC<Props> = ({ users, onlineIds }) => {
             {isMobile && (
                 <>
                     <Button
-                        display={{ base: "block", md: "none" }}
+                        position="absolute"
+                        top="1rem"
+                        right="1rem"
+                        zIndex={10}
                         onClick={onOpen}
-                        mb={2}
-                        alignSelf="flex-start"
-                        leftIcon={<AttachmentIcon />}
-                        size="sm"
-                        variant="outline"
-                        mt={16}
+                        display={{ base: "block", md: "none" }}
+                        size="md"
+                        variant="ghost"
                     >
+                        <FaUsers />
                     </Button>
-                    <Drawer placement="left" onClose={onClose} isOpen={isOpen}>
+
+                    <Drawer placement="right" onClose={onClose} isOpen={isOpen}>
                         <DrawerOverlay />
                         <DrawerContent>
                             <DrawerCloseButton />
