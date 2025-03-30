@@ -128,17 +128,6 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast }) => {
                     <Spinner size="sm" color={isMe ? "white" : "gray.600"} mt={2} />
                 ) : (
                     <>
-                        {msg.message && (
-                            <>
-                                <Text mt={1}>{parseMessageWithLinks(msg.message)}</Text>
-                                {url && (
-                                    <Box mt={3}>
-                                        <LinkPreview url={url} />
-                                    </Box>
-                                )}
-                            </>
-                        )}
-
                         <Fade in={!msg.isLoading}>
                             {hasFiles && (
                                 <SimpleGrid
@@ -179,13 +168,24 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast }) => {
                                         );
                                     })}
                                 </SimpleGrid>
-
                             )}
                         </Fade>
+
+                        {msg.message && (
+                            <>
+                                <Text mt={3}>{parseMessageWithLinks(msg.message)}</Text>
+                                {url && (
+                                    <Box mt={3}>
+                                        <LinkPreview url={url} />
+                                    </Box>
+                                )}
+                            </>
+                        )}
                     </>
                 )}
 
-                <Text fontSize="xs" color={isMe ? "white" : "gray.600"} mt={2}>
+
+                <Text fontSize="sm" color={isMe ? "white" : "gray.600"} mt={2}>
                     {new Date(msg.created_at).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',

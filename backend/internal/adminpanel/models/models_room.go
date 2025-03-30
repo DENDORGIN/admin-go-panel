@@ -1,4 +1,4 @@
-package rooms
+package models
 
 import (
 	"backend/internal/adminpanel/entities"
