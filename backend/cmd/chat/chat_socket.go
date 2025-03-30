@@ -70,7 +70,12 @@ func HandleWebSocket(ctx *gin.Context) {
 		log.Println("❌ Помилка апгрейду WS:", err)
 		return
 	}
-	defer conn.Close()
+	defer func(conn *websocket.Conn) {
+		err = conn.Close()
+		if err != nil {
+
+		}
+	}(conn)
 
 	fmt.Printf("🔌 Користувач %s приєднався до кімнати %s\n", user.ID, roomID)
 
@@ -128,6 +133,32 @@ func HandleWebSocket(ctx *gin.Context) {
 					}
 					break
 				}
+			}
+
+			continue
+		}
+
+		if raw["type"] == "delete_message" {
+			messageIDStr, _ := raw["id"].(string)
+			messageID, err := uuid.Parse(messageIDStr)
+			if err != nil {
+				log.Println("❌ Невалідний ID повідомлення:", messageIDStr)
+				continue
+			}
+
+			err = rooms.DeleteMessageById(db, messageID, user.ID)
+			if err != nil {
+				log.Println("❌ Помилка при видаленні повідомлення:", err)
+				continue
+			}
+
+			// 🛰 Сповіщаємо всіх клієнтів про видалення
+			deletePayload := map[string]interface{}{
+				"type": "message_deleted",
+				"id":   messageID,
+			}
+			if out, err := json.Marshal(deletePayload); err == nil {
+				broadcastMessage(roomID, out)
 			}
 
 			continue
