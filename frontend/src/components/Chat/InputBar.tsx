@@ -4,7 +4,8 @@ import {
     Image,
     Textarea,
     useColorModeValue,
-    useDisclosure
+    useDisclosure,
+    Flex
 } from "@chakra-ui/react";
 import { AttachmentIcon } from "@chakra-ui/icons";
 import { useRef, useEffect } from "react";
@@ -53,104 +54,116 @@ const InputBar: React.FC<InputBarProps> = ({
 
     return (
         <HStack
-            mt={4}
-            p={2}
-            // borderTop="1px solid"
+            mt={2}
+            p={0}
             borderColor={useColorModeValue("gray.300", "gray.600")}
             bg={inputBg}
             w="100%"
             borderRadius="md"
             alignItems="flex-end"
         >
-            <Button
-                as="label"
-                htmlFor={fileInputId}
-                variant="ghost"
-                _hover={{ transform: "scale(1.1)" }}
-                _active={{ transform: "scale(0.95)" }}
-                transition="all 0.1s ease-in-out"
-                cursor="pointer"
-                p={2}
-            >
-                <AttachmentIcon color="teal.400" boxSize="20px" />
-            </Button>
-            <input type="file" id={fileInputId} hidden onChange={onFileSelect} multiple />
+            <HStack spacing={0}>
+                <Button
+                    as="label"
+                    htmlFor={fileInputId}
+                    variant="ghost"
+                    _hover={{ transform: "scale(1.05)" }}
+                    _active={{ transform: "scale(0.95)" }}
+                    transition="all 0.1s ease-in-out"
+                    cursor="pointer"
+                    p={1}
+                    minW="auto"
+                    borderRadius="md"
+                >
+                    <AttachmentIcon color="teal.400" boxSize="18px" />
+                </Button>
+                <input type="file" id={fileInputId} hidden onChange={onFileSelect} multiple />
 
-            <Popover isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
-                <PopoverTrigger>
-                    <IconButton
-                        aria-label="Emoji picker"
-                        icon={<FaSmile />}
-                        color="teal.400"
-                        variant="ghost"
-                        _hover={{ transform: "scale(1.1)" }}
-                        _active={{ transform: "scale(0.95)" }}
-                        transition="all 0.1s ease-in-out"
-                        cursor="pointer"
-                        p={2}
-                        onClick={onOpen}
-                    />
-                </PopoverTrigger>
-                <PopoverContent zIndex={10}>
-                    <Picker
-                        data={data}
-                        onEmojiSelect={(emoji: any) => {
-                            onChange(value + emoji.native);
-                            onClose();
-                        }}
-                    />
-                </PopoverContent>
-            </Popover>
+                <Popover isOpen={isOpen} onOpen={onOpen} onClose={onClose}>
+                    <PopoverTrigger>
+                        <IconButton
+                            aria-label="Emoji picker"
+                            icon={<FaSmile />}
+                            color="teal.400"
+                            variant="ghost"
+                            _hover={{ transform: "scale(1.05)" }}
+                            _active={{ transform: "scale(0.95)" }}
+                            transition="all 0.1s ease-in-out"
+                            cursor="pointer"
+                            p={1}
+                            minW="auto"
+                            borderRadius="md"
+                            onClick={onOpen}
+                            ml="auto"
+                            m="-1"
+                        />
+                    </PopoverTrigger>
+                    <PopoverContent zIndex={10}>
+                        <Picker
+                            data={data}
+                            onEmojiSelect={(emoji: any) => {
+                                onChange(value + emoji.native);
+                                onClose();
+                            }}
+                        />
+                    </PopoverContent>
+                </Popover>
+            </HStack>
 
 
+            <Flex w="100%" align="flex-start" gap={1}>
+                <Textarea
+                    ref={textareaRef}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    placeholder="Send message..."
+                    resize="none"
+                    minH="20px"
+                    maxH="200px"
+                    isDisabled={disabled}
+                    border="none"
+                    borderBottom="2px solid"
+                    borderColor={useColorModeValue("gray.300", "gray.600")}
+                    focusBorderColor="teal.400"
+                    borderRadius="0"
+                    px="0"
+                    py="0"
+                    fontSize="sm"
+                    lineHeight="1"
+                    _placeholder={{ color: useColorModeValue("gray.500", "gray.400") }}
+                    _focus={{
+                        outline: "none",
+                        borderColor: "teal.400",
+                        boxShadow: "none",
+                    }}
+                    bg="transparent"
+                    color={inputColor}
+                    overflow="hidden"
+                    flex={1}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            onSend();
+                            if (textareaRef.current) textareaRef.current.style.height = "auto";
+                        }
+                    }}
+                />
 
-            <Textarea
-                ref={textareaRef}
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                placeholder="Send message..."
-                resize="none"
-                minH="20px"
-                maxH="200px"
-                isDisabled={disabled}
-                border="none"
-                borderBottom="2px solid"
-                borderColor={useColorModeValue("gray.300", "gray.600")}
-                focusBorderColor="teal.400"
-                borderRadius="0"
-                px="0"
-                py="0"
-                fontSize="sm"
-                lineHeight="1"
-                _placeholder={{ color: useColorModeValue("gray.500", "gray.400") }}
-                _focus={{
-                    outline: "none",
-                    borderColor: "teal.400",
-                    boxShadow: "none",
-                }}
-                bg="transparent"
-                color={inputColor}
-                overflow="hidden"
-                onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        onSend();
-                        if (textareaRef.current) textareaRef.current.style.height = "auto";
-                    }
-                }}
-            />
+                <Button
+                    onClick={onSend}
+                    leftIcon={<Image src={iconSrc} boxSize="20px" />}
+                    variant="ghost"
+                    isDisabled={disabled}
+                    _hover={{ transform: "scale(1.1)" }}
+                    _active={{ transform: "scale(0.95)" }}
+                    transition="all 0.1s ease-in-out"
+                    cursor="pointer"
+                    p={2}
+                    ml="auto"
+                    mr="-4"
+                />
+            </Flex>
 
-            <Button
-                onClick={onSend}
-                leftIcon={<Image src={iconSrc} boxSize="20px" />}
-                variant="ghost"
-                isDisabled={disabled}
-                _hover={{ transform: "scale(1.1)" }}
-                _active={{ transform: "scale(0.95)" }}
-                transition="all 0.1s ease-in-out"
-                cursor="pointer"
-                p={2}
-            />
         </HStack>
     );
 };

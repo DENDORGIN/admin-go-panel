@@ -192,14 +192,26 @@ function ChatRoom() {
                     {roomName} {isRoomClosed && " (CLOSED)"} {isChannel && " (CHANNEL)"}
                 </Text>
 
-                <Box flex="1" borderWidth={1} borderRadius="lg" boxShadow="md" overflow="hidden" p={4} w="100%">
+                <Box
+                    flex="1"
+                    border="none"
+                    borderWidth={1}
+                    borderRadius="lg"
+                    boxShadow="none"
+                    overflowY="auto"
+                    p={0}
+                    w="100%"
+                    maxH="calc(100vh - 180px)"
+                >
                     <VStack
                         ref={messagesContainerRef}
-                        spacing={5} align="stretch"
-                        flex="1" overflowY="auto"
-                        p={4}
-                        maxH="calc(100vh - 150px)">
-                        {messages.map((msg, index) => (
+                        spacing={4}
+                        align="stretch"
+                        flex="1"
+                        p={4} // залишив тільки тут
+                    >
+
+                    {messages.map((msg, index) => (
                             <MessageBubble
                                 key={msg.id}
                                 msg={msg}

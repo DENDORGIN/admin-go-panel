@@ -105,14 +105,15 @@ const UserList: React.FC<Props> = ({ users, onlineIds }) => {
                     <Button
                         position="absolute"
                         top="1rem"
-                        right="1rem"
+                        right="0.5"
                         zIndex={10}
                         onClick={onOpen}
                         display={{ base: "block", md: "none" }}
-                        size="md"
+                        size="lg"
                         variant="ghost"
+                        color="teal.400"
                     >
-                        <FaUsers />
+                        <FaUsers/>
                     </Button>
 
                     <Drawer placement="right" onClose={onClose} isOpen={isOpen}>

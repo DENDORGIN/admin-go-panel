@@ -185,7 +185,7 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast }) => {
                     </>
                 )}
 
-                <Text fontSize="xs" color={isMe ? "white" : "gray.600"} mt={2}>
+                <Text fontSize="sm" color={isMe ? "white" : "gray.600"} mt={2}>
                     {new Date(msg.created_at).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
