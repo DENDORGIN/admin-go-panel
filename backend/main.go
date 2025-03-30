@@ -56,8 +56,6 @@ func main() {
 	// Choose DB
 	r.Use(middleware.TenantMiddleware())
 
-	//reminder.StartReminderJobs()
-
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Healthy",
@@ -84,8 +82,6 @@ func main() {
 	// Link preview
 	r.GET("/link-preview", routes.FetchLinkPreview)
 
-	r.Run(":" + port)
-
 	//Protecting routes with JWT middleware
 	r.Use(middleware.AuthMiddleware())
 
@@ -102,6 +98,8 @@ func main() {
 	r.POST("/v1/calendar/events", routes.CreateEventHandler)
 	r.PUT("/v1/calendar/events/:id", routes.UpdateCalendarEventHandler)
 	r.DELETE("/v1/calendar/events/:id", routes.DeleteEvent)
+
+	//reminder.StartReminderJobs()
 
 	// Blogs routes
 	r.POST("/v1/blog/", routes.CreateBlogHandler)

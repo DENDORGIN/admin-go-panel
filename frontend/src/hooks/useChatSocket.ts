@@ -13,6 +13,7 @@ interface UseChatSocketProps {
     onMessagesUpdate: (msgs: MessageType[]) => void;
     onNewMessage: (msg: MessageType) => void;
     onMessageUpdate: (msg: Partial<MessageType> & { id: string }) => void;
+    onMessageDelete?: (id: string) => void;
 }
 
 export const useChatSocket = ({

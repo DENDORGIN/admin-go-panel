@@ -9,12 +9,21 @@ import {
     SimpleGrid,
     Spinner,
     Fade,
-    Tooltip
+    Tooltip,
+    IconButton,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
+    Portal,
 } from "@chakra-ui/react";
 import { useDisclosure } from "@chakra-ui/react";
+import { DragHandleIcon } from '@chakra-ui/icons'
+
 import UserProfileModal from "../Modals/UserProfileModal";
 import LinkPreview from "../Modals/LinkPreviewModal";
 import { useState, useEffect, useRef } from "react";
+import { FiEdit, FiTrash2 } from "react-icons/fi";
 
 interface MessageProps {
     msg: {
@@ -29,6 +38,7 @@ interface MessageProps {
     };
     isMe: boolean;
     isLast?: boolean;
+    onDelete?: (id: string) => void;
 }
 
 function parseMessageWithLinks(text: string) {
@@ -57,7 +67,7 @@ function parseMessageWithLinks(text: string) {
     });
 }
 
-const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast }) => {
+const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast, onDelete }) => {
     const bgColor = useColorModeValue(
         isMe ? "teal.500" : "cyan.100",
         isMe ? "teal.400" : "cyan.600"
@@ -80,6 +90,10 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast }) => {
     const url = extractFirstLink(msg.message || "");
 
     const scrollRef = useRef<HTMLDivElement | null>(null);
+
+    const handleEdit = (id: string) => {
+        console.log("Редагування повідомлення:", id);
+    };
 
     useEffect(() => {
         if (isLast && scrollRef.current) {
@@ -115,11 +129,40 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast }) => {
                 p={3}
                 borderRadius="lg"
                 maxW="80%"
+                position="relative"
                 maxH="auto"
                 overflowY="auto"
                 wordBreak="break-word"
                 whiteSpace="pre-wrap"
+                zIndex={1}
             >
+                {isMe && (
+                    <Menu placement="bottom-end">
+                        <MenuButton
+                            as={IconButton}
+                            icon={<DragHandleIcon />}
+                            variant="ghost"
+                            size="sm"
+                            aria-label="Options"
+                            position="absolute"
+                            top="-2px"
+                            right="-5px"
+                            _hover={{ bg: "transparent" }}
+                            zIndex={2}
+                        />
+                        <Portal>
+                            <MenuList zIndex={3}>
+                                <MenuItem icon={<FiEdit />} onClick={() => handleEdit(msg.id)}>
+                                    Update
+                                </MenuItem>
+                                <MenuItem icon={<FiTrash2 />} color="red.500" onClick={() => onDelete?.(msg.id)}>
+                                    Delete
+                                </MenuItem>
+                            </MenuList>
+                        </Portal>
+                    </Menu>
+                )}
+
                 <Text fontSize="sm" fontWeight="bold">
                     {isMe ? "" : msg.full_name}
                 </Text>
@@ -183,7 +226,6 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast }) => {
                         )}
                     </>
                 )}
-
 
                 <Text fontSize="sm" color={isMe ? "white" : "gray.600"} mt={2}>
                     {new Date(msg.created_at).toLocaleTimeString([], {

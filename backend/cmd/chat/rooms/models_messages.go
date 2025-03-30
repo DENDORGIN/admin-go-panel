@@ -2,6 +2,9 @@ package rooms
 
 import (
 	"backend/internal/adminpanel/entities"
+	"backend/internal/adminpanel/repository"
+	"backend/internal/adminpanel/services/utils"
+	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -90,6 +93,43 @@ func GetAllMessages(db *gorm.DB, roomId uuid.UUID) ([]Message, error) {
 	}
 
 	return response, nil
+}
+
+func DeleteMessageById(db *gorm.DB, messageID, userID uuid.UUID) error {
+	var message entities.Messages
+	var mediaList []entities.Media
+
+	err := repository.GetByID(db, messageID, &message)
+	if err != nil {
+		return err
+	}
+
+	if message.UserId != userID {
+		return fmt.Errorf("access denied: user is not the author")
+	}
+
+	err = repository.DeleteByID(db, messageID, &message)
+	if err != nil {
+		return err
+	}
+
+	err = repository.GetAllMediaByID(db, messageID, &mediaList)
+	if err != nil {
+		return err
+	}
+	for _, media := range mediaList {
+		err = utils.DeleteImageInBucket(media.Url)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = repository.DeleteContentByID(db, messageID, &entities.Media{})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Допоміжна функція для отримання ключів з `map`

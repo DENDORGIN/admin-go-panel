@@ -1,13 +1,9 @@
+// ChatRoom.tsx
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState, useMemo } from "react";
 import {
-    Box,
-    VStack,
-    Text,
-    Flex,
-    useDisclosure,
-    Spinner,
+    Box, VStack, Text, Flex, useDisclosure, Spinner,
 } from "@chakra-ui/react";
 
 import useAuth from "../../../hooks/useAuth";
@@ -88,6 +84,9 @@ function ChatRoom() {
                     msg.id === data.id ? { ...msg, ...data, isLoading: false } : msg
                 )
             ),
+        onMessageDelete: (id: string) => {
+            setMessages((prev) => prev.filter((msg) => msg.id !== id));
+        },
     });
 
     useEffect(() => {
@@ -204,6 +203,10 @@ function ChatRoom() {
                                 msg={msg}
                                 isMe={msg.user_id === user?.ID}
                                 isLast={index === messages.length - 1}
+                                onDelete={(id) => {
+                                    ws.current?.send(JSON.stringify({ type: "delete_message", id }));
+                                    setMessages(prev => prev.filter(m => m.id !== id));
+                                }}
                             />
                         ))}
                         <div ref={messagesEndRef} />
@@ -246,7 +249,6 @@ function ChatRoom() {
                         setFiles((prev) => [...prev, ...newFiles]);
                     }}
                 />
-
             </Flex>
         </Flex>
     );
