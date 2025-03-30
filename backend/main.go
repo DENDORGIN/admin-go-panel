@@ -134,6 +134,7 @@ func main() {
 	// Chat room routes
 	r.POST("/v1/rooms/", routes.CreateRoomHandler)
 	r.GET("/v1/rooms/", routes.GetAllRoomsHandler)
+	r.GET("/v1/rooms/:id", routes.GetRoomByIdHandler)
 	r.PUT("/v1/rooms/:id", routes.UpdateRoomByIdHandler)
 	r.DELETE("/v1/rooms/:id", routes.DeleteRoomByIdHandler)
 

@@ -1,20 +1,19 @@
-// ChatRoom.tsx
-
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState, useMemo } from "react";
 import {
     Box,
     VStack,
     Text,
     Flex,
-    useDisclosure
+    useDisclosure,
+    Spinner,
 } from "@chakra-ui/react";
 
 import useAuth from "../../../hooks/useAuth";
 import { getSortedUsers, getOnlineUserIds } from "../../../utils/sortedUsers";
 import { useChatSocket } from "../../../hooks/useChatSocket";
-import { MessageType } from "../../../client";
+import { MessageType, RoomService } from "../../../client";
 
 import FilePreviewModal from "../../../components/Modals/FilePreviewModal";
 import MessageBubble from "../../../components/Chat/Messages";
@@ -23,7 +22,6 @@ import UserList from "../../../components/Chat/UserList";
 
 import sendMessageIcon from "@/assets/images/send-message.svg";
 import { MediaService } from "../../../client";
-import { RoomType } from "../rooms";
 
 export const Route = createFileRoute("/_layout/chat/$roomId")({
     component: ChatRoom,
@@ -32,13 +30,20 @@ export const Route = createFileRoute("/_layout/chat/$roomId")({
 function ChatRoom() {
     const { user } = useAuth();
     const { roomId } = useParams({ from: "/_layout/chat/$roomId" });
-    const queryClient = useQueryClient();
+
+    const { data: room, isLoading, isError } = useQuery({
+        queryKey: ["room", roomId],
+        queryFn: () => RoomService.readRoomById(roomId),
+        enabled: !!roomId,
+    });
+
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [input, setInput] = useState("");
     const [files, setFiles] = useState<File[]>([]);
     const [filePreviews, setFilePreviews] = useState<{ name: string; size: string; preview: string; file: File }[]>([]);
     const [fileMessage, setFileMessage] = useState("");
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
+    const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
     const {
         isOpen: isFileModalOpen,
@@ -46,13 +51,10 @@ function ChatRoom() {
         onClose: onFileModalClose
     } = useDisclosure();
 
-    const rooms: RoomType[] | undefined = queryClient.getQueryData(["rooms"]);
-    const room = rooms?.find(room => room.ID === roomId);
     const roomName = room?.name_room || "Невідома кімната";
     const isRoomClosed = room?.status === false;
     const isChannel = room?.is_channel ?? false;
-    const isOwner = user?.ID && room?.owner_id === user.ID;
-
+    const isOwner = user?.ID && room?.owner_id === user?.ID;
     const isInteractionDisabled = !room || isRoomClosed || (isChannel && !isOwner);
 
     const sortedUsers = getSortedUsers(messages);
@@ -80,8 +82,6 @@ function ChatRoom() {
                     ? prev.map((m) => (m.id === msg.id ? { ...msg, isLoading: false } : m))
                     : [...prev, msg];
             }),
-
-
         onMessageUpdate: (data) =>
             setMessages((prev) =>
                 prev.map((msg) =>
@@ -93,16 +93,11 @@ function ChatRoom() {
     useEffect(() => {
         const container = messagesContainerRef.current;
         if (!container) return;
-
-        const isAtBottom =
-            container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
-
+        const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
         if (isAtBottom) {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
         }
     }, [messages]);
-
-    const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
     const sendMessage = () => {
         if (isInteractionDisabled || !user) return;
@@ -123,11 +118,7 @@ function ChatRoom() {
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files || isInteractionDisabled || !user) {
-            console.warn("🚫 Завантаження файлів заборонено");
-            return;
-        }
-
+        if (!e.target.files || isInteractionDisabled || !user) return;
         const selectedFiles = Array.from(e.target.files);
         const previews = selectedFiles.map((file) => ({
             name: file.name,
@@ -141,10 +132,7 @@ function ChatRoom() {
     };
 
     const uploadSelectedFiles = async () => {
-        if (!files.length || !user || isInteractionDisabled) {
-            console.warn("🚫 Відправка файлів заборонена");
-            return;
-        }
+        if (!files.length || !user || isInteractionDisabled) return;
 
         const messageId = crypto.randomUUID();
         const formData = new FormData();
@@ -183,10 +171,12 @@ function ChatRoom() {
         }
     };
 
+    if (isLoading) return <Spinner size="xl" mx="auto" mt={12} />;
+    if (isError || !room) return <Text textAlign="center" mt={12} color="red.500">Не вдалося завантажити кімнату</Text>;
+
     return (
         <Flex direction="row" h="96vh" w="100%" maxW="1920px" p={6} mx="auto">
             <UserList users={sortedUsers} onlineIds={onlineIds} />
-
             <Flex direction="column" flex="1">
                 <Text fontSize="3xl" color="orange.500" p={3} textAlign="center">
                     {roomName} {isRoomClosed && " (CLOSED)"} {isChannel && " (CHANNEL)"}
@@ -195,8 +185,6 @@ function ChatRoom() {
                 <Box
                     flex="1"
                     border="none"
-                    borderWidth={1}
-                    borderRadius="lg"
                     boxShadow="none"
                     overflowY="auto"
                     p={0}
@@ -208,10 +196,9 @@ function ChatRoom() {
                         spacing={4}
                         align="stretch"
                         flex="1"
-                        p={4} // залишив тільки тут
+                        p={4}
                     >
-
-                    {messages.map((msg, index) => (
+                        {messages.map((msg, index) => (
                             <MessageBubble
                                 key={msg.id}
                                 msg={msg}
@@ -219,7 +206,6 @@ function ChatRoom() {
                                 isLast={index === messages.length - 1}
                             />
                         ))}
-
                         <div ref={messagesEndRef} />
                     </VStack>
                 </Box>
@@ -248,7 +234,19 @@ function ChatRoom() {
                     message={fileMessage}
                     onMessageChange={setFileMessage}
                     isDisabled={isInteractionDisabled}
+                    onAddFiles={(newFiles) => {
+                        const newPreviews = newFiles.map((file) => ({
+                            name: file.name,
+                            size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+                            preview: URL.createObjectURL(file),
+                            file,
+                        }));
+
+                        setFilePreviews((prev) => [...prev, ...newPreviews]);
+                        setFiles((prev) => [...prev, ...newFiles]);
+                    }}
                 />
+
             </Flex>
         </Flex>
     );

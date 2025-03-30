@@ -75,7 +75,7 @@ const InputBar: React.FC<InputBarProps> = ({
                     minW="auto"
                     borderRadius="md"
                 >
-                    <AttachmentIcon color="teal.400" boxSize="18px" />
+                    <AttachmentIcon color="teal.400" boxSize="20px" />
                 </Button>
                 <input type="file" id={fileInputId} hidden onChange={onFileSelect} multiple />
 
@@ -83,6 +83,7 @@ const InputBar: React.FC<InputBarProps> = ({
                     <PopoverTrigger>
                         <IconButton
                             aria-label="Emoji picker"
+                            size="20px"
                             icon={<FaSmile />}
                             color="teal.400"
                             variant="ghost"
@@ -90,7 +91,7 @@ const InputBar: React.FC<InputBarProps> = ({
                             _active={{ transform: "scale(0.95)" }}
                             transition="all 0.1s ease-in-out"
                             cursor="pointer"
-                            p={1}
+                            p={2}
                             minW="auto"
                             borderRadius="md"
                             onClick={onOpen}
@@ -116,7 +117,7 @@ const InputBar: React.FC<InputBarProps> = ({
                     ref={textareaRef}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
-                    placeholder="Send message..."
+                    placeholder="Write a message..."
                     resize="none"
                     minH="20px"
                     maxH="200px"
@@ -140,6 +141,7 @@ const InputBar: React.FC<InputBarProps> = ({
                     color={inputColor}
                     overflow="hidden"
                     flex={1}
+                    alignSelf="center"
                     onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                             e.preventDefault();

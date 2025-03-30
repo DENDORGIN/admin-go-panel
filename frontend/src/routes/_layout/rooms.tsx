@@ -121,7 +121,14 @@ function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => 
 
     return (
         <Box maxW="sm" borderWidth="1px" borderRadius="lg" overflow="hidden" boxShadow="md" position="relative" mt="12">
-            <Image src={room.image} alt={room.name_room} objectFit="cover" height="150px" width="100%" />
+            <Image src={room.image}
+                   alt={room.name_room}
+                   objectFit="cover"
+                   height="150px"
+                   width="100%"
+                   cursor="pointer"
+                   onClick={handleOpenChat}
+            />
 
             {/* Меню з опціями */}
             <Box position="absolute" top="10px" right="10px" zIndex={10}>
