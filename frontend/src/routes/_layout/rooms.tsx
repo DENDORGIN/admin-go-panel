@@ -120,7 +120,16 @@ function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => 
     };
 
     return (
-        <Box maxW="sm" borderWidth="1px" borderRadius="lg" overflow="hidden" boxShadow="md" position="relative" mt="12">
+        <Box maxW="sm" borderWidth="1px"
+             borderRadius="lg"
+             overflow="hidden"
+             boxShadow="md"
+             position="relative"
+             mt="12"
+             _hover={{ transform: "scale(1.05)" }}
+             _active={{ transform: "scale(0.95)" }}
+             transition="all 0.1s ease-in-out"
+             cursor="pointer">
             <Image src={room.image}
                    alt={room.name_room}
                    objectFit="cover"
