@@ -25,6 +25,10 @@ func GetByID[T any](db *gorm.DB, id uuid.UUID, model *T) error {
 	return nil
 }
 
+func GetAllByField[T any](db *gorm.DB, field string, value any, out *T) error {
+	return db.Where(fmt.Sprintf("%s = ?", field), value).Find(out).Error
+}
+
 func GetPosition[T any](db *gorm.DB, position int, model *T) error {
 	err := db.Where("position = ?", position).First(model).Error
 	if err != nil {

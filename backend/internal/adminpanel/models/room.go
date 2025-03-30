@@ -122,7 +122,6 @@ func UpdateRoomById(db *gorm.DB, roomId uuid.UUID, updateRoom *RoomUpdate) (*Roo
 
 	room.Status = updateRoom.Status
 
-	// Зберігаємо оновлений блог
 	err = db.Save(&room).Error
 	if err != nil {
 		return nil, err
@@ -142,6 +141,7 @@ func UpdateRoomById(db *gorm.DB, roomId uuid.UUID, updateRoom *RoomUpdate) (*Roo
 
 func DeleteRoomById(db *gorm.DB, roomId uuid.UUID) error {
 	var room entities.ChatRooms
+	var messages []entities.Messages
 
 	// Знаходимо room за ID
 	roomGet, err := GetRoomById(db, roomId)
@@ -152,6 +152,30 @@ func DeleteRoomById(db *gorm.DB, roomId uuid.UUID) error {
 	err = utils.DeleteImageInBucket(roomGet.Image)
 	if err != nil {
 		return err
+	}
+
+	err = repository.GetAllByField(db, "room_id", roomId, &messages)
+	if err != nil {
+		return err
+	}
+	for _, message := range messages {
+		var tempMedia []entities.Media
+		err = repository.GetAllMediaByID(db, message.ID, &tempMedia)
+		if err != nil {
+			return err
+		}
+
+		for _, media := range tempMedia {
+			err = utils.DeleteImageInBucket(media.Url)
+			if err != nil {
+				return err
+			}
+		}
+
+		err = repository.DeleteContentByID(db, message.ID, &entities.Media{})
+		if err != nil {
+			return err
+		}
 	}
 
 	err = repository.DeleteByID(db, roomId, &room)

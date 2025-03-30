@@ -12,13 +12,17 @@ import {
     DrawerCloseButton,
     DrawerBody,
     Button,
+    IconButton,
     useColorModeValue,
     useDisclosure,
+    Collapse,
+    Flex,
 } from "@chakra-ui/react";
 import { FaUsers } from "react-icons/fa";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { useBreakpointValue } from "@chakra-ui/react";
 import React, { useState } from "react";
-import UserProfileModal from "../Modals/UserProfileModal"; // переконайся в правильному шляху
+import UserProfileModal from "../Modals/UserProfileModal";
 
 interface User {
     id: string;
@@ -47,6 +51,9 @@ const UserList: React.FC<Props> = ({ users, onlineIds }) => {
         full_name: string;
         avatar: string;
     }>(null);
+
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const toggleCollapse = () => setIsCollapsed(prev => !prev);
 
     const handleUserClick = (user: User) => {
         setSelectedUser({
@@ -113,7 +120,7 @@ const UserList: React.FC<Props> = ({ users, onlineIds }) => {
                         variant="ghost"
                         color="teal.400"
                     >
-                        <FaUsers/>
+                        <FaUsers />
                     </Button>
 
                     <Drawer placement="right" onClose={onClose} isOpen={isOpen}>
@@ -126,29 +133,45 @@ const UserList: React.FC<Props> = ({ users, onlineIds }) => {
                     </Drawer>
                 </>
             )}
+
             {!isMobile && (
                 <Box
-                    w="200px"
+                    w={isCollapsed ? "40px" : "200px"}
                     pr={4}
                     overflowY="auto"
                     mt={16}
                     display={{ base: "none", md: "block" }}
+                    transition="width 0.3s ease"
                 >
-                    {list}
+                    <Flex justify="space-between" align="center" px={2} mb={2}>
+                        {isCollapsed ? null : (
+                            <Text fontWeight="bold" fontSize="md">Users</Text>
+                        )}
+                        <IconButton
+                            size="sm"
+                            variant="ghost"
+                            aria-label="toggle"
+                            icon={isCollapsed ?
+                                <ChevronRightIcon boxSize="30px"
+                                                  color="teal.400"/> : <ChevronLeftIcon boxSize="30px"
+                                                                                        color="teal.400"/>}
+                            onClick={toggleCollapse}
+                        />
+                    </Flex>
+                    <Collapse in={!isCollapsed} animateOpacity>
+                        {list}
+                    </Collapse>
                 </Box>
             )}
 
-            {/* 👤 Модалка профілю */}
             <UserProfileModal
                 isOpen={isProfileOpen}
                 onClose={closeProfile}
                 user={selectedUser}
                 onStartPrivateChat={(userId) => {
-                    // TODO: реалізуй логіку відкриття приватного чату
                     console.log("🟢 Старт приватного чату з:", userId);
                 }}
             />
-
         </>
     );
 };

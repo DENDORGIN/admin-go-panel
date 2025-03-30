@@ -70,6 +70,7 @@ function ChatRoom() {
             : null;
     }, [user?.ID, user?.fullName, user?.avatar]);
 
+
     const ws = useChatSocket({
         roomId,
         token: typeof window !== "undefined" ? localStorage.getItem("access_token") : null,
