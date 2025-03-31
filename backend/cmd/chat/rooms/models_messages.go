@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"time"
 )
 
 type Message struct {
@@ -18,6 +19,11 @@ type Message struct {
 	Message    string   `json:"message"`
 	ContentUrl []string `json:"content_url"`
 	CreatedAt  string   `json:"created_at"`
+	EditedAt   *string  `json:"edited_at,omitempty"`
+}
+
+type EditMessage struct {
+	Message string `json:"message"`
 }
 
 func GetAllMessages(db *gorm.DB, roomId uuid.UUID) ([]Message, error) {
@@ -80,6 +86,11 @@ func GetAllMessages(db *gorm.DB, roomId uuid.UUID) ([]Message, error) {
 	// 7️⃣ Формуємо остаточну відповідь
 	for _, msg := range messages {
 		userData := userMap[msg.UserId]
+		var editedAt *string
+		if msg.EditedAt != nil {
+			formatted := msg.EditedAt.Format("2006-01-02 15:04:05")
+			editedAt = &formatted
+		}
 		response = append(response, Message{
 			ID:         msg.ID.String(),
 			UserID:     msg.UserId.String(),
@@ -89,10 +100,78 @@ func GetAllMessages(db *gorm.DB, roomId uuid.UUID) ([]Message, error) {
 			Message:    msg.Message,
 			ContentUrl: getOrEmpty(mediaMap, msg.ID),
 			CreatedAt:  msg.CreatedAt.Format("2006-01-02 15:04:05"),
+			EditedAt:   editedAt,
 		})
 	}
 
 	return response, nil
+}
+
+func GetMessageById(db *gorm.DB, messageID uuid.UUID) (*Message, error) {
+	var message entities.Messages
+	var user entities.User
+	var media []entities.Media
+
+	err := repository.GetByID(db, messageID, &message)
+	if err != nil {
+		return nil, err
+	}
+
+	err = repository.GetByID(db, message.UserId, &user)
+	if err != nil {
+		return nil, err
+	}
+
+	err = repository.GetAllMediaByID(db, messageID, &media)
+	if err != nil {
+		return nil, err
+	}
+	mediaMap := make(map[uuid.UUID][]string)
+	for _, m := range media {
+		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
+	}
+	var editedAt *string
+	if message.EditedAt != nil {
+		formatted := message.EditedAt.Format("2006-01-02 15:04:05")
+		editedAt = &formatted
+	}
+
+	return &Message{
+		ID:         message.ID.String(),
+		UserID:     message.UserId.String(),
+		FullName:   user.FullName,
+		Avatar:     user.Avatar,
+		RoomID:     message.RoomId.String(),
+		Message:    message.Message,
+		ContentUrl: getOrEmpty(mediaMap, message.ID),
+		CreatedAt:  message.CreatedAt.Format("2006-01-02 15:04:05"),
+		EditedAt:   editedAt,
+	}, err
+
+}
+
+func EditMessageById(db *gorm.DB, messageID, userID uuid.UUID, editMessage *EditMessage) (*Message, error) {
+	var message entities.Messages
+
+	err := repository.GetByID(db, messageID, &message)
+	if err != nil {
+		return nil, err
+	}
+
+	if message.UserId != userID {
+		return nil, fmt.Errorf("access denied: user is not the author")
+	}
+	if editMessage.Message != "" {
+		message.Message = editMessage.Message
+		now := time.Now()
+		message.EditedAt = &now
+	}
+
+	err = db.Save(&message).Error
+	if err != nil {
+		return nil, err
+	}
+	return GetMessageById(db, messageID)
 }
 
 func DeleteMessageById(db *gorm.DB, messageID, userID uuid.UUID) error {

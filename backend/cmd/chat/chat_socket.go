@@ -32,10 +32,10 @@ type MessagePayload struct {
 	RoomId     uuid.UUID `json:"room_id"`
 	UserId     uuid.UUID `json:"user_id"`
 	Message    string    `json:"message"`
-	ContentUrl []string  `json:"content_url"` // нове поле
-	FullName   string    `json:"full_name"`   // для broadcast
-	Avatar     string    `json:"avatar"`      // для broadcast
-	CreatedAt  string    `json:"created_at"`  // ISO string з фронта
+	ContentUrl []string  `json:"content_url"`
+	FullName   string    `json:"full_name"`  // для broadcast
+	Avatar     string    `json:"avatar"`     // для broadcast
+	CreatedAt  string    `json:"created_at"` // ISO string з фронта
 }
 
 func HandleWebSocket(ctx *gin.Context) {
@@ -90,7 +90,10 @@ func HandleWebSocket(ctx *gin.Context) {
 	// 📜 Надсилаємо історію
 	if history, err := rooms.GetAllMessages(db, roomID); err == nil {
 		if historyData, err := json.Marshal(history); err == nil {
-			conn.WriteMessage(websocket.TextMessage, historyData)
+			err := conn.WriteMessage(websocket.TextMessage, historyData)
+			if err != nil {
+				return
+			}
 		}
 	}
 
@@ -138,11 +141,41 @@ func HandleWebSocket(ctx *gin.Context) {
 			continue
 		}
 
+		if raw["type"] == "edit_message" {
+			messageIDStr, _ := raw["id"].(string)
+			newMessageText, _ := raw["message"].(string)
+
+			messageID, err := uuid.Parse(messageIDStr)
+			if err != nil {
+				log.Println("❌ Не валідний ID повідомлення:", messageIDStr)
+				continue
+			}
+
+			edited, err := rooms.EditMessageById(db, messageID, user.ID, &rooms.EditMessage{Message: newMessageText})
+			if err != nil {
+				log.Println("❌ Помилка при редагуванні повідомлення:", err)
+				continue
+			}
+
+			// Відправляємо повністю оновлене повідомлення
+			editedJSON, err := json.Marshal(map[string]interface{}{
+				"type":    "message_edited",
+				"message": edited, // повна структура Message
+			})
+			if err != nil {
+				log.Println("❌ Помилка маршалінгу:", err)
+				continue
+			}
+
+			broadcastMessage(roomID, editedJSON)
+			continue
+		}
+
 		if raw["type"] == "delete_message" {
 			messageIDStr, _ := raw["id"].(string)
 			messageID, err := uuid.Parse(messageIDStr)
 			if err != nil {
-				log.Println("❌ Невалідний ID повідомлення:", messageIDStr)
+				log.Println("❌ Не валідний ID повідомлення:", messageIDStr)
 				continue
 			}
 
