@@ -3,7 +3,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState, useMemo } from "react";
 import {
-    Box, VStack, Text, Flex, useDisclosure, Spinner,
+    Box, VStack, Text, Flex, useDisclosure, Spinner, Button
 } from "@chakra-ui/react";
 
 import useAuth from "../../../hooks/useAuth";
@@ -98,23 +98,48 @@ function ChatRoom() {
         }
     }, [messages]);
 
+    const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+
+    const handleEditMessage = (msgId: string, message: string) => {
+        setEditingMessageId(msgId);
+        setInput(message);
+    };
+
+
+
     const sendMessage = () => {
         if (isInteractionDisabled || !user) return;
-        if (ws.current && ws.current.readyState === WebSocket.OPEN && input.trim()) {
-            const message: MessageType = {
-                id: crypto.randomUUID(),
-                user_id: user.ID,
-                full_name: user.fullName ?? "",
-                avatar: user.avatar ?? "",
-                room_id: roomId,
-                message: input,
-                content_url: [],
-                created_at: new Date().toISOString(),
-            };
-            ws.current.send(JSON.stringify(message));
+        if (!input.trim()) return;
+
+        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+            if (editingMessageId) {
+                // ✏️ Відправляємо запит на редагування
+                const editPayload = {
+                    type: "edit_message",
+                    id: editingMessageId,
+                    message: input,
+                };
+                ws.current.send(JSON.stringify(editPayload));
+                setEditingMessageId(null); // виходимо з режиму редагування
+            } else {
+                // 🆕 Звичайне нове повідомлення
+                const message: MessageType = {
+                    id: crypto.randomUUID(),
+                    user_id: user.ID,
+                    full_name: user.fullName ?? "",
+                    avatar: user.avatar ?? "",
+                    room_id: roomId,
+                    message: input,
+                    content_url: [],
+                    created_at: new Date().toISOString(),
+                };
+                ws.current.send(JSON.stringify(message));
+            }
+
             setInput("");
         }
     };
+
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || isInteractionDisabled || !user) return;
@@ -207,6 +232,7 @@ function ChatRoom() {
                                     ws.current?.send(JSON.stringify({ type: "delete_message", id }));
                                     setMessages(prev => prev.filter(m => m.id !== id));
                                 }}
+                                onEdit={() => handleEditMessage(msg.id, msg.message ?? "")}
                             />
                         ))}
                         <div ref={messagesEndRef} />
@@ -221,6 +247,23 @@ function ChatRoom() {
                     disabled={isInteractionDisabled}
                     iconSrc={sendMessageIcon}
                 />
+                {editingMessageId && (
+                    <Text color="teal.500" fontSize="sm" mt={1} px={2}>
+                        ✏️ Ви редагуєте повідомлення
+                        <Button
+                            size="xs"
+                            ml={2}
+                            variant="ghost"
+                            colorScheme="red"
+                            onClick={() => {
+                                setEditingMessageId(null);
+                                setInput("");
+                            }}
+                        >
+                            Скасувати
+                        </Button>
+                    </Text>
+                )}
 
                 <FilePreviewModal
                     isOpen={isFileModalOpen}

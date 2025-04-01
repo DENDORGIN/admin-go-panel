@@ -197,6 +197,19 @@ func HandleWebSocket(ctx *gin.Context) {
 			continue
 		}
 
+		if raw["type"] == "user_typing" {
+			typingPayload := map[string]interface{}{
+				"type":    "user_typing",
+				"user_id": user.ID,
+				"room_id": roomID,
+			}
+
+			if out, err := json.Marshal(typingPayload); err == nil {
+				broadcastMessage(roomID, out)
+			}
+			continue
+		}
+
 		// 📨 Створення нового повідомлення
 		var payload MessagePayload
 		if err := json.Unmarshal(msg, &payload); err != nil {

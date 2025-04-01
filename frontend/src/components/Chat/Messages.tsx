@@ -34,16 +34,19 @@ interface MessageProps {
         message?: string;
         content_url?: string[];
         created_at: string;
+        edited_at?: string;
         isLoading?: boolean;
     };
     isMe: boolean;
     isLast?: boolean;
     onDelete?: (id: string) => void;
+    onEdit?: () => void;
 }
 
-function parseMessageWithLinks(text: string) {
+function parseMessageWithLinks(text: string | undefined | null) {
+    const safeText = typeof text === "string" ? text : "";
     const urlRegex = /((https?:\/\/|www\.)[^\s]+)/g;
-    const parts = text.split(urlRegex);
+    const parts = safeText.split(urlRegex);
 
     return parts.map((part, index) => {
         if (urlRegex.test(part)) {
@@ -67,7 +70,8 @@ function parseMessageWithLinks(text: string) {
     });
 }
 
-const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast, onDelete }) => {
+
+const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast, onDelete, onEdit }) => {
     const bgColor = useColorModeValue(
         isMe ? "teal.500" : "cyan.100",
         isMe ? "teal.400" : "cyan.600"
@@ -83,17 +87,19 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast, onDelete }) 
         avatar: string;
     }>(null);
 
-    const extractFirstLink = (text: string) => {
-        const match = text.match(/(https?:\/\/[^\s]+)/);
+    const extractFirstLink = (text: string | null | undefined) => {
+        const safeText = typeof text === "string" ? text : "";
+        const match = safeText.match(/(https?:\/\/[^\s]+)/);
         return match ? match[0] : null;
     };
+
     const url = extractFirstLink(msg.message || "");
 
     const scrollRef = useRef<HTMLDivElement | null>(null);
 
-    const handleEdit = (id: string) => {
-        console.log("Редагування повідомлення:", id);
-    };
+    // const handleEdit = (id: string) => {
+    //     console.log("Редагування повідомлення:", id);
+    // };
 
     useEffect(() => {
         if (isLast && scrollRef.current) {
@@ -152,8 +158,8 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast, onDelete }) 
                         />
                         <Portal>
                             <MenuList zIndex={3}>
-                                <MenuItem icon={<FiEdit />} onClick={() => handleEdit(msg.id)}>
-                                    Update
+                                <MenuItem icon={<FiEdit />} onClick={onEdit}>
+                                    Edit Message
                                 </MenuItem>
                                 <MenuItem icon={<FiTrash2 />} color="red.500" onClick={() => onDelete?.(msg.id)}>
                                     Delete
@@ -227,13 +233,22 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast, onDelete }) 
                     </>
                 )}
 
-                <Text fontSize="sm" color={isMe ? "white" : "gray.600"} mt={2}>
-                    {new Date(msg.created_at).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false
-                    })}
-                </Text>
+                <Flex align="center" gap={2} mt={2}>
+                    <Text fontSize="sm" color={isMe ? "white" : "gray.600"}>
+                        {new Date(msg.created_at).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false
+                        })}
+                    </Text>
+
+                    {msg.edited_at && (
+                        <Text fontSize="xs" color={isMe ? "whiteAlpha.700" : "gray.400"} fontStyle="italic">
+                            (edited)
+                        </Text>
+                    )}
+                </Flex>
+
             </Box>
             <UserProfileModal isOpen={isOpen} onClose={onClose} user={selectedUser} />
         </Flex>

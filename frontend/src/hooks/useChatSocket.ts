@@ -48,6 +48,8 @@ export const useChatSocket = ({
                     onMessagesUpdate(data);
                 } else if (data?.type === "update_message") {
                     onMessageUpdate(data);
+                }else if (data?.type === "message_edited") {
+                    onMessageUpdate(data.message);
                 } else if (data.message !== undefined) {
                     onNewMessage({ ...data, isLoading: false });
                 }
