@@ -3,6 +3,7 @@ package chat
 import (
 	"backend/cmd/chat/rooms"
 	"backend/internal/adminpanel/entities"
+	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
 	"encoding/json"
 	"fmt"
@@ -138,6 +139,39 @@ func HandleWebSocket(ctx *gin.Context) {
 				}
 			}
 
+			continue
+		}
+
+		if raw["type"] == "add_reaction" {
+			messageIDStr, _ := raw["message_id"].(string)
+			emoji, _ := raw["emoji"].(string)
+
+			messageID, err := uuid.Parse(messageIDStr)
+			if err != nil {
+				log.Println("❌ Невалідний message_id:", messageIDStr)
+				continue
+			}
+
+			reactions, err := models.ToggleReaction(db, models.ReactionPayload{
+				UserID:    user.ID,
+				MessageID: messageID,
+				Emoji:     emoji,
+			})
+
+			if err != nil {
+				log.Println("❌ Помилка реакції:", err)
+				continue
+			}
+
+			// Пакуємо та шлемо всім оновлені реакції
+			reactionsPayload := map[string]interface{}{
+				"type":       "message_reactions_updated",
+				"message_id": messageID,
+				"reactions":  reactions,
+			}
+			if out, err := json.Marshal(reactionsPayload); err == nil {
+				broadcastMessage(roomID, out)
+			}
 			continue
 		}
 

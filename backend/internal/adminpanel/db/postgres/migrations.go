@@ -47,6 +47,7 @@ func InitDB(ctx *gin.Context) {
 		&entities.Messages{},
 		&entities.DirectMessage{},
 		&entities.Conversations{},
+		&entities.Reaction{},
 	)
 	if err != nil {
 		log.Fatalf("Failed to migrate: %v", err)

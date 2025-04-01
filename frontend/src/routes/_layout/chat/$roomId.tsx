@@ -224,6 +224,7 @@ function ChatRoom() {
                     >
                         {messages.map((msg, index) => (
                             <MessageBubble
+                                user={user}
                                 key={msg.id}
                                 msg={msg}
                                 isMe={msg.user_id === user?.ID}
@@ -233,6 +234,13 @@ function ChatRoom() {
                                     setMessages(prev => prev.filter(m => m.id !== id));
                                 }}
                                 onEdit={() => handleEditMessage(msg.id, msg.message ?? "")}
+                                onReact={(id, emoji) => {
+                                    ws.current?.send(JSON.stringify({
+                                        type: "add_reaction",
+                                        message_id: id,
+                                        emoji,
+                                    }));
+                                }}
                             />
                         ))}
                         <div ref={messagesEndRef} />

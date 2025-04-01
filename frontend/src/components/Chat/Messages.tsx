@@ -18,12 +18,20 @@ import {
     Portal,
 } from "@chakra-ui/react";
 import { useDisclosure } from "@chakra-ui/react";
+import { Popover, PopoverTrigger, PopoverContent, PopoverBody } from "@chakra-ui/react";
 import { DragHandleIcon } from '@chakra-ui/icons'
 
 import UserProfileModal from "../Modals/UserProfileModal";
 import LinkPreview from "../Modals/LinkPreviewModal";
 import { useState, useEffect, useRef } from "react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { FaSmile } from "react-icons/fa";
+
+
+type Reaction = {
+    user_id: string;
+    emoji: string;
+};
 
 interface MessageProps {
     msg: {
@@ -36,11 +44,15 @@ interface MessageProps {
         created_at: string;
         edited_at?: string;
         isLoading?: boolean;
+        reactions?: Reaction[];
+
     };
+    user?: { ID: string } | null
     isMe: boolean;
     isLast?: boolean;
     onDelete?: (id: string) => void;
     onEdit?: () => void;
+    onReact?: (id: string, emoji: string) => void;
 }
 
 function parseMessageWithLinks(text: string | undefined | null) {
@@ -71,7 +83,7 @@ function parseMessageWithLinks(text: string | undefined | null) {
 }
 
 
-const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast, onDelete, onEdit }) => {
+const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, user, isLast, onDelete, onEdit, onReact }) => {
     const bgColor = useColorModeValue(
         isMe ? "teal.500" : "cyan.100",
         isMe ? "teal.400" : "cyan.600"
@@ -97,15 +109,18 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast, onDelete, on
 
     const scrollRef = useRef<HTMLDivElement | null>(null);
 
-    // const handleEdit = (id: string) => {
-    //     console.log("Редагування повідомлення:", id);
-    // };
-
     useEffect(() => {
         if (isLast && scrollRef.current) {
             scrollRef.current.scrollIntoView({ behavior: "smooth" });
         }
     }, [isLast]);
+
+    const {
+        isOpen: isPopoverOpen,
+        onOpen: onPopoverOpen,
+        onClose: onPopoverClose
+    } = useDisclosure();
+
 
     return (
         <Flex justify={isMe ? "flex-end" : "flex-start"}>
@@ -232,6 +247,67 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, isLast, onDelete, on
                         )}
                     </>
                 )}
+                <Popover isOpen={isPopoverOpen} onOpen={onPopoverOpen} onClose={onPopoverClose}>
+                <PopoverTrigger>
+                        <IconButton
+                            icon={<FaSmile />}
+                            size="xs"
+                            variant="ghost"
+                            aria-label="react"
+                            _hover={{ bg: isMe ? "teal.600" : "cyan.700" }}
+                        />
+                    </PopoverTrigger>
+                    <Portal>
+                        <PopoverContent w="fit-content" bg="gray.700" color="white" border="none" zIndex={9999}>
+                            <PopoverBody display="flex" flexWrap="wrap" gap={2} p={2}>
+                                {["🔥", "❤️", "😂", "👍", "👎", "🎉", "💡", "😢", "😮"].map((emoji) => (
+                                    <Text
+                                        key={emoji}
+                                        fontSize="xl"
+                                        cursor="pointer"
+                                        _hover={{ transform: "scale(1.3)" }}
+                                        transition="all 0.2s ease"
+                                        onClick={() => {
+                                            onReact?.(msg.id, emoji);
+                                            onPopoverClose();
+                                        }}
+                                    >
+                                        {emoji}
+                                    </Text>
+                                ))}
+                            </PopoverBody>
+                        </PopoverContent>
+                    </Portal>
+                </Popover>
+                {msg.reactions && msg.reactions.length > 0 && (() => {
+                    // 🔁 Групуємо реакції
+                    const grouped = msg.reactions.reduce((acc, r) => {
+                        if (!acc[r.emoji]) acc[r.emoji] = [];
+                        acc[r.emoji].push(r.user_id);
+                        return acc;
+                    }, {} as Record<string, string[]>);
+
+                    return (
+                        <Flex wrap="wrap" gap={2} mt={2}>
+                            {Object.entries(grouped).map(([emoji, userIds]) => (
+                                <Box
+                                    key={emoji}
+                                    px={2}
+                                    py={1}
+                                    bg={user?.ID && userIds.includes(user.ID) ? "pink.500" : "whiteAlpha.300"}
+                                    color={user?.ID && userIds.includes(user.ID) ? "white" : "black"}
+                                    borderRadius="md"
+                                    fontSize="sm"
+                                    cursor="default"
+
+                                >
+                                    {emoji} {userIds.length}
+                                </Box>
+                            ))}
+                        </Flex>
+                    );
+                })()}
+
 
                 <Flex align="center" gap={2} mt={2}>
                     <Text fontSize="sm" color={isMe ? "white" : "gray.600"}>
