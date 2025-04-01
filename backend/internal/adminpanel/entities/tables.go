@@ -143,7 +143,9 @@ type Messages struct {
 	RoomId    uuid.UUID `gorm:"type:uuid;" json:"room_id"`
 	Message   string    `gorm:"type:string" json:"message"`
 	CreatedAt time.Time `gorm:"type:time" json:"created_at"`
-	User      User      `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
+	UpdatedAt time.Time
+	EditedAt  *time.Time `gorm:"type:timestamp"`
+	User      User       `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
 }
 
 func (message *Messages) BeforeCreate(*gorm.DB) error {
