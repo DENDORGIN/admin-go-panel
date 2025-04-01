@@ -266,6 +266,11 @@ export type PreviewDto = {
   url: string;
 }
 
+export type Reaction = {
+  user_id: string;
+  emoji: string;
+};
+
 export interface MessageType {
   id: string;
   user_id: string;
@@ -276,4 +281,6 @@ export interface MessageType {
   content_url?: string[];
   created_at: string;
   isLoading?: boolean;
+  reactions?: Reaction[];
 }
+

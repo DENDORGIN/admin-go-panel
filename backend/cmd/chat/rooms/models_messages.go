@@ -11,17 +11,22 @@ import (
 )
 
 type Message struct {
-	ID         string   `json:"id"`
-	UserID     string   `json:"user_id"`
-	FullName   string   `json:"full_name"`
-	Avatar     string   `json:"avatar"`
-	RoomID     string   `json:"room_id"`
-	Message    string   `json:"message"`
-	ContentUrl []string `json:"content_url"`
-	CreatedAt  string   `json:"created_at"`
-	EditedAt   *string  `json:"edited_at,omitempty"`
+	ID         string        `json:"id"`
+	UserID     string        `json:"user_id"`
+	FullName   string        `json:"full_name"`
+	Avatar     string        `json:"avatar"`
+	RoomID     string        `json:"room_id"`
+	Message    string        `json:"message"`
+	ContentUrl []string      `json:"content_url"`
+	CreatedAt  string        `json:"created_at"`
+	EditedAt   *string       `json:"edited_at,omitempty"`
+	Reactions  []ReactionDTO `json:"reactions,omitempty"`
 }
 
+type ReactionDTO struct {
+	UserID string `json:"user_id"`
+	Emoji  string `json:"emoji"`
+}
 type EditMessage struct {
 	Message string `json:"message"`
 }
@@ -71,6 +76,19 @@ func GetAllMessages(db *gorm.DB, roomId uuid.UUID) ([]Message, error) {
 		}
 	}
 
+	var reactions []entities.Reaction
+	if err := db.Where("message_id IN ?", messageIDs).Find(&reactions).Error; err != nil {
+		return nil, err
+	}
+
+	reactionMap := make(map[uuid.UUID][]ReactionDTO)
+	for _, r := range reactions {
+		reactionMap[r.MessageID] = append(reactionMap[r.MessageID], ReactionDTO{
+			UserID: r.UserId.String(),
+			Emoji:  r.Emoji,
+		})
+	}
+
 	// 5️⃣ Отримуємо всі медіа по повідомленнях
 	var media []entities.Media
 	if err := db.Where("content_id IN (?)", messageIDs).Find(&media).Error; err != nil {
@@ -101,6 +119,7 @@ func GetAllMessages(db *gorm.DB, roomId uuid.UUID) ([]Message, error) {
 			ContentUrl: getOrEmpty(mediaMap, msg.ID),
 			CreatedAt:  msg.CreatedAt.Format("2006-01-02 15:04:05"),
 			EditedAt:   editedAt,
+			Reactions:  reactionMap[msg.ID],
 		})
 	}
 
