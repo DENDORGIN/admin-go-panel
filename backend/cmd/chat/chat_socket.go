@@ -89,7 +89,7 @@ func HandleWebSocket(ctx *gin.Context) {
 	mutex.Unlock()
 
 	// 📜 Надсилаємо історію
-	if history, err := rooms.GetAllMessages(db, roomID); err == nil {
+	if history, err := rooms.GetMessagesPaginated(db, roomID, 30, nil); err == nil {
 		if historyData, err := json.Marshal(history); err == nil {
 			err := conn.WriteMessage(websocket.TextMessage, historyData)
 			if err != nil {
@@ -125,7 +125,7 @@ func HandleWebSocket(ctx *gin.Context) {
 			}
 
 			// Після оновлення медіа
-			updatedMessages, err := rooms.GetAllMessages(db, roomID)
+			updatedMessages, err := rooms.GetMessagesPaginated(db, roomID, 30, nil)
 			if err != nil {
 				log.Println("❌ GetAllMessages error:", err)
 				continue
@@ -139,6 +139,27 @@ func HandleWebSocket(ctx *gin.Context) {
 				}
 			}
 
+			continue
+		}
+
+		if raw["type"] == "load_more_messages" {
+			limit := int(raw["limit"].(float64))
+			beforeID, _ := uuid.Parse(raw["before"].(string))
+
+			msgs, err := rooms.GetMessagesPaginated(db, roomID, limit, &beforeID)
+			if err != nil {
+				log.Println("❌ Error loading messages:", err)
+				continue
+			}
+
+			payload := map[string]interface{}{
+				"type":     "messages_batch",
+				"messages": msgs,
+			}
+
+			if out, err := json.Marshal(payload); err == nil {
+				conn.WriteMessage(websocket.TextMessage, out) // 🔁 тільки клієнту
+			}
 			continue
 		}
 

@@ -19,6 +19,9 @@ import UserList from "../../../components/Chat/UserList";
 import sendMessageIcon from "@/assets/images/send-message.svg";
 import { MediaService } from "../../../client";
 
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
+
 export const Route = createFileRoute("/_layout/chat/$roomId")({
     component: ChatRoom,
 });
@@ -46,6 +49,29 @@ function ChatRoom() {
         onOpen: onFileModalOpen,
         onClose: onFileModalClose
     } = useDisclosure();
+
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
+    const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+
+    const getAllImagesFromMessages = (messages: MessageType[]) => {
+        return messages.flatMap((msg) =>
+            (msg.content_url || []).filter((url) =>
+                url.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+            )
+        );
+    };
+
+    const handleImageClick = (clickedUrl: string) => {
+        const allImages = getAllImagesFromMessages(messages);
+        const index = allImages.findIndex((url) => url === clickedUrl);
+
+        if (index !== -1) {
+            setLightboxImages(allImages);
+            setLightboxIndex(index);
+            setLightboxOpen(true);
+        }
+    };
 
     const roomName = room?.name_room || "Невідома кімната";
     const isRoomClosed = room?.status === false;
@@ -105,24 +131,20 @@ function ChatRoom() {
         setInput(message);
     };
 
-
-
     const sendMessage = () => {
         if (isInteractionDisabled || !user) return;
         if (!input.trim()) return;
 
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
             if (editingMessageId) {
-                // ✏️ Відправляємо запит на редагування
                 const editPayload = {
                     type: "edit_message",
                     id: editingMessageId,
                     message: input,
                 };
                 ws.current.send(JSON.stringify(editPayload));
-                setEditingMessageId(null); // виходимо з режиму редагування
+                setEditingMessageId(null);
             } else {
-                // 🆕 Звичайне нове повідомлення
                 const message: MessageType = {
                     id: crypto.randomUUID(),
                     user_id: user.ID,
@@ -135,11 +157,9 @@ function ChatRoom() {
                 };
                 ws.current.send(JSON.stringify(message));
             }
-
             setInput("");
         }
     };
-
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || isInteractionDisabled || !user) return;
@@ -241,11 +261,20 @@ function ChatRoom() {
                                         emoji,
                                     }));
                                 }}
+                                onImageClick={handleImageClick}
                             />
                         ))}
                         <div ref={messagesEndRef} />
                     </VStack>
                 </Box>
+
+                <Lightbox
+                    open={lightboxOpen}
+                    close={() => setLightboxOpen(false)}
+                    index={lightboxIndex}
+                    slides={lightboxImages.map((src) => ({ src }))}
+                    controller={{ closeOnBackdropClick: true }}
+                />
 
                 <InputBar
                     value={input}

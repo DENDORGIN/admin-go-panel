@@ -4,8 +4,8 @@ import {
     Flex,
     Text,
     useColorModeValue,
-    Image,
     Link,
+    Image,
     SimpleGrid,
     Spinner,
     Fade,
@@ -23,6 +23,7 @@ import { DragHandleIcon } from '@chakra-ui/icons'
 
 import UserProfileModal from "../Modals/UserProfileModal";
 import LinkPreview from "../Modals/LinkPreviewModal";
+
 import { useState, useEffect, useRef } from "react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { TiHeartOutline } from "react-icons/ti";
@@ -53,6 +54,8 @@ interface MessageProps {
     onDelete?: (id: string) => void;
     onEdit?: () => void;
     onReact?: (id: string, emoji: string) => void;
+    onImageClick?: (url: string) => void;
+
 }
 
 function parseMessageWithLinks(text: string | undefined | null) {
@@ -83,7 +86,7 @@ function parseMessageWithLinks(text: string | undefined | null) {
 }
 
 
-const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, user, isLast, onDelete, onEdit, onReact }) => {
+const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, user, isLast, onDelete, onEdit, onReact, onImageClick }) => {
     const bgColor = useColorModeValue(
         isMe ? "teal.500" : "cyan.100",
         isMe ? "teal.400" : "cyan.600"
@@ -193,46 +196,56 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, user, isLast, onDele
                 ) : (
                     <>
                         <Fade in={!msg.isLoading}>
-                            {hasFiles && (
-                                <SimpleGrid
-                                    columns={msg.content_url!.length === 1 ? 1 : 2}
-                                    spacing={2}
-                                    mt={2}
-                                    w="100%"
-                                >
-                                    {msg.content_url!.map((url, index) => {
-                                        if (!url || typeof url !== "string") return null;
+                            {hasFiles && (() => {
+                                const imageUrls = msg.content_url!.filter((url) =>
+                                    url.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+                                );
+                                const otherFiles = msg.content_url!.filter((url) =>
+                                    !url.match(/\.(jpg|jpeg|png|gif|webp)$/i)
+                                );
 
-                                        return url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                                            <Image
-                                                key={index}
-                                                src={url}
-                                                alt={`file-${index}`}
-                                                borderRadius="md"
-                                                maxW="100%"
-                                                maxH="200px"
-                                                objectFit="cover"
-                                            />
-                                        ) : (
-                                            <Link
-                                                key={index}
-                                                href={url}
-                                                isExternal
-                                                color="teal.200"
-                                                textDecoration="underline"
-                                                _hover={{
-                                                    color: "teal.300",
-                                                    textDecoration: "none",
-                                                    transform: "scale(1.02)"
-                                                }}
-                                                transition="all 0.2s ease-in-out"
-                                            >
-                                                📎 Файл {index + 1}
-                                            </Link>
-                                        );
-                                    })}
-                                </SimpleGrid>
-                            )}
+                                return (
+                                    <>
+                                        {imageUrls.length > 0 && (
+                                            <Box display="flex" flexWrap="wrap" gap={2} mt={2} p={1}>
+                                                {imageUrls.map((src, index) => (
+                                                    <Image
+                                                        key={index}
+                                                        src={src}
+                                                        alt={`image-${index}`}
+                                                        maxW="150px"
+                                                        maxH="150px"
+                                                        borderRadius="md"
+                                                        cursor="pointer"
+                                                        onClick={() => onImageClick?.(src)}
+                                                    />
+                                                ))}
+                                            </Box>
+                                        )}
+                                        {otherFiles.length > 0 && (
+                                            <SimpleGrid columns={1} spacing={2} mt={2} w="100%">
+                                                {otherFiles.map((url, index) => (
+                                                    <Link
+                                                        key={index}
+                                                        href={url}
+                                                        isExternal
+                                                        color="teal.200"
+                                                        textDecoration="underline"
+                                                        _hover={{
+                                                            color: "teal.300",
+                                                            textDecoration: "none",
+                                                            transform: "scale(1.02)",
+                                                        }}
+                                                        transition="all 0.2s ease-in-out"
+                                                    >
+                                                        📎 File {index + 1}
+                                                    </Link>
+                                                ))}
+                                            </SimpleGrid>
+                                        )}
+                                    </>
+                                );
+                            })()}
                         </Fade>
 
                         {msg.message && (
