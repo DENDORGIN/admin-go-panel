@@ -25,7 +25,7 @@ import UserProfileModal from "../Modals/UserProfileModal";
 import LinkPreview from "../Modals/LinkPreviewModal";
 import { useState, useEffect, useRef } from "react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
-import { FaSmile } from "react-icons/fa";
+import { TiHeartOutline } from "react-icons/ti";
 
 
 type Reaction = {
@@ -247,38 +247,7 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, user, isLast, onDele
                         )}
                     </>
                 )}
-                <Popover isOpen={isPopoverOpen} onOpen={onPopoverOpen} onClose={onPopoverClose}>
-                <PopoverTrigger>
-                        <IconButton
-                            icon={<FaSmile />}
-                            size="xs"
-                            variant="ghost"
-                            aria-label="react"
-                            _hover={{ bg: isMe ? "teal.600" : "cyan.700" }}
-                        />
-                    </PopoverTrigger>
-                    <Portal>
-                        <PopoverContent w="fit-content" bg="gray.700" color="white" border="none" zIndex={9999}>
-                            <PopoverBody display="flex" flexWrap="wrap" gap={2} p={2}>
-                                {["🔥", "❤️", "😂", "👍", "👎", "🎉", "💡", "😢", "😮"].map((emoji) => (
-                                    <Text
-                                        key={emoji}
-                                        fontSize="xl"
-                                        cursor="pointer"
-                                        _hover={{ transform: "scale(1.3)" }}
-                                        transition="all 0.2s ease"
-                                        onClick={() => {
-                                            onReact?.(msg.id, emoji);
-                                            onPopoverClose();
-                                        }}
-                                    >
-                                        {emoji}
-                                    </Text>
-                                ))}
-                            </PopoverBody>
-                        </PopoverContent>
-                    </Portal>
-                </Popover>
+
                 {msg.reactions && msg.reactions.length > 0 && (() => {
                     // 🔁 Групуємо реакції
                     const grouped = msg.reactions.reduce((acc, r) => {
@@ -309,21 +278,60 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, user, isLast, onDele
                 })()}
 
 
-                <Flex align="center" gap={2} mt={2}>
-                    <Text fontSize="sm" color={isMe ? "white" : "gray.600"}>
-                        {new Date(msg.created_at).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false
-                        })}
-                    </Text>
-
-                    {msg.edited_at && (
-                        <Text fontSize="xs" color={isMe ? "whiteAlpha.700" : "gray.400"} fontStyle="italic">
-                            (edited)
+                <Flex align="center" gap={2} mt={2} justify="space-between">
+                    <Flex align="center" gap={2}>
+                        <Text fontSize="sm" color={isMe ? "white" : "gray.600"}>
+                            {new Date(msg.created_at).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: false,
+                            })}
                         </Text>
-                    )}
+
+                        {msg.edited_at && (
+                            <Text fontSize="xs" color={isMe ? "whiteAlpha.700" : "gray.400"} fontStyle="italic">
+                                (edited)
+                            </Text>
+                        )}
+                    </Flex>
+
+                    <Popover isOpen={isPopoverOpen} onOpen={onPopoverOpen} onClose={onPopoverClose}>
+                        <PopoverTrigger>
+                            <IconButton
+                                icon={<TiHeartOutline />}
+                                size="40px"
+                                variant="ghost"
+                                aria-label="react"
+                                _hover={{ bg: bgColor, transform: "scale(1.15)" }}
+                                _active={{ transform: "scale(0.95)" }}
+                                transition="all 0.1s ease-in-out"
+                                cursor="pointer"
+                            />
+                        </PopoverTrigger>
+                        <Portal>
+                            <PopoverContent w="fit-content" bg="gray.700" color="white" border="none" zIndex={9999}>
+                                <PopoverBody display="flex" flexWrap="wrap" gap={2} p={2}>
+                                    {["🔥", "❤️", "😂", "👍", "👎", "🎉", "💡", "😢", "😮"].map((emoji) => (
+                                        <Text
+                                            key={emoji}
+                                            fontSize="xl"
+                                            cursor="pointer"
+                                            _hover={{ transform: "scale(1.3)" }}
+                                            transition="all 0.2s ease"
+                                            onClick={() => {
+                                                onReact?.(msg.id, emoji);
+                                                onPopoverClose();
+                                            }}
+                                        >
+                                            {emoji}
+                                        </Text>
+                                    ))}
+                                </PopoverBody>
+                            </PopoverContent>
+                        </Portal>
+                    </Popover>
                 </Flex>
+
 
             </Box>
             <UserProfileModal isOpen={isOpen} onClose={onClose} user={selectedUser} />

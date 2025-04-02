@@ -15,16 +15,25 @@ type ReactionPayload struct {
 func ToggleReaction(db *gorm.DB, payload ReactionPayload) ([]entities.Reaction, error) {
 	var existing entities.Reaction
 
-	err := db.Where("user_id = ? AND message_id = ? AND emoji = ?", payload.UserID, payload.MessageID, payload.Emoji).
+	// Шукаємо будь-яку реакцію цього користувача на це повідомлення
+	err := db.Where("user_id = ? AND message_id = ?", payload.UserID, payload.MessageID).
 		First(&existing).Error
 
 	if err == nil {
-		// вже є — видаляємо
-		if err := db.Delete(&existing).Error; err != nil {
-			return nil, err
+		if existing.Emoji == payload.Emoji {
+			// Натиснув ту саму реакцію — видаляємо
+			if err := db.Delete(&existing).Error; err != nil {
+				return nil, err
+			}
+		} else {
+			// Натиснув іншу — оновлюємо
+			existing.Emoji = payload.Emoji
+			if err := db.Save(&existing).Error; err != nil {
+				return nil, err
+			}
 		}
 	} else if err == gorm.ErrRecordNotFound {
-		// немає — додаємо
+		// Немає — додаємо
 		newReaction := entities.Reaction{
 			UserId:    payload.UserID,
 			MessageID: payload.MessageID,
@@ -34,7 +43,7 @@ func ToggleReaction(db *gorm.DB, payload ReactionPayload) ([]entities.Reaction, 
 			return nil, err
 		}
 	} else {
-		return nil, err // інша помилка
+		return nil, err // Інша помилка
 	}
 
 	// Повертаємо всі реакції на це повідомлення
