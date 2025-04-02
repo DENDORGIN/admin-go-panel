@@ -39,8 +39,8 @@ const ModalImageGallery = ({
           key={src}
           src={src}
           alt={title || `Image ${index + 1}`}
-          maxW="80x"
-          maxH="80px"
+          maxW="100x"
+          maxH="100px"
           cursor="pointer"
           onClick={() => openLightbox(index)}
           onError={(e) => {
