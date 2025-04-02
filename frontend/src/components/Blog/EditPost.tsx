@@ -37,6 +37,7 @@ interface EditPostProps {
   post: PostPublic
   isOpen: boolean
   onClose: () => void
+  isDisabled: boolean
 }
 
 interface FileDetail {

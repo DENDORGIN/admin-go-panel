@@ -49,7 +49,9 @@ func GetAllBlogsHandler(ctx *gin.Context) {
 		return
 	}
 
-	blogs, err := models.GetAllBlogs(db, userID)
+	isSuperUser, _ := utils.GetIsSuperUser(db, userID)
+
+	blogs, err := models.GetAllBlogs(db, userID, isSuperUser)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

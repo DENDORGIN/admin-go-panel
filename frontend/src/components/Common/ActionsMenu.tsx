@@ -20,16 +20,18 @@ interface ActionsMenuProps {
   type: "User" | "Item" | "Post"
   value: ItemPublic | PostPublic | UserPublic
   disabled?: boolean
+  isDisabled?: boolean
 }
 
 const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
   const editModal = useDisclosure()
   const deleteModal = useDisclosure()
-  const { user } = useAuth();
+  const { user } = useAuth()
 
-  // Отримуємо ID власника залежно від типу
-  const ownerId = "owner_id" in value ? value.owner_id : ("ID" in value ? value.ID : null);
-  const isOwner = user?.ID === ownerId;
+  const ownerId = "owner_id" in value ? value.owner_id : ("ID" in value ? value.ID : null)
+
+  // Дозволяємо дію, якщо користувач — власник або суперюзер
+  const isAllowed = user?.isSuperUser || user?.ID === ownerId
 
   return (
       <>
@@ -41,27 +43,24 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
               variant="unstyled"
           />
           <MenuList>
-            {/* Редагування */}
             <MenuItem
                 onClick={editModal.onOpen}
                 icon={<FiEdit fontSize="16px" />}
-                isDisabled={!isOwner} // Блокуємо, якщо не власник
+                isDisabled={!isAllowed}
             >
               Edit {type}
             </MenuItem>
-            {/* Видалення */}
             <MenuItem
                 onClick={deleteModal.onOpen}
                 icon={<FiTrash fontSize="16px" />}
                 color="red.500"
-                isDisabled={!isOwner} // Блокуємо, якщо не власник
+                isDisabled={!isAllowed}
             >
               Delete {type}
             </MenuItem>
           </MenuList>
         </Menu>
 
-        {/* Модальне вікно для редагування */}
         {type === "User" && (
             <EditUser
                 user={value as UserPublic}
@@ -74,7 +73,7 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
                 item={value as ItemPublic}
                 isOpen={editModal.isOpen}
                 onClose={editModal.onClose}
-                {...(isOwner ? {} : { isDisabled: true })}
+                isDisabled={!isAllowed}
             />
         )}
         {type === "Post" && (
@@ -82,20 +81,20 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
                 post={value as PostPublic}
                 isOpen={editModal.isOpen}
                 onClose={editModal.onClose}
-                {...(isOwner ? {} : { isDisabled: true })}
+                isDisabled={!isAllowed}
             />
         )}
 
-        {/* Модальне вікно для видалення */}
         <Delete
             type={type}
             id={("ID" in value && value.ID) ? String(value.ID) : ""}
             isOpen={deleteModal.isOpen}
             onClose={deleteModal.onClose}
-            {...(isOwner ? {} : { isDisabled: true })}
+            isDisabled={!isAllowed}
         />
       </>
   )
 }
+
 
 export default ActionsMenu

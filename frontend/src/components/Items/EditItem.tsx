@@ -41,6 +41,7 @@ interface EditItemProps {
   item: ItemPublic
   isOpen: boolean
   onClose: () => void
+  isDisabled?: boolean
 }
 
 interface ItemUpdateExtended extends ItemUpdate {

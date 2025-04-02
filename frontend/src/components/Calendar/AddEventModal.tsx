@@ -24,8 +24,8 @@ import {
   NumberIncrementStepper,
   NumberDecrementStepper,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { type SubmitHandler, useForm } from "react-hook-form";
+import { useEffect } from "react";
+import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import useCustomToast from "../../hooks/useCustomToast";
 
 interface AddEventModalProps {
@@ -40,14 +40,15 @@ interface EventFormValues {
   description: string;
   startDate: string;
   endDate: string;
-  reminderOffset?: number;
+  reminderOffset: number;
   allDay: boolean;
-  color?: string | null;
+  color: string | null;
   eventType: string;
   sendEmail: boolean;
 }
 
 const eventTypes = ["workingDay", "sickDay", "vacation", "weekend"];
+const colors = ["red", "skyblue", "green", "violet", "orange", "pink"];
 
 const AddEventModal: React.FC<AddEventModalProps> = ({
                                                        isOpen,
@@ -55,17 +56,25 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                                                        onAddEvent,
                                                        selectedDate,
                                                      }) => {
-  const { register, handleSubmit, reset, setValue, watch } = useForm<EventFormValues>();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    control,
+  } = useForm<EventFormValues>({
+    defaultValues: {
+      reminderOffset: 15,
+      sendEmail: true,
+      color: null,
+      eventType: "workingDay",
+    },
+  });
 
-  const [sendEmail, setSendEmail] = useState(false);
-  // Обробник зміни чекбокса
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSendEmail(!e.target.checked); // Якщо зняли галочку → sendEmail = true
-  };
+  const showToast = useCustomToast();
 
   const handleClose = () => {
     reset();
-    setSendEmail(false); // Скидаємо чекбокс при закритті модального вікна
     onClose();
   };
 
@@ -84,46 +93,38 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
     }
   }, [selectedDate, setValue]);
 
-
-
-
-  const showToast = useCustomToast();
-
   const onSubmit: SubmitHandler<EventFormValues> = (data) => {
-    if (selectedDate) {
-      const startDate = selectedDate.startStr.split("T")[0];
-      const endDate = selectedDate.endStr
-          ? new Date(selectedDate.endStr).toISOString().split("T")[0]
-          : startDate;
-      const formattedStartDate = new Date(`${startDate}T${data.startDate}`).toISOString(); // Час браузера
-      const formattedEndDate = new Date(`${endDate}T${data.endDate}`).toISOString();
+    if (!selectedDate) return;
 
-      const newEvent = {
-        title: data.title,
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-        reminderOffset: data.reminderOffset,
-        allDay: selectedDate.allDay,
-        description: data.description,
-        color: data.color || null,
-        workingDay: data.eventType === "workingDay",
-        sickDay: data.eventType === "sickDay",
-        vacation: data.eventType === "vacation",
-        weekend: data.eventType === "weekend",
-        sendEmail: sendEmail
+    const startDate = selectedDate.startStr.split("T")[0];
+    const endDate = selectedDate.endStr
+        ? new Date(selectedDate.endStr).toISOString().split("T")[0]
+        : startDate;
 
-      };
+    const formattedStartDate = new Date(`${startDate}T${data.startDate}`).toISOString();
+    const formattedEndDate = new Date(`${endDate}T${data.endDate}`).toISOString();
 
-      onAddEvent(newEvent);
-      showToast("Create!", "Event created successfully.", "success");
-      reset();
-      handleClose();
-    }
+    const newEvent = {
+      title: data.title,
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
+      reminderOffset: data.reminderOffset,
+      allDay: selectedDate.allDay,
+      description: data.description,
+      color: data.color,
+      workingDay: data.eventType === "workingDay",
+      sickDay: data.eventType === "sickDay",
+      vacation: data.eventType === "vacation",
+      weekend: data.eventType === "weekend",
+      sendEmail: data.sendEmail,
+    };
+
+    onAddEvent(newEvent);
+    showToast("Create!", "Event created successfully.", "success");
+    reset();
+    handleClose();
   };
 
-  const colors = ["red", "skyblue", "green", "violet", "orange", "pink"];
-  const selectedColor = watch("color");
-  const selectedEventType = watch("eventType");
 
   return (
       <Modal isOpen={isOpen} onClose={handleClose} isCentered>
@@ -137,7 +138,11 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
               {selectedDate
                   ? `${new Date(selectedDate.startStr).toLocaleDateString()} ${
                       selectedDate.endStr
-                          ? `- ${new Date(new Date(selectedDate.endStr).setDate(new Date(selectedDate.endStr).getDate() - 1)).toLocaleDateString()}`
+                          ? `- ${new Date(
+                              new Date(selectedDate.endStr).setDate(
+                                  new Date(selectedDate.endStr).getDate() - 1
+                              )
+                          ).toLocaleDateString()}`
                           : ""
                   }`
                   : "N/A"}
@@ -161,22 +166,21 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
 
             <FormControl mt={4}>
               <FormLabel>Reminder Offset (minutes)</FormLabel>
-              <NumberInput
-                  size="md"
-                  maxW={24}
-                  min={1}
-                  defaultValue={15}
-                  value={watch("reminderOffset") || 15}
-                  onChange={(value) => setValue("reminderOffset", Number(value))} // ✅ Оновлюємо state
-              >
-                <NumberInputField {...register("reminderOffset", { required: true })} />
-                <NumberInputStepper>
-                  <NumberIncrementStepper />
-                  <NumberDecrementStepper />
-                </NumberInputStepper>
-              </NumberInput>
+              <Controller
+                  name="reminderOffset"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { onChange, value } }) => (
+                      <NumberInput min={1} maxW={24} value={value} onChange={(_, val) => onChange(val)}>
+                        <NumberInputField />
+                        <NumberInputStepper>
+                          <NumberIncrementStepper />
+                          <NumberDecrementStepper />
+                        </NumberInputStepper>
+                      </NumberInput>
+                  )}
+              />
             </FormControl>
-
 
             <FormControl mt={4}>
               <FormLabel>Description</FormLabel>
@@ -185,45 +189,63 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
 
             <FormControl mt={4}>
               <FormLabel>Event Color</FormLabel>
-              <HStack spacing={2}>
-                {colors.map((color) => (
-                    <Box
-                        key={color}
-                        width="30px"
-                        height="30px"
-                        borderRadius="md"
-                        cursor="pointer"
-                        bg={color}
-                        border={selectedColor === color ? "3px solid black" : "1px solid gray"}
-                        onClick={() => setValue("color", color)}
-                    />
-                ))}
-              </HStack>
+              <Controller
+                  control={control}
+                  name="color"
+                  render={({ field: { value, onChange } }) => (
+                      <HStack spacing={2}>
+                        {colors.map((color) => (
+                            <Box
+                                key={color}
+                                width="30px"
+                                height="30px"
+                                borderRadius="md"
+                                cursor="pointer"
+                                bg={color}
+                                border={value === color ? "3px solid black" : "1px solid gray"}
+                                onClick={() => onChange(color)}
+                            />
+                        ))}
+                      </HStack>
+                  )}
+              />
             </FormControl>
 
             <FormControl mt={4}>
               <FormLabel>Event Type</FormLabel>
-              <RadioGroup value={selectedEventType} onChange={(value) => setValue("eventType", value)}>
-                <VStack align="start">
-                  {eventTypes.map((type) => (
-                      <Radio key={type} value={type}>
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </Radio>
-                  ))}
-                </VStack>
-              </RadioGroup>
+              <Controller
+                  control={control}
+                  name="eventType"
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                      <RadioGroup {...field}>
+                        <VStack align="start">
+                          {eventTypes.map((type) => (
+                              <Radio key={type} value={type}>
+                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                              </Radio>
+                          ))}
+                        </VStack>
+                      </RadioGroup>
+                  )}
+              />
+            </FormControl>
 
-              {/* ✅ Чекбокс "Send Event" */}
-              <FormControl mt={4}>
-                <Checkbox
-                    size="lg"
-                    colorScheme="orange"
-                    defaultChecked
-                    onChange={handleCheckboxChange}
-                >
-                  Send Event
-                </Checkbox>
-              </FormControl>
+            <FormControl mt={4}>
+              <Controller
+                  control={control}
+                  name="sendEmail"
+                  render={({ field: { value, onChange } }) => (
+                      <Checkbox
+                          size="lg"
+                          colorScheme="orange"
+                          isChecked={value}
+                          onChange={(e) => onChange(e.target.checked)}
+                      >
+                        Send Event
+                      </Checkbox>
+                  )}
+              />
             </FormControl>
           </ModalBody>
 
