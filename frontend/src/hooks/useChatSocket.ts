@@ -14,6 +14,7 @@ interface UseChatSocketProps {
     onNewMessage: (msg: MessageType) => void;
     onMessageUpdate: (msg: Partial<MessageType> & { id: string }) => void;
     onMessageDelete?: (id: string) => void;
+    onBatchMessages?: (msgs: MessageType[]) => void;
 }
 
 export const useChatSocket = ({
@@ -23,6 +24,7 @@ export const useChatSocket = ({
                                   onMessagesUpdate,
                                   onNewMessage,
                                   onMessageUpdate,
+                                  onBatchMessages,
                               }: UseChatSocketProps) => {
     const ws = useRef<WebSocket | null>(null);
     const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -44,8 +46,11 @@ export const useChatSocket = ({
         socket.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
+
                 if (Array.isArray(data)) {
                     onMessagesUpdate(data);
+                } else if (data?.type === "messages_batch") {
+                    onBatchMessages?.(data.messages); // ✅ ОБРОБНИК ПАГІНАЦІЇ
                 } else if (data?.type === "update_message") {
                     onMessageUpdate(data);
                 } else if (data?.type === "message_reactions_updated") {
@@ -60,6 +65,7 @@ export const useChatSocket = ({
                 console.error("❌ WS error:", err);
             }
         };
+
 
         socket.onclose = (event) => {
             console.warn("❌ WebSocket закрито. Код:", event.code, "Причина:", event.reason);

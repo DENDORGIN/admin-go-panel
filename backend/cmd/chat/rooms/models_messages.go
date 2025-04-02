@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"slices"
 	"time"
 )
 
@@ -31,14 +32,25 @@ type EditMessage struct {
 	Message string `json:"message"`
 }
 
-func GetAllMessages(db *gorm.DB, roomId uuid.UUID) ([]Message, error) {
+func GetMessagesPaginated(db *gorm.DB, roomId uuid.UUID, limit int, before *uuid.UUID) ([]Message, error) {
 	var messages []entities.Messages
 	var response []Message
 
-	// 1️⃣ Отримуємо всі повідомлення в кімнаті
-	if err := db.Where("room_id = ?", roomId).Order("created_at ASC").Find(&messages).Error; err != nil {
+	query := db.Where("room_id = ?", roomId).Order("created_at DESC").Limit(limit)
+
+	if before != nil {
+		var beforeMsg entities.Messages
+		if err := db.Select("created_at").First(&beforeMsg, "id = ?", *before).Error; err == nil {
+			query = query.Where("created_at < ?", beforeMsg.CreatedAt)
+		}
+	}
+
+	if err := query.Find(&messages).Error; err != nil {
 		return nil, err
 	}
+
+	// 🌐 Зворотній порядок: від старих до нових
+	slices.Reverse(messages)
 
 	// 2️⃣ Отримуємо user_id для масового запиту
 	userIDs := make(map[uuid.UUID]bool)
