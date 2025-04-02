@@ -25,7 +25,7 @@ import {
   NumberDecrementStepper,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { type SubmitHandler, useForm } from "react-hook-form";
+import { type SubmitHandler, useForm, Controller } from "react-hook-form";
 import useCustomToast from "../../hooks/useCustomToast";
 
 interface AddEventModalProps {
@@ -53,9 +53,9 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
                                                        isOpen,
                                                        onClose,
                                                        onAddEvent,
-                                                       selectedDate,
+                                                       selectedDate
                                                      }) => {
-  const { register, handleSubmit, reset, setValue, watch } = useForm<EventFormValues>();
+  const { register, handleSubmit, reset, setValue, watch, control } = useForm<EventFormValues>();
 
   const [sendEmail, setSendEmail] = useState(false);
   // Обробник зміни чекбокса
@@ -161,21 +161,29 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
 
             <FormControl mt={4}>
               <FormLabel>Reminder Offset (minutes)</FormLabel>
-              <NumberInput
-                  size="md"
-                  maxW={24}
-                  min={1}
+              <Controller
+                  control={control}
+                  name="reminderOffset"
                   defaultValue={15}
-                  value={watch("reminderOffset") || 15}
-                  onChange={(value) => setValue("reminderOffset", Number(value))} // ✅ Оновлюємо state
-              >
-                <NumberInputField {...register("reminderOffset", { required: true })} />
-                <NumberInputStepper>
-                  <NumberIncrementStepper />
-                  <NumberDecrementStepper />
-                </NumberInputStepper>
-              </NumberInput>
+                  rules={{ required: true }}
+                  render={({ field: { onChange, value } }) => (
+                      <NumberInput
+                          min={1}
+                          maxW={24}
+                          size="md"
+                          value={value}
+                          onChange={(_, valueAsNumber) => onChange(valueAsNumber)} // ← тут важливо
+                      >
+                        <NumberInputField />
+                        <NumberInputStepper>
+                          <NumberIncrementStepper />
+                          <NumberDecrementStepper />
+                        </NumberInputStepper>
+                      </NumberInput>
+                  )}
+              />
             </FormControl>
+
 
 
             <FormControl mt={4}>

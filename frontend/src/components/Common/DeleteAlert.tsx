@@ -19,6 +19,7 @@ interface DeleteProps {
   id: string
   isOpen: boolean
   onClose: () => void
+  isDisabled: boolean
 }
 
 const Delete = ({ type, id, isOpen, onClose }: DeleteProps) => {

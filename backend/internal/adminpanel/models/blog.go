@@ -74,18 +74,24 @@ func CreateBlog(db *gorm.DB, b *entities.Blog) (*BlogPost, error) {
 	}, nil
 }
 
-func GetAllBlogs(db *gorm.DB, userId uuid.UUID) (*BlogGetAll, error) {
+func GetAllBlogs(db *gorm.DB, userId uuid.UUID, isSuperUser bool) (*BlogGetAll, error) {
 	var blogs []*entities.Blog
 	var media []*entities.Media
 	response := &BlogGetAll{}
 
-	// Отримуємо всі блоги автора
-	err := db.Where("owner_id = ?", userId).Order("position ASC").Find(&blogs).Error
+	// Формуємо базовий запит
+	query := db.Model(&entities.Blog{}).Order("position ASC")
+	if !isSuperUser {
+		query = query.Where("owner_id = ?", userId)
+	}
+
+	// Отримуємо блоги
+	err := query.Find(&blogs).Error
 	if err != nil {
 		return nil, err
 	}
 
-	// Отримуємо всі медіафайли, пов'язані з блогами цього автора
+	// Отримуємо пов'язані медіафайли
 	var blogIDs []uuid.UUID
 	for _, blog := range blogs {
 		blogIDs = append(blogIDs, blog.ID)
@@ -98,13 +104,13 @@ func GetAllBlogs(db *gorm.DB, userId uuid.UUID) (*BlogGetAll, error) {
 		}
 	}
 
-	// Групуємо медіафайли за ID блогу
+	// Групуємо медіа
 	mediaMap := make(map[uuid.UUID][]string)
 	for _, m := range media {
 		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
 	}
 
-	// Формуємо фінальну структуру з блогами та відповідними медіафайлами
+	// Формуємо відповідь
 	for _, blog := range blogs {
 		response.Data = append(response.Data, &BlogGet{
 			ID:       blog.ID,
