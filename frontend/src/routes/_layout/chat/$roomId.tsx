@@ -76,8 +76,6 @@ function ChatRoom() {
 
 
 
-
-
     const getAllImagesFromMessages = (messages: MessageType[]) => {
         return messages.flatMap((msg) =>
             (msg.content_url || []).filter((url) =>
@@ -313,7 +311,15 @@ function ChatRoom() {
                     >
                         {hasMoreMessages && (
                             <Box textAlign="center">
-                                <Button size="sm" isLoading={isLoadingMore} onClick={handleLoadMore}>
+                                <Button size="sm"
+                                        borderRadius="full"
+                                        colorScheme="teal"
+                                        _hover={{ transform: "scale(1.05)" }}
+                                        _active={{ transform: "scale(0.95)" }}
+                                        transition="all 0.1s ease-in-out"
+                                        cursor="pointer"
+                                        isLoading={isLoadingMore}
+                                        onClick={handleLoadMore}>
                                     Add 25 messages
                                 </Button>
 

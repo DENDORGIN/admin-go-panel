@@ -81,7 +81,7 @@ function RoomGrid({ onDeleteRoom, onEditRoom }: { onDeleteRoom: (room: RoomType)
             ID: room.ID,
             name_room: room.name_room,
             description: room.description || "No description available",
-            image: room.image || "https://via.placeholder.com/400",
+            image: room.image || "https://f003.backblazeb2.com/file/admin-go-panel/bhV3vC5_giphy (111).gif",
             status: room.status ?? false,
             is_channel: room.is_channel ?? false,
             owner_id: room.owner_id,
@@ -91,10 +91,10 @@ function RoomGrid({ onDeleteRoom, onEditRoom }: { onDeleteRoom: (room: RoomType)
     queryClient.setQueryData(["rooms"], transformedRooms);
 
     return (
-        <SimpleGrid columns={[1, 2, 3, 4, 5, 6]} spacing={6} py={6}>
+        <SimpleGrid minChildWidth="250px" spacing={2}>
             {isPending
                 ? [...Array(6)].map((_, index) => (
-                    <Skeleton key={index} height="300px" borderRadius="lg" />
+                    <Skeleton key={index} height="200px" borderRadius="lg" />
                 ))
                 : transformedRooms.length > 0 ? (
                     transformedRooms.map((room) => (
@@ -133,7 +133,7 @@ function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => 
             <Image src={room.image}
                    alt={room.name_room}
                    objectFit="cover"
-                   height="150px"
+                   height="100px"
                    width="100%"
                    cursor="pointer"
                    onClick={handleOpenChat}
@@ -158,7 +158,7 @@ function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => 
                 </Menu>
             </Box>
 
-            <Box p="6">
+            <Box p={5} boxSize="auto">
                 <Flex alignItems="baseline">
                     <Badge borderRadius="full" px="2" colorScheme={room.status ? "green" : "red"}>
                         {room.status ? "Active" : "Inactive"}
@@ -189,7 +189,7 @@ function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => 
                     </Text>
                 </Flex>
 
-                <Button mt={4} variant="primary" width="full" onClick={handleOpenChat}>
+                <Button mt={4} variant="primary" width="full" fontSize="sm" onClick={handleOpenChat}>
                     View Room
                 </Button>
             </Box>
@@ -258,6 +258,10 @@ function Room() {
                 borderRadius="full"
                 zIndex={1000}
                 boxShadow="sm"
+                _hover={{ transform: "scale(1.05)" }}
+                _active={{ transform: "scale(0.95)" }}
+                transition="all 0.1s ease-in-out"
+                cursor="pointer"
                 onClick={() => setIsAddRoomOpen(true)}
             >
                 + Add Room
