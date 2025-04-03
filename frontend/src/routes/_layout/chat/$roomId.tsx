@@ -54,6 +54,29 @@ function ChatRoom() {
     const [lightboxIndex, setLightboxIndex] = useState(0);
     const [lightboxImages, setLightboxImages] = useState<string[]>([]);
 
+    const [hasMoreMessages, setHasMoreMessages] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+
+
+    const handleLoadMore = () => {
+        if (!messages.length || !ws.current) return;
+
+        setIsLoadingMore(true);
+
+        ws.current.send(JSON.stringify({
+            type: "load_more_messages",
+            before: messages[0].id,
+            limit: 25
+        }));
+
+    };
+
+
+
+
+
     const getAllImagesFromMessages = (messages: MessageType[]) => {
         return messages.flatMap((msg) =>
             (msg.content_url || []).filter((url) =>
@@ -113,16 +136,38 @@ function ChatRoom() {
         onMessageDelete: (id: string) => {
             setMessages((prev) => prev.filter((msg) => msg.id !== id));
         },
+        onBatchMessages: (batch) => {
+            if (!messagesContainerRef.current) return;
+
+            const scrollContainer = messagesContainerRef.current;
+            const prevScrollHeight = scrollContainer.scrollHeight;
+
+            setMessages((prev) => [...batch, ...prev]);
+            setHasMoreMessages(batch.length === 25);
+            setIsLoadingMore(false);
+
+            // ⚠️ Чекаємо DOM-рендер через requestAnimationFrame
+            requestAnimationFrame(() => {
+                const newScrollHeight = scrollContainer.scrollHeight;
+                const diff = newScrollHeight - prevScrollHeight;
+                scrollContainer.scrollTop += diff;
+            });
+        }
+
+
     });
 
     useEffect(() => {
+
         const container = messagesContainerRef.current;
         if (!container) return;
+
         const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
         if (isAtBottom) {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
         }
     }, [messages]);
+
 
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
 
@@ -226,23 +271,32 @@ function ChatRoom() {
                     {roomName} {isRoomClosed && " (CLOSED)"} {isChannel && " (CHANNEL)"}
                 </Text>
 
-                <Box
-                    flex="1"
-                    border="none"
-                    boxShadow="none"
-                    overflowY="auto"
-                    p={0}
-                    w="100%"
-                    maxH="calc(100vh - 180px)"
-                >
+                <Box flex="1" overflow="hidden" w="100%">
                     <VStack
                         ref={messagesContainerRef}
+                        overflowY="auto"
                         spacing={4}
                         align="stretch"
-                        flex="1"
+                        h="full"
+                        maxH="calc(100vh - 180px)" // обмеження висоти саме тут
                         p={4}
                     >
+                        {hasMoreMessages && (
+                            <Box textAlign="center">
+                                <Button size="sm" isLoading={isLoadingMore} onClick={handleLoadMore}>
+                                    Add 25 messages
+                                </Button>
+
+                            </Box>
+                        )}
+
                         {messages.map((msg, index) => (
+                            <div
+                                key={msg.id}
+                                ref={(el) => {
+                                    messageRefs.current[msg.id] = el;
+                                }}
+                            >
                             <MessageBubble
                                 user={user}
                                 key={msg.id}
@@ -263,6 +317,7 @@ function ChatRoom() {
                                 }}
                                 onImageClick={handleImageClick}
                             />
+                            </div>
                         ))}
                         <div ref={messagesEndRef} />
                     </VStack>
