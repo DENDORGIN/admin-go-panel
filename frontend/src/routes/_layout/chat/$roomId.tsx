@@ -273,6 +273,13 @@ function ChatRoom() {
 
                 <Box flex="1" overflow="hidden" w="100%">
                     <VStack
+                        css={{
+                            '&::-webkit-scrollbar': {
+                                width: '0px',
+                            },
+                            scrollbarWidth: 'none', // Firefox
+                        }}
+
                         ref={messagesContainerRef}
                         overflowY="auto"
                         spacing={4}
