@@ -8,9 +8,8 @@ import {
     Flex
 } from "@chakra-ui/react";
 import { AttachmentIcon } from "@chakra-ui/icons";
-import { useRef, useEffect } from "react";
-
-
+import { useRef, useEffect, forwardRef } from "react";
+import React from "react"
 
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
@@ -29,15 +28,16 @@ interface InputBarProps {
     iconSrc: string;
 }
 
-const InputBar: React.FC<InputBarProps> = ({
-                                               value,
-                                               onChange,
-                                               onSend,
-                                               onFileSelect,
-                                               disabled = false,
-                                               fileInputId = "file-upload",
-                                               iconSrc,
-                                           }) => {
+const InputBar = forwardRef<HTMLTextAreaElement, InputBarProps>(({
+                                                                     value,
+                                                                     onChange,
+                                                                     onSend,
+                                                                     onFileSelect,
+                                                                     disabled = false,
+                                                                     fileInputId = "file-upload",
+                                                                     iconSrc,
+                                                                 }, ref) => {
+    const internalRef = useRef<HTMLTextAreaElement | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
     const inputBg = useColorModeValue("#FFFFFF", "#1A202C");
@@ -46,9 +46,10 @@ const InputBar: React.FC<InputBarProps> = ({
 
 
     useEffect(() => {
-        if (textareaRef.current) {
-            textareaRef.current.style.height = "auto";
-            textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
+        const textarea = (ref as React.RefObject<HTMLTextAreaElement>)?.current ?? internalRef.current;
+        if (textarea) {
+            textarea.style.height = "auto";
+            textarea.style.height = textarea.scrollHeight + "px";
         }
     }, [value]);
 
@@ -114,7 +115,7 @@ const InputBar: React.FC<InputBarProps> = ({
 
             <Flex w="100%" align="flex-start" gap={1}>
                 <Textarea
-                    ref={textareaRef}
+                    ref={ref || internalRef}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder="Write a message..."
@@ -168,6 +169,6 @@ const InputBar: React.FC<InputBarProps> = ({
 
         </HStack>
     );
-};
+});
 
 export default InputBar;

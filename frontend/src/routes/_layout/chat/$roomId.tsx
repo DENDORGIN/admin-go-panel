@@ -43,6 +43,7 @@ function ChatRoom() {
     const [fileMessage, setFileMessage] = useState("");
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
     const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+    const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
     const {
         isOpen: isFileModalOpen,
@@ -53,6 +54,29 @@ function ChatRoom() {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
     const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+
+    const [hasMoreMessages, setHasMoreMessages] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+
+
+    const handleLoadMore = () => {
+        if (!messages.length || !ws.current) return;
+
+        setIsLoadingMore(true);
+
+        ws.current.send(JSON.stringify({
+            type: "load_more_messages",
+            before: messages[0].id,
+            limit: 25
+        }));
+
+    };
+
+
+
+
 
     const getAllImagesFromMessages = (messages: MessageType[]) => {
         return messages.flatMap((msg) =>
@@ -83,6 +107,7 @@ function ChatRoom() {
     const onlineIds = getOnlineUserIds(sortedUsers);
 
     const chatUser = useMemo(() => {
+        if (!user?.ID || !user?.fullName || !user?.avatar) return null;
         return user && user.fullName && user.avatar
             ? {
                 ID: user.ID,
@@ -96,39 +121,82 @@ function ChatRoom() {
         roomId,
         token: typeof window !== "undefined" ? localStorage.getItem("access_token") : null,
         user: chatUser,
-        onMessagesUpdate: setMessages,
+        onMessagesUpdate: (msgs) => {
+            setMessages((prev) => {
+                const newIds = new Set(msgs.map(m => m.id));
+                const filtered = prev.filter(m => !newIds.has(m.id));
+                return [...filtered, ...msgs]; // ⚠️ не перезаписуємо, а оновлюємо
+            });
+        },
+
         onNewMessage: (msg) =>
             setMessages((prev) => {
-                const exists = prev.some((m) => m.id === msg.id);
-                return exists
-                    ? prev.map((m) => (m.id === msg.id ? { ...msg, isLoading: false } : m))
-                    : [...prev, msg];
+                const index = prev.findIndex((m) => m.id === msg.id);
+                if (index === -1) return [...prev, msg];
+                if (JSON.stringify(prev[index]) === JSON.stringify(msg)) return prev; // без змін
+
+                const updated = [...prev];
+                updated[index] = { ...msg, isLoading: false };
+                return updated;
             }),
+
         onMessageUpdate: (data) =>
-            setMessages((prev) =>
-                prev.map((msg) =>
-                    msg.id === data.id ? { ...msg, ...data, isLoading: false } : msg
-                )
-            ),
+            setMessages((prev) => {
+                const index = prev.findIndex((m) => m.id === data.id);
+                if (index === -1) return prev;
+
+                const updatedMsg = { ...prev[index], ...data, isLoading: false };
+                if (JSON.stringify(prev[index]) === JSON.stringify(updatedMsg)) return prev;
+
+                const updated = [...prev];
+                updated[index] = updatedMsg;
+                return updated;
+            }),
+
         onMessageDelete: (id: string) => {
             setMessages((prev) => prev.filter((msg) => msg.id !== id));
         },
+        onBatchMessages: (batch) => {
+            if (!messagesContainerRef.current) return;
+
+            const scrollContainer = messagesContainerRef.current;
+            const prevScrollHeight = scrollContainer.scrollHeight;
+
+            setMessages((prev) => [...batch, ...prev]);
+            setHasMoreMessages(batch.length === 25);
+            setIsLoadingMore(false);
+
+            // ⚠️ Чекаємо DOM-рендер через requestAnimationFrame
+            requestAnimationFrame(() => {
+                const newScrollHeight = scrollContainer.scrollHeight;
+                const diff = newScrollHeight - prevScrollHeight;
+                scrollContainer.scrollTop += diff;
+            });
+        }
+
+
     });
 
     useEffect(() => {
+
         const container = messagesContainerRef.current;
         if (!container) return;
+
         const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
         if (isAtBottom) {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
         }
     }, [messages]);
 
+
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
 
     const handleEditMessage = (msgId: string, message: string) => {
         setEditingMessageId(msgId);
         setInput(message);
+        setTimeout(() => {
+            inputRef.current?.focus();
+        }, 0); // ⏱ гарантія що DOM оновиться
     };
 
     const sendMessage = () => {
@@ -226,23 +294,39 @@ function ChatRoom() {
                     {roomName} {isRoomClosed && " (CLOSED)"} {isChannel && " (CHANNEL)"}
                 </Text>
 
-                <Box
-                    flex="1"
-                    border="none"
-                    boxShadow="none"
-                    overflowY="auto"
-                    p={0}
-                    w="100%"
-                    maxH="calc(100vh - 180px)"
-                >
+                <Box flex="1" overflow="hidden" w="100%">
                     <VStack
+                        css={{
+                            '&::-webkit-scrollbar': {
+                                width: '0px',
+                            },
+                            scrollbarWidth: 'none', // Firefox
+                        }}
+
                         ref={messagesContainerRef}
+                        overflowY="auto"
                         spacing={4}
                         align="stretch"
-                        flex="1"
+                        h="full"
+                        maxH="calc(100vh - 180px)" // обмеження висоти саме тут
                         p={4}
                     >
+                        {hasMoreMessages && (
+                            <Box textAlign="center">
+                                <Button size="sm" isLoading={isLoadingMore} onClick={handleLoadMore}>
+                                    Add 25 messages
+                                </Button>
+
+                            </Box>
+                        )}
+
                         {messages.map((msg, index) => (
+                            <div
+                                key={msg.id}
+                                ref={(el) => {
+                                    messageRefs.current[msg.id] = el;
+                                }}
+                            >
                             <MessageBubble
                                 user={user}
                                 key={msg.id}
@@ -263,6 +347,7 @@ function ChatRoom() {
                                 }}
                                 onImageClick={handleImageClick}
                             />
+                            </div>
                         ))}
                         <div ref={messagesEndRef} />
                     </VStack>
@@ -277,6 +362,7 @@ function ChatRoom() {
                 />
 
                 <InputBar
+                    ref={inputRef}
                     value={input}
                     onChange={setInput}
                     onSend={sendMessage}
@@ -284,6 +370,7 @@ function ChatRoom() {
                     disabled={isInteractionDisabled}
                     iconSrc={sendMessageIcon}
                 />
+
                 {editingMessageId && (
                     <Text color="teal.500" fontSize="sm" mt={1} px={2}>
                         ✏️ Ви редагуєте повідомлення

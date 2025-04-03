@@ -24,6 +24,7 @@ import { DragHandleIcon } from '@chakra-ui/icons'
 import UserProfileModal from "../Modals/UserProfileModal";
 import LinkPreview from "../Modals/LinkPreviewModal";
 
+import React from "react";
 import { useState, useEffect, useRef } from "react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { TiHeartOutline } from "react-icons/ti";
@@ -86,7 +87,7 @@ function parseMessageWithLinks(text: string | undefined | null) {
 }
 
 
-const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, user, isLast, onDelete, onEdit, onReact, onImageClick }) => {
+const MessageBubble: React.FC<MessageProps> = React.memo(({ msg, isMe, user, isLast, onDelete, onEdit, onReact, onImageClick }) => {
     const bgColor = useColorModeValue(
         isMe ? "teal.500" : "cyan.100",
         isMe ? "teal.400" : "cyan.600"
@@ -123,6 +124,7 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, user, isLast, onDele
         onOpen: onPopoverOpen,
         onClose: onPopoverClose
     } = useDisclosure();
+    console.log("🔁 render", msg.id);
 
 
     return (
@@ -350,6 +352,15 @@ const MessageBubble: React.FC<MessageProps> = ({ msg, isMe, user, isLast, onDele
             <UserProfileModal isOpen={isOpen} onClose={onClose} user={selectedUser} />
         </Flex>
     );
-};
+},
+    (prevProps, nextProps) => {
+        return (
+            prevProps.msg.id === nextProps.msg.id &&
+            JSON.stringify(prevProps.msg) === JSON.stringify(nextProps.msg) &&
+            prevProps.isMe === nextProps.isMe &&
+            prevProps.isLast === nextProps.isLast
+        );
+    }
+);
 
 export default MessageBubble;
