@@ -43,6 +43,7 @@ function ChatRoom() {
     const [fileMessage, setFileMessage] = useState("");
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
     const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+    const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
     const {
         isOpen: isFileModalOpen,
@@ -193,6 +194,9 @@ function ChatRoom() {
     const handleEditMessage = (msgId: string, message: string) => {
         setEditingMessageId(msgId);
         setInput(message);
+        setTimeout(() => {
+            inputRef.current?.focus();
+        }, 0); // ⏱ гарантія що DOM оновиться
     };
 
     const sendMessage = () => {
@@ -358,6 +362,7 @@ function ChatRoom() {
                 />
 
                 <InputBar
+                    ref={inputRef}
                     value={input}
                     onChange={setInput}
                     onSend={sendMessage}
@@ -365,6 +370,7 @@ function ChatRoom() {
                     disabled={isInteractionDisabled}
                     iconSrc={sendMessageIcon}
                 />
+
                 {editingMessageId && (
                     <Text color="teal.500" fontSize="sm" mt={1} px={2}>
                         ✏️ Ви редагуєте повідомлення
