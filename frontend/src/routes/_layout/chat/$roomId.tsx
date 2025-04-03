@@ -106,6 +106,7 @@ function ChatRoom() {
     const onlineIds = getOnlineUserIds(sortedUsers);
 
     const chatUser = useMemo(() => {
+        if (!user?.ID || !user?.fullName || !user?.avatar) return null;
         return user && user.fullName && user.avatar
             ? {
                 ID: user.ID,
@@ -119,20 +120,38 @@ function ChatRoom() {
         roomId,
         token: typeof window !== "undefined" ? localStorage.getItem("access_token") : null,
         user: chatUser,
-        onMessagesUpdate: setMessages,
+        onMessagesUpdate: (msgs) => {
+            setMessages((prev) => {
+                const newIds = new Set(msgs.map(m => m.id));
+                const filtered = prev.filter(m => !newIds.has(m.id));
+                return [...filtered, ...msgs]; // ⚠️ не перезаписуємо, а оновлюємо
+            });
+        },
+
         onNewMessage: (msg) =>
             setMessages((prev) => {
-                const exists = prev.some((m) => m.id === msg.id);
-                return exists
-                    ? prev.map((m) => (m.id === msg.id ? { ...msg, isLoading: false } : m))
-                    : [...prev, msg];
+                const index = prev.findIndex((m) => m.id === msg.id);
+                if (index === -1) return [...prev, msg];
+                if (JSON.stringify(prev[index]) === JSON.stringify(msg)) return prev; // без змін
+
+                const updated = [...prev];
+                updated[index] = { ...msg, isLoading: false };
+                return updated;
             }),
+
         onMessageUpdate: (data) =>
-            setMessages((prev) =>
-                prev.map((msg) =>
-                    msg.id === data.id ? { ...msg, ...data, isLoading: false } : msg
-                )
-            ),
+            setMessages((prev) => {
+                const index = prev.findIndex((m) => m.id === data.id);
+                if (index === -1) return prev;
+
+                const updatedMsg = { ...prev[index], ...data, isLoading: false };
+                if (JSON.stringify(prev[index]) === JSON.stringify(updatedMsg)) return prev;
+
+                const updated = [...prev];
+                updated[index] = updatedMsg;
+                return updated;
+            }),
+
         onMessageDelete: (id: string) => {
             setMessages((prev) => prev.filter((msg) => msg.id !== id));
         },

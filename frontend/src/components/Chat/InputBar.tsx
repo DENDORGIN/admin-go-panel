@@ -9,8 +9,7 @@ import {
 } from "@chakra-ui/react";
 import { AttachmentIcon } from "@chakra-ui/icons";
 import { useRef, useEffect } from "react";
-
-
+import React from "react"
 
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
@@ -29,7 +28,7 @@ interface InputBarProps {
     iconSrc: string;
 }
 
-const InputBar: React.FC<InputBarProps> = ({
+const InputBar: React.FC<InputBarProps> = React.memo(({
                                                value,
                                                onChange,
                                                onSend,
@@ -168,6 +167,6 @@ const InputBar: React.FC<InputBarProps> = ({
 
         </HStack>
     );
-};
+});
 
 export default InputBar;
