@@ -21,6 +21,7 @@ import { MediaService } from "../../../client";
 
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+import { useColorModeValue } from "@chakra-ui/react";
 
 export const Route = createFileRoute("/_layout/chat/$roomId")({
     component: ChatRoom,
@@ -35,6 +36,8 @@ function ChatRoom() {
         queryFn: () => RoomService.readRoomById(roomId),
         enabled: !!roomId,
     });
+
+    const topBarBg = useColorModeValue("rgba(255, 255, 255, 0.85)", "rgba(26, 32, 44, 0.85)");
 
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [input, setInput] = useState("");
@@ -292,39 +295,49 @@ function ChatRoom() {
                     {roomName} {isRoomClosed && " (CLOSED)"} {isChannel && " (CHANNEL)"}
                 </Text>
 
-                <Box flex="1" overflow="hidden" w="100%">
-                    <VStack
-                        css={{
-                            '&::-webkit-scrollbar': {
-                                width: '0px',
-                            },
-                            scrollbarWidth: 'none', // Firefox
-                        }}
+                <Box flex="1" overflow="hidden" w="100%" position="relative">
+                    {hasMoreMessages && messages.length > 29 && (
+                        <Box
+                            position="absolute"
+                            top="0"
+                            left="0"
+                            w="100%"
+                            textAlign="center"
+                            zIndex="1"
+                            bg={topBarBg}
+                            backdropFilter="blur(6px)"
+                            py={2}
+                        >
+                            <Button
+                                size="sm"
+                                borderRadius="full"
+                                colorScheme="teal"
+                                _hover={{ transform: "scale(1.05)" }}
+                                _active={{ transform: "scale(0.95)" }}
+                                transition="all 0.1s ease-in-out"
+                                cursor="pointer"
+                                isLoading={isLoadingMore}
+                                onClick={handleLoadMore}
+                            >
+                                Add 25 messages
+                            </Button>
+                        </Box>
+                    )}
 
+                    <VStack
                         ref={messagesContainerRef}
                         overflowY="auto"
                         spacing={4}
                         align="stretch"
                         h="full"
-                        maxH="calc(100vh - 180px)" // обмеження висоти саме тут
+                        maxH="calc(100vh - 180px)"
+                        pt={hasMoreMessages && messages.length > 30 ? 50 : 0} // відступ під кнопку
                         p={4}
+                        css={{
+                            '&::-webkit-scrollbar': { width: '0px' },
+                            scrollbarWidth: 'none',
+                        }}
                     >
-                        {hasMoreMessages && (
-                            <Box textAlign="center">
-                                <Button size="sm"
-                                        borderRadius="full"
-                                        colorScheme="teal"
-                                        _hover={{ transform: "scale(1.05)" }}
-                                        _active={{ transform: "scale(0.95)" }}
-                                        transition="all 0.1s ease-in-out"
-                                        cursor="pointer"
-                                        isLoading={isLoadingMore}
-                                        onClick={handleLoadMore}>
-                                    Add 25 messages
-                                </Button>
-
-                            </Box>
-                        )}
 
                         {messages.map((msg, index) => (
                             <div
