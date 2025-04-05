@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import {
     Box, VStack, Text, Flex, useDisclosure, Spinner, Button
 } from "@chakra-ui/react";
-
+import { ArrowDownIcon } from "@chakra-ui/icons"
 import useAuth from "../../../hooks/useAuth";
 import { getSortedUsers, getOnlineUserIds } from "../../../utils/sortedUsers";
 import { useChatSocket } from "../../../hooks/useChatSocket";
@@ -38,6 +38,8 @@ function ChatRoom() {
     });
 
     const topBarBg = useColorModeValue("rgba(255, 255, 255, 0)", "rgba(26, 32, 44, 0)");
+    const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+
 
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [input, setInput] = useState("");
@@ -179,15 +181,32 @@ function ChatRoom() {
     });
 
     useEffect(() => {
-
         const container = messagesContainerRef.current;
         if (!container) return;
 
-        const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
-        if (isAtBottom) {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }
-    }, [messages]);
+        const handleScroll = () => {
+            const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+            setShowScrollToBottom(!isNearBottom);
+        };
+
+        container.addEventListener("scroll", handleScroll);
+        handleScroll(); // виклик одразу при завантаженні
+
+        return () => {
+            container.removeEventListener("scroll", handleScroll);
+        };
+    }, []);
+
+
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        setShowScrollToBottom(false);
+    };
+
+
+
+
 
 
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -310,7 +329,8 @@ function ChatRoom() {
                             <Button
                                 size="xs"
                                 borderRadius="full"
-                                colorScheme="teal"
+                                color="white"
+                                colorScheme="cyan"
                                 _hover={{ transform: "scale(1.05)" }}
                                 _active={{ transform: "scale(0.95)" }}
                                 transition="all 0.1s ease-in-out"
@@ -369,6 +389,29 @@ function ChatRoom() {
                         ))}
                         <div ref={messagesEndRef} />
                     </VStack>
+                    {showScrollToBottom && (
+                        <Box
+                            position="absolute"
+                            bottom="20px"
+                            left="50%"
+                            transform="translateX(-50%)"
+                            zIndex="10"
+                            bg="cyan.500"
+                            color="white"
+                            borderRadius="full"
+                            px={4}
+                            py={2}
+                            cursor="pointer"
+                            boxShadow="lg"
+                            _hover={{ bg: "cyan.600" }}
+                            onClick={scrollToBottom}
+                            animation="fadeSlideUp 0.3s ease"
+                        >
+                            <ArrowDownIcon />
+                        </Box>
+                    )}
+
+
                 </Box>
 
                 <Lightbox
