@@ -23,11 +23,19 @@ import { DragHandleIcon } from '@chakra-ui/icons'
 
 import UserProfileModal from "../Modals/UserProfileModal";
 import LinkPreview from "../Modals/LinkPreviewModal";
+import AudioPlayer from "../Chat/AudioPlayer";
+
 
 import React from "react";
 import { useState, useEffect, useRef } from "react";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { TiHeartOutline } from "react-icons/ti";
+import {
+    FcDocument,
+    FcFile,
+    FcOpenedFolder,
+} from "react-icons/fc";
+
 
 
 type Reaction = {
@@ -226,25 +234,71 @@ const MessageBubble: React.FC<MessageProps> = React.memo(({ msg, isMe, user, isL
                                         )}
                                         {otherFiles.length > 0 && (
                                             <SimpleGrid columns={1} spacing={2} mt={2} w="100%">
-                                                {otherFiles.map((url, index) => (
-                                                    <Link
-                                                        key={index}
-                                                        href={url}
-                                                        isExternal
-                                                        color="teal.200"
-                                                        textDecoration="underline"
-                                                        _hover={{
-                                                            color: "teal.300",
-                                                            textDecoration: "none",
-                                                            transform: "scale(1.02)",
-                                                        }}
-                                                        transition="all 0.2s ease-in-out"
-                                                    >
-                                                        📎 File {index + 1}
-                                                    </Link>
-                                                ))}
+                                                {otherFiles.map((url, index) => {
+                                                    const fileName = url.split('/').pop()?.split('?')[0] || `File ${index + 1}`;
+                                                    const fileExt = fileName.split('.').pop()?.toLowerCase();
+
+                                                    const isAudio = ["mp3", "wav", "ogg"].includes(fileExt!);
+                                                    const isVideo = ["mp4", "webm", "mov", "avi"].includes(fileExt!);
+
+                                                    // 🎧 Аудіо
+                                                    if (isAudio) {
+                                                        return (
+                                                            <Box key={index} w="100%" bg="whiteAlpha.200" p={2} borderRadius="md">
+                                                                <Text mb={1} fontSize="sm" color="teal.200">{fileName}</Text>
+                                                                <AudioPlayer src={url} />
+                                                            </Box>
+                                                        );
+                                                    }
+
+
+                                                    // 🎞️ Відео
+                                                    if (isVideo) {
+                                                        return (
+                                                            <Box key={index} w="100%" bg="whiteAlpha.200" p={2} borderRadius="md">
+                                                                <Text mb={1} fontSize="sm" color="teal.200">{fileName}</Text>
+                                                                <video controls src={url} style={{ width: "100%", borderRadius: "8px" }} />
+                                                            </Box>
+                                                        );
+                                                    }
+
+                                                    // 📄 Іконка для документів/архівів
+                                                    const FileIcon = (() => {
+                                                        if (["pdf", "doc", "docx", "txt", "ppt", "pptx", "xls", "xlsx"].includes(fileExt!)) return FcDocument;
+                                                        if (["zip", "rar", "7z", "tar", "gz"].includes(fileExt!)) return FcOpenedFolder;
+                                                        return FcFile;
+                                                    })();
+
+                                                    return (
+                                                        <Flex
+                                                            key={index}
+                                                            align="center"
+                                                            bg="whiteAlpha.200"
+                                                            borderRadius="md"
+                                                            p={2}
+                                                            gap={3}
+                                                        >
+                                                            <Box fontSize="xl">
+                                                                <FileIcon />
+                                                            </Box>
+                                                            <Link
+                                                                href={url}
+                                                                isExternal
+                                                                color="teal.200"
+                                                                fontWeight="medium"
+                                                                _hover={{ textDecoration: "underline", color: "teal.300" }}
+                                                                title={fileName}
+                                                                wordBreak="break-word"
+                                                            >
+                                                                {fileName.length > 40 ? fileName.slice(0, 40) + "..." : fileName}
+                                                            </Link>
+                                                        </Flex>
+                                                    );
+                                                })}
                                             </SimpleGrid>
                                         )}
+
+
                                     </>
                                 );
                             })()}
