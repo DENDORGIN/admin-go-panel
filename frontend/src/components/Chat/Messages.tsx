@@ -251,7 +251,6 @@ const MessageBubble: React.FC<MessageProps> = React.memo(({ msg, isMe, user, isL
                                                         );
                                                     }
 
-
                                                     // 🎞️ Відео
                                                     if (isVideo) {
                                                         return (
@@ -346,7 +345,6 @@ const MessageBubble: React.FC<MessageProps> = React.memo(({ msg, isMe, user, isL
                     );
                 })()}
 
-
                 <Flex align="center" gap={2} mt={2} justify="space-between">
                     <Flex align="center" gap={2}>
                         <Text fontSize="sm" color={isMe ? "white" : "gray.600"}>
@@ -400,7 +398,6 @@ const MessageBubble: React.FC<MessageProps> = React.memo(({ msg, isMe, user, isL
                         </Portal>
                     </Popover>
                 </Flex>
-
 
             </Box>
             <UserProfileModal isOpen={isOpen} onClose={onClose} user={selectedUser} />
