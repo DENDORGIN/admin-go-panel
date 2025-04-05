@@ -84,7 +84,7 @@ const InputBar = forwardRef<HTMLTextAreaElement, InputBarProps>(({
                     <PopoverTrigger>
                         <IconButton
                             aria-label="Emoji picker"
-                            size="20px"
+                            size="25px"
                             icon={<FaSmile />}
                             color="teal.400"
                             variant="ghost"
@@ -154,7 +154,7 @@ const InputBar = forwardRef<HTMLTextAreaElement, InputBarProps>(({
 
                 <Button
                     onClick={onSend}
-                    leftIcon={<Image src={iconSrc} boxSize="20px" />}
+                    leftIcon={<Image src={iconSrc} boxSize="25px" />}
                     variant="ghost"
                     isDisabled={disabled}
                     _hover={{ transform: "scale(1.1)" }}

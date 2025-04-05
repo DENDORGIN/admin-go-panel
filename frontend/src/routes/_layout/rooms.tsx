@@ -91,7 +91,7 @@ function RoomGrid({ onDeleteRoom, onEditRoom }: { onDeleteRoom: (room: RoomType)
     queryClient.setQueryData(["rooms"], transformedRooms);
 
     return (
-        <SimpleGrid minChildWidth="250px" spacing={2}>
+        <SimpleGrid minChildWidth="150px" spacing={2}>
             {isPending
                 ? [...Array(6)].map((_, index) => (
                     <Skeleton key={index} height="200px" borderRadius="lg" />
@@ -158,13 +158,13 @@ function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => 
                 </Menu>
             </Box>
 
-            <Box p={5} boxSize="auto">
+            <Box p={3} boxSize="auto">
                 <Flex alignItems="baseline">
                     <Badge borderRadius="full" px="2" colorScheme={room.status ? "green" : "red"}>
                         {room.status ? "Active" : "Inactive"}
                     </Badge>
                     {room.is_channel && (
-                        <Badge variant="outline" borderRadius="full" px="3" colorScheme="orange" ml={3}>
+                        <Badge variant="outline" borderRadius="full" px="2" colorScheme="orange" ml={3}>
                             Channel
                         </Badge>
                     )}
@@ -174,20 +174,23 @@ function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => 
                     {room.name_room}
                 </Text>
 
-                <Text fontSize="sm" color="gray.500" noOfLines={2}>
+                <Text fontSize="sm" color="gray.500" noOfLines={1}>
                     {room.description}
                 </Text>
 
-                <Flex alignItems="center" mt={2}>
-                    {Array(5)
-                        .fill("")
-                        .map((_, i) => (
-                            <StarIcon key={i} color={i < 4 ? "teal.500" : "gray.300"} />
-                        ))}
-                    <Text ml="2" fontSize="sm" color="gray.600">
+                <Flex alignItems="left" flexDirection="column" mt={2}>
+                    <Flex>
+                        {Array(5)
+                            .fill("")
+                            .map((_, i) => (
+                                <StarIcon key={i} color={i < 4 ? "teal.500" : "gray.300"} boxSize={4} />
+                            ))}
+                    </Flex>
+                    <Text mt={1} fontSize="xs" color="gray.600">
                         42 reviews
                     </Text>
                 </Flex>
+
 
                 <Button mt={4} variant="primary" width="full" fontSize="sm" onClick={handleOpenChat}>
                     View Room
