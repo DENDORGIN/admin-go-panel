@@ -3,10 +3,24 @@ package routes
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
 )
+
+func isSafeURL(u *url.URL) bool {
+	ipRecords, err := net.LookupIP(u.Hostname())
+	if err != nil {
+		return false
+	}
+	for _, ip := range ipRecords {
+		if ip.IsLoopback() || ip.IsPrivate() {
+			return false
+		}
+	}
+	return true
+}
 
 func FetchLinkPreview(c *gin.Context) {
 	rawUrl := c.Query("url")
@@ -15,15 +29,19 @@ func FetchLinkPreview(c *gin.Context) {
 		return
 	}
 
-	// Validate URL
 	parsedUrl, err := url.ParseRequestURI(rawUrl)
 	if err != nil || !strings.HasPrefix(parsedUrl.Scheme, "http") {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid url"})
 		return
 	}
 
+	if !isSafeURL(parsedUrl) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "access to private/internal addresses is not allowed"})
+		return
+	}
+
 	// Fetch page
-	res, err := http.Get(rawUrl)
+	res, err := http.Get(parsedUrl.String())
 	if err != nil || res.StatusCode != 200 {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot fetch url"})
 		return
