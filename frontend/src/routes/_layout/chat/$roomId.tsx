@@ -37,7 +37,7 @@ function ChatRoom() {
         enabled: !!roomId,
     });
 
-    const topBarBg = useColorModeValue("rgba(255, 255, 255, 0.85)", "rgba(26, 32, 44, 0.85)");
+    const topBarBg = useColorModeValue("rgba(255, 255, 255, 0)", "rgba(26, 32, 44, 0)");
 
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [input, setInput] = useState("");
@@ -295,7 +295,7 @@ function ChatRoom() {
                     {roomName} {isRoomClosed && " (CLOSED)"} {isChannel && " (CHANNEL)"}
                 </Text>
 
-                <Box flex="1" overflow="hidden" w="100%" position="relative">
+                <Box flex="1" overflow="visible" w="100%" position="relative">
                     {hasMoreMessages && messages.length > 29 && (
                         <Box
                             position="absolute"
@@ -303,13 +303,12 @@ function ChatRoom() {
                             left="0"
                             w="100%"
                             textAlign="center"
-                            zIndex="1"
+                            zIndex="10"
                             bg={topBarBg}
-                            backdropFilter="blur(6px)"
                             py={2}
                         >
                             <Button
-                                size="sm"
+                                size="xs"
                                 borderRadius="full"
                                 colorScheme="teal"
                                 _hover={{ transform: "scale(1.05)" }}
