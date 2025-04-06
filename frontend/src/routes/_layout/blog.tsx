@@ -108,7 +108,10 @@ function PostTable() {
                           <ExpandableTd content={post.content} />
 
                           <Td>
-                            <ImageGallery images={Array.isArray(post.images) ? post.images : post.images ? [post.images] : []} title={post.title} />
+                            <ImageGallery images={Array.isArray(post.images) ? post.images : post.images ? [post.images] : []}
+                                          title={post.title}
+                                          numberOfImages={1}
+                            />
                           </Td>
                           <Td>
                             <Flex gap={2}>
