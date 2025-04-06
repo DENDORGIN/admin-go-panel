@@ -6,18 +6,19 @@ import {
     IconButton,
     Input,
     List,
-    ListItem,
-    useToast
+    ListItem
 } from "@chakra-ui/react"
 import { CloseIcon } from "@chakra-ui/icons"
 import { useRef, useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MediaService, ApiError } from "../../client"
 import { handleError } from "../../utils.ts"
+import useCustomToast from "../../hooks/useCustomToast.ts";
 
 interface EditableImagesProps {
     itemId: string
     initialImages: string[]
+    onImagesUpdated?: () => void
 }
 
 interface FileDetail {
@@ -27,9 +28,9 @@ interface FileDetail {
     preview: string
 }
 
-const EditableImages = ({ itemId, initialImages }: EditableImagesProps) => {
+const EditableImages = ({ itemId, initialImages, onImagesUpdated }: EditableImagesProps) => {
     const queryClient = useQueryClient()
-    const toast = useToast()
+    const showToast = useCustomToast()
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [existingImages, setExistingImages] = useState(initialImages)
     const [files, setFiles] = useState<FileDetail[]>([])
@@ -58,9 +59,10 @@ const EditableImages = ({ itemId, initialImages }: EditableImagesProps) => {
         try {
             await MediaService.deleteImage(itemId, imageUrl)
             setExistingImages((prev) => prev.filter((img) => img !== imageUrl))
-            toast({ status: "success", title: "Image deleted" })
+            showToast( "Success", "Image deleted",  "success")
+            onImagesUpdated?.()
         } catch (err) {
-            handleError(err as ApiError, toast)
+            handleError(err as ApiError, showToast)
         }
     }
 
@@ -70,18 +72,18 @@ const EditableImages = ({ itemId, initialImages }: EditableImagesProps) => {
             const formData = new FormData()
             files.forEach((f) => formData.append("files", f.file))
             await MediaService.downloadImages(itemId, formData)
+            onImagesUpdated?.()
         },
         onSuccess: () => {
-            toast({ status: "success", title: "Images uploaded" })
+            showToast( "Success", "Images uploaded",  "success")
             queryClient.invalidateQueries({ queryKey: ["item", itemId] })
             setFiles([])
         },
-        onError: (err) => handleError(err as ApiError, toast)
+        onError: (err) => handleError(err as ApiError, showToast)
     })
 
     return (
         <Box>
-            <FormLabel>Images</FormLabel>
             <Input
                 ref={fileInputRef}
                 type="file"

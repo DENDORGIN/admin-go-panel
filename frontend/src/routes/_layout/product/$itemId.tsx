@@ -41,8 +41,9 @@ function ItemDetails() {
     const { itemId } = Route.useParams()
     const navigate = useNavigate()
     const [isEditingImages, setIsEditingImages] = useState(false)
+    // const queryClient = useQueryClient()
 
-    const { data: item, isLoading, error } = useQuery({
+    const { data: item, isLoading, error, refetch: refetchItem } = useQuery({
         queryKey: ["item", itemId],
         queryFn: () => ItemsService.readItemById({ id: itemId }),
         enabled: !!itemId
@@ -138,7 +139,9 @@ function ItemDetails() {
 
                     {/* Редагування зображень */}
                     <Box display={isEditingImages ? "block" : "none"}>
-                        <EditableImages itemId={item.ID} initialImages={imageArray} />
+                        <EditableImages itemId={item.ID}
+                                        initialImages={imageArray}
+                                        onImagesUpdated={() => refetchItem()}/>
                     </Box>
                 </Box>
 
