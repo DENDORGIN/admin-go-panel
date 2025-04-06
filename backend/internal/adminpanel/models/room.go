@@ -33,7 +33,7 @@ type RoomGetAll struct {
 
 func CreateRoom(db *gorm.DB, room *entities.ChatRooms) (*RoomPublic, error) {
 	if room.NameRoom == "" {
-		return nil, errors.New("the item title cannot be empty")
+		return nil, errors.New("the product title cannot be empty")
 	}
 	if room.Image == "" {
 		return nil, errors.New("the image cannot be empty")

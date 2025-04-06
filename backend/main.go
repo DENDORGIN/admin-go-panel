@@ -112,6 +112,7 @@ func main() {
 	r.POST("/v1/items/", routes.CreateItemHandler)
 	r.GET("/v1/items/", routes.GetAllItemsHandler)
 	r.GET("/v1/items/:id", routes.GetItemByID)
+	r.GET("/v1/items/languages", routes.GetAvailableLanguages)
 	r.PUT("/v1/items/:id", routes.UpdateItemByIdHandler)
 	r.DELETE("/v1/items/:id", routes.DeleteItemByIdHandler)
 

@@ -57,7 +57,7 @@ type ItemGetAll struct {
 
 func CreateItem(db *gorm.DB, i *entities.Items) (*ItemsPost, error) {
 	if i.Title == "" {
-		return nil, errors.New("the item title cannot be empty")
+		return nil, errors.New("the product title cannot be empty")
 	}
 	err := repository.GetPosition(db, i.Position, &entities.Items{})
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -95,19 +95,19 @@ func GetItemById(db *gorm.DB, itemId uuid.UUID) (*ItemGet, error) {
 	var property entities.Property
 	var media []*entities.Media
 
-	// Get item
+	// Get product
 	err := repository.GetByID(db, itemId, &item)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get property by item ID
+	// Get property by product ID
 	err = repository.GetAllContentByID(db, itemId, &property)
 	if err != nil {
 		return nil, err
 	}
 
-	//Get Media by item ID
+	//Get Media by product ID
 	err = repository.GetAllMediaByID(db, itemId, &media)
 	if err != nil {
 		return nil, err

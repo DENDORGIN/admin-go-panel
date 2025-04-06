@@ -4,8 +4,10 @@ import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"net/http"
 )
 
@@ -68,6 +70,11 @@ func UpdatePropertyHandler(ctx *gin.Context) {
 	}
 
 	updatedProperty, err := models.UpdateProperty(db, id, &update)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Property not found"})
+		return
+	}
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

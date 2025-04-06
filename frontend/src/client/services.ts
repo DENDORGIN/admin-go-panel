@@ -21,7 +21,7 @@ import {
   UserRegister,
   UserUpdate,
   UserUpdateMe,
-  UsersPublic, Properties, UpdateProperties, RoomPublic, RoomsPublic, PreviewDto
+  UsersPublic, Properties, RoomPublic, RoomsPublic, PreviewDto, UpdatePropertiesType
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -428,7 +428,7 @@ export type TDataDeleteItem = {
 export class ItemsService {
   /**
    * Read Items
-   * Retrieve items.
+   * Retrieve product.
    * @returns ItemsPublic Successful Response
    * @throws ApiError
    */
@@ -452,7 +452,7 @@ export class ItemsService {
 
   /**
    * Create Item
-   * Create new item.
+   * Create new product.
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
@@ -472,11 +472,11 @@ export class ItemsService {
 
   /**
    * Read Item
-   * Get item by ID.
+   * Get product by ID.
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
-  public static readItem(data: TDataReadItem): CancelablePromise<ItemPublic> {
+  public static readItemById(data: TDataReadItem): CancelablePromise<ItemPublic> {
     const { id } = data
     return __request(OpenAPI, {
       method: "GET",
@@ -492,7 +492,7 @@ export class ItemsService {
 
   /**
    * Update Item
-   * Update an item.
+   * Update an product.
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
@@ -512,7 +512,7 @@ export class ItemsService {
 
   /**
    * Delete Item
-   * Delete an item.
+   * Delete an product.
    * @returns Message Successful Response
    * @throws ApiError
    */
@@ -524,6 +524,16 @@ export class ItemsService {
       path: {
         id,
       },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
+  public static readItemsLanguages(): Promise<{ languages: string[] }> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/v1/items/languages",
       errors: {
         422: "Validation Error",
       },
@@ -613,7 +623,7 @@ export class BlogService {
 
   /**
    * Create Item
-   * Create new item.
+   * Create new product.
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
@@ -631,7 +641,7 @@ export class BlogService {
 
 /**
    * Read Item
-   * Get item by ID.
+   * Get product by ID.
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
@@ -651,7 +661,7 @@ export class BlogService {
 
   /**
    * Update Item
-   * Update an item.
+   * Update an product.
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
@@ -671,7 +681,7 @@ export class BlogService {
 
   /**
    * Delete Item
-   * Delete an item.
+   * Delete an product.
    * @returns Message Successful Response
    * @throws ApiError
    */
@@ -743,11 +753,6 @@ export class MediaService {
 }
 
 
-
-export type TDataUpdateProperty = {
-  requestBody: UpdateProperties
-}
-
 export class PropertyService {
   /**
    * Create Property
@@ -772,7 +777,7 @@ export class PropertyService {
    * @returns ItemPublic Successful Response
    * @throws ApiError
    */
-  public static UpdateProperties(id: string, data: TDataUpdateProperty): CancelablePromise<Properties> {
+  public static UpdateProperties(id: string, data: UpdatePropertiesType): CancelablePromise<Properties> {
     return __request(OpenAPI, {
       method: "PUT",
       url: `/v1/properties/${id}`,

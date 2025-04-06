@@ -27,7 +27,6 @@ import Navbar from "../../components/Common/Navbar"
 import { PaginationFooter } from "../../components/Common/PaginationFooter.tsx"
 import AddItem from "../../components/Items/AddItem"
 import ImageGallery from "../../components/Modals/ModalImageGallery.tsx"
-import ExpandableTd from "../../components/Modals/ModalContent";
 
 const itemsSearchSchema = z.object({
   page: z.number().catch(1),
@@ -39,9 +38,9 @@ export const Route = createFileRoute("/_layout/items")({
 })
 
 const PER_PAGE = 7
-const POLAND = "pl"
-const ENGLISH = "en"
-const GERMAN = "de"
+// const POLAND = "pl"
+// const ENGLISH = "en"
+// const GERMAN = "de"
 
 interface ItemsTableProps {
   language: string // Визначення типу для 'language'
@@ -63,6 +62,18 @@ function getItemsQueryOptions({ page, language }: ItemsQueryOptions) {
     queryKey: ["items", language, { page }],
   }
 }
+
+const useAvailableLanguages = () => {
+  return useQuery({
+    queryKey: ["items-languages"],
+    queryFn: async () => {
+      const res = await ItemsService.readItemsLanguages()
+      return res.languages // напр., ["pl", "en", "de", "ua"]
+    },
+  })
+}
+
+
 
 function ItemsTable({ language }: ItemsTableProps) {
   const queryClient = useQueryClient()
@@ -87,7 +98,7 @@ function ItemsTable({ language }: ItemsTableProps) {
 
   useEffect(() => {
     if (Array.isArray(items?.Data)) {
-      console.log("Loaded items Data:", items.Data);
+      console.log("Loaded product Data:", items.Data);
     }
     if (hasNextPage) {
       queryClient.prefetchQuery(
@@ -99,18 +110,14 @@ function ItemsTable({ language }: ItemsTableProps) {
 
   return (
     <>
-      <TableContainer>
-        <Table size={{ base: "sm", md: "md" }}>
+      <TableContainer >
+        <Table size={{ base: "sm", md: "md" }} fontSize="sm">
           <Thead>
             <Tr>
-              {/*<Th>ID</Th>*/}
               <Th>Position</Th>
               <Th>Title</Th>
-              <Th>Content</Th>
               <Th>Images</Th>
               <Th>Category</Th>
-              <Th>Properties</Th>
-              <Th>URL</Th>
               <Th>Language</Th>
               <Th>Price</Th>
               <Th>Quantity</Th>
@@ -138,48 +145,31 @@ function ItemsTable({ language }: ItemsTableProps) {
               {(items?.Data || []).map((item) => (
                   <Tr key={item.ID} opacity={isPlaceholderData ? 0.5 : 1}>
                   <Td>{item.position}</Td>
-                    <ExpandableTd content={item.title} />
-                    <ExpandableTd content={item.content} />
+                    <Link
+                        onClick={() => navigate({ to:`/product/$itemId`, params: { itemId: item.ID } })}
+                        color="blue.500"
+                        _hover={{ textDecoration: "underline" }}
+                    >
+                      {item.title}
+                    </Link>
+
                   <Td>
-                    <ImageGallery images={Array.isArray(item.images) ? item.images : item.images ? [item.images] : []} title={item.title} />
+                    <ImageGallery images={Array.isArray(item.images) ? item.images : item.images ? [item.images] : []}
+                                  title={item.title}
+                                  numberOfImages={1}/>
                   </Td>
                   <Td>{item.category || "No Category"}</Td>
-                    <Td>
-                      {Object.entries(item.property)
-                          .filter(([key]) => key !== "ID" && key !== "content_id")
-                          .map(([key, value]) => (
-                              <Box key={key}>
-                                <strong>{key}:</strong> {value}
-                              </Box>
-                          ))}
-                    </Td>
 
-
-                    <Td>
-                    <Link
-                      href={item.item_url || "#"}
-                      isExternal
-                      color="blue.500"
-                      textDecoration="underline"
-                    >
-                      {item.item_url ? formatUrl(item.item_url) : "No URL"}
-                    </Link>
-                  </Td>
                   <Td>{item.language || "No Language"}</Td>
                   <Td>{item.price}</Td>
                   <Td>{item.quantity}</Td>
-                  <Td>
-                    <Flex gap={2}>
-                      <Box
-                        width="12px"
-                        height="12px"
-                        borderRadius="full"
-                        bg={item.status ? "green.500" : "red.500"}
-                      />
-                      {item.status ? "Active" : "Inactive"}
-                    </Flex>
-                  </Td>
-                  <Td>
+                    <Td py={1} px={2} fontSize="sm">
+                      <Flex align="center" gap={1}>
+                        <Box w="10px" h="10px" borderRadius="full" bg={item.status ? "green.500" : "red.500"} />
+                        {item.status ? "Active" : "Inactive"}
+                      </Flex>
+                    </Td>
+                    <Td>
                     <ActionsMenu type={"Item"} value={item} />
                   </Td>
                 </Tr>
@@ -199,40 +189,49 @@ function ItemsTable({ language }: ItemsTableProps) {
 }
 
 function Items() {
+
+  const { data: languages, isLoading } = useAvailableLanguages()
+  if (isLoading) {
+    return <Box p={6}>Loading languages...</Box>
+  }
+  if (!languages || languages.length === 0) {
+    return <Box p={6}>No languages available to display.</Box>
+  }
+
+  const getLanguageLabel = (code: string) => {
+    switch (code) {
+      case "pl": return "Polish"
+      case "en": return "English"
+      case "de": return "German"
+      case "ua": return "Ukrainian"
+      default: return code.toUpperCase()
+    }
+  }
+
   return (
     <Container maxW="full">
-      <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={12}>
+      <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={10}>
         Items Management
       </Heading>
 
       <Navbar type={"Item"} addModalAs={AddItem} />
       <Tabs isFitted variant="enclosed">
         <TabList mb="1em">
-          <Tab _selected={{ color: "white", bg: "#D65A17" }}>Polish</Tab>
-          <Tab _selected={{ color: "white", bg: "#D65A17" }}>English</Tab>
-          <Tab _selected={{ color: "white", bg: "#D65A17" }}>German</Tab>
+          {languages?.map((lang) => (
+              <Tab key={lang} _selected={{ color: "white", bg: "#D65A17" }}>
+                {getLanguageLabel(lang)}
+              </Tab>
+          ))}
         </TabList>
         <TabPanels>
-          <TabPanel>
-            <ItemsTable language={POLAND} />
-          </TabPanel>
-          <TabPanel>
-            <ItemsTable language={ENGLISH} />
-          </TabPanel>
-          <TabPanel>
-            <ItemsTable language={GERMAN} />
-          </TabPanel>
+          {languages?.map((lang) => (
+              <TabPanel key={lang}>
+                <ItemsTable language={lang} />
+              </TabPanel>
+          ))}
         </TabPanels>
       </Tabs>
     </Container>
   )
 }
 
-function formatUrl(url: string) {
-  try {
-    const { hostname } = new URL(url)
-    return hostname // This will display only the domain part of the URL
-  } catch (error) {
-    return url || "No URL" // Fallback if the URL is invalid or empty
-  }
-}

@@ -47,7 +47,7 @@ func GetItemByID(ctx *gin.Context) {
 
 	itemId, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
 		return
 	}
 	db, ok := utils.GetDBFromContext(ctx)
@@ -70,6 +70,22 @@ func GetItemByID(ctx *gin.Context) {
 
 }
 
+func GetAvailableLanguages(ctx *gin.Context) {
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	var langs []string
+	err := db.Model(&entities.Items{}).Distinct("language").Pluck("language", &langs).Error
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"languages": langs})
+}
+
 func UpdateItemByIdHandler(ctx *gin.Context) {
 	userID, ok := utils.GetUserIDFromContext(ctx)
 	if !ok {
@@ -78,7 +94,7 @@ func UpdateItemByIdHandler(ctx *gin.Context) {
 
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
 		return
 	}
 	db, ok := utils.GetDBFromContext(ctx)
@@ -152,7 +168,7 @@ func DeleteItemByIdHandler(ctx *gin.Context) {
 
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid item ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
 		return
 	}
 

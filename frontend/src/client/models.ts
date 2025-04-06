@@ -68,7 +68,7 @@ export type PropertiesFormData = {
   content_id: string
 }
 
-export type UpdateProperties = {
+export type UpdatePropertiesType = {
   height?: string
   width?: string
   weight?: string

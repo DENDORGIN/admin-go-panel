@@ -23,6 +23,7 @@ import { Route as LayoutItemsImport } from './routes/_layout/items'
 import { Route as LayoutCalendarImport } from './routes/_layout/calendar'
 import { Route as LayoutBlogImport } from './routes/_layout/blog'
 import { Route as LayoutAdminImport } from './routes/_layout/admin'
+import { Route as LayoutProductItemIdImport } from './routes/_layout/product/$itemId'
 import { Route as LayoutChatRoomIdImport } from './routes/_layout/chat/$roomId'
 
 // Create/Update Routes
@@ -87,6 +88,11 @@ const LayoutAdminRoute = LayoutAdminImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
+const LayoutProductItemIdRoute = LayoutProductItemIdImport.update({
+  path: '/product/$itemId',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
 const LayoutChatRoomIdRoute = LayoutChatRoomIdImport.update({
   path: '/chat/$roomId',
   getParentRoute: () => LayoutRoute,
@@ -148,6 +154,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutChatRoomIdImport
       parentRoute: typeof LayoutImport
     }
+    '/_layout/product/$itemId': {
+      preLoaderRoute: typeof LayoutProductItemIdImport
+      parentRoute: typeof LayoutImport
+    }
   }
 }
 
@@ -163,6 +173,7 @@ export const routeTree = rootRoute.addChildren([
     LayoutSettingsRoute,
     LayoutIndexRoute,
     LayoutChatRoomIdRoute,
+    LayoutProductItemIdRoute,
   ]),
   LoginRoute,
   RecoverPasswordRoute,

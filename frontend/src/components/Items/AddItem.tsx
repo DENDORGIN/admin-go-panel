@@ -29,7 +29,7 @@ import { handleError } from "../../utils";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-import PropertiesModal from "../Modals/PropertiesModal"
+// import PropertiesModal from "../Modals/PropertiesModal"
 
 interface FileDetail {
   name: string;
@@ -70,18 +70,7 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
     },
   });
 
-  const [isPropertyModalOpen, setPropertyModalOpen] = useState(false);
   const [propertyData, setPropertyData] = useState<PropertiesFormData | null>(null);
-  const handleOpenPropertyModal = () => setPropertyModalOpen(true);
-  const handleClosePropertyModal = () => setPropertyModalOpen(false);
-
-
-  const handleSaveProperties = (data: PropertiesFormData) => {
-    setPropertyData(data);
-  };
-
-
-
 
   const modules = {
     toolbar: [
@@ -238,16 +227,6 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
                   <FormErrorMessage>{errors.content.message}</FormErrorMessage>
               )}
             </FormControl>
-
-            <Button
-                colorScheme="orange"
-                variant="primary"
-                mt={4}
-                onClick={handleOpenPropertyModal}
-            >
-              Add Property
-            </Button>
-
 
             <FormControl mt={4}>
               <FormLabel htmlFor="images">Images</FormLabel>
@@ -415,11 +394,6 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
             </Button>
             <Button onClick={onClose}>Cancel</Button>
           </ModalFooter>
-          <PropertiesModal
-              isOpen={isPropertyModalOpen}
-              onClose={handleClosePropertyModal}
-              onSave={handleSaveProperties}
-          />
         </ModalContent>
       </Modal>
   );

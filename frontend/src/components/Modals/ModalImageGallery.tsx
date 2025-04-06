@@ -6,11 +6,13 @@ import "yet-another-react-lightbox/styles.css"
 interface ModalImageGalleryProps {
   images: string[] // Масив посилань на зображення
   title: string // Опціональна назва
+  numberOfImages: number
 }
 
 const ModalImageGallery = ({
   images: initialImages,
   title,
+  numberOfImages,
 }: ModalImageGalleryProps) => {
   const [images, setImages] = useState<string[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -34,7 +36,7 @@ const ModalImageGallery = ({
 
   return (
     <Box display="flex" flexWrap="wrap" justifyContent="left" gap="10px">
-      {images.slice(0, 3).map((src, index) => (
+      {images.slice(0, numberOfImages).map((src, index) => (
         <Image
           key={src}
           src={src}

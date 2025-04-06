@@ -135,10 +135,12 @@ func UpdateProperty(db *gorm.DB, id uuid.UUID, update *PropertyUpdate) (*Propert
 	if update.Style != "" {
 		property.Style = update.Style
 	}
+
 	err = db.Save(&property).Error
 	if err != nil {
 		return nil, err
 	}
+
 	return &PropertyGet{
 		ID:        property.ID,
 		Height:    property.Height,

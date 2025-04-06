@@ -44,7 +44,7 @@ type BlogGetAll struct {
 
 func CreateBlog(db *gorm.DB, b *entities.Blog) (*BlogPost, error) {
 	if b.Title == "" {
-		return nil, errors.New("the item title cannot be empty")
+		return nil, errors.New("the product title cannot be empty")
 	}
 
 	err := repository.GetPosition(db, b.Position, &entities.Blog{})
