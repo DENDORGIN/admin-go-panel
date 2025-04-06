@@ -47,6 +47,9 @@ func CreateUser(db *gorm.DB, user *entities.User) (*UserResponse, error) {
 		return nil, err
 	}
 	user.Password = hashedPassword
+	if user.Avatar == "" {
+		user.Avatar = "https://f003.backblazeb2.com/file/admin-go-panel/user.png"
+	}
 	if err = db.Create(user).Error; err != nil {
 		return nil, err
 	}

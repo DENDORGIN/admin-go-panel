@@ -47,6 +47,7 @@ const AddUser = ({ isOpen, onClose }: AddUserProps) => {
       email: "",
       fullName: "",
       password: "",
+      avatar: "",
       confirm_password: "",
       isSuperUser: false,
       isActive: false,

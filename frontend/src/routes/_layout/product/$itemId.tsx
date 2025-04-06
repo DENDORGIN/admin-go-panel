@@ -10,7 +10,9 @@ import {
     Text,
     Tag,
     Badge,
+    IconButton
 } from "@chakra-ui/react"
+import { EditIcon, CloseIcon } from "@chakra-ui/icons"
 import { createFileRoute } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
 import {type ApiError, ItemsService} from "../../../client"
@@ -18,8 +20,9 @@ import { ArrowBackIcon } from "@chakra-ui/icons"
 import { useNavigate } from "@tanstack/react-router"
 import ImageGallery from "../../../components/Modals/ModalImageGallery.tsx";
 import DOMPurify from "dompurify";
-import React from "react";
-import EditableProperties from "../../../components/Modals/EditablePropertiesModal"
+import React, { useState } from "react";
+import EditableProperties from "../../../components/Items/EditableProperties.tsx"
+import EditableImages from "../../../components/Items/EditableImages"
 
 export const Route = createFileRoute("/_layout/product/$itemId")({
     component: ItemDetails,
@@ -37,6 +40,7 @@ const SafeHtmlComponent: React.FC<SafeHtmlComponentProps> = ({ htmlContent }) =>
 function ItemDetails() {
     const { itemId } = Route.useParams()
     const navigate = useNavigate()
+    const [isEditingImages, setIsEditingImages] = useState(false)
 
     const { data: item, isLoading, error } = useQuery({
         queryKey: ["item", itemId],
@@ -54,6 +58,8 @@ function ItemDetails() {
             case "en":
                 return "$"
             case "de":
+                return "€"
+            case "fr":
                 return "€"
             default:
                 return ""
@@ -76,6 +82,7 @@ function ItemDetails() {
         : item.images
             ? [item.images]
             : []
+
 
     return (
         <Container maxW="4xl" py={8}>
@@ -110,13 +117,31 @@ function ItemDetails() {
                 </Box>
 
                 <Box>
-                    <Text fontWeight="bold">Images:</Text>
-                    <ImageGallery
-                        images={imageArray}
-                        title={item.title}
-                        numberOfImages={imageArray.length}
-                    />
+                    <Flex justify="space-between" align="center" mb={2}>
+                        <Text fontWeight="bold">Images:</Text>
+                        <IconButton
+                            icon={isEditingImages ? <CloseIcon /> : <EditIcon />}
+                            size="sm"
+                            aria-label="Edit images"
+                            onClick={() => setIsEditingImages(!isEditingImages)}
+                        />
+                    </Flex>
+
+                    {/* Галерея (режим перегляду) */}
+                    <Box display={isEditingImages ? "none" : "block"}>
+                        <ImageGallery
+                            images={imageArray}
+                            title={item.title}
+                            numberOfImages={imageArray.length}
+                        />
+                    </Box>
+
+                    {/* Редагування зображень */}
+                    <Box display={isEditingImages ? "block" : "none"}>
+                        <EditableImages itemId={item.ID} initialImages={imageArray} />
+                    </Box>
                 </Box>
+
 
                 {item.property?.ID && (
                 <EditableProperties

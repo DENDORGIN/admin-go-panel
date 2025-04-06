@@ -483,11 +483,6 @@ const EditItem = ({ item, isOpen, onClose }: EditItemProps) => {
             </Button>
             <Button onClick={onClose}>Cancel</Button>
           </ModalFooter>
-          {/*<PropertiesModal*/}
-          {/*    isOpen={isPropertyModalOpen}*/}
-          {/*    onClose={handleClosePropertyModal}*/}
-          {/*    onSave={handleSaveProperties}*/}
-          {/*/>*/}
         </ModalContent>
       </Modal>
   );
