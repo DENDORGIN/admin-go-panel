@@ -170,9 +170,9 @@ func UpdateItemById(db *gorm.DB, itemId uuid.UUID, updateItem *ItemUpdate) (*Ite
 	if updateItem.Price != 0 {
 		item.Price = updateItem.Price
 	}
-	if updateItem.Quantity != 0 {
-		item.Quantity = updateItem.Quantity
-	}
+
+	item.Quantity = updateItem.Quantity
+
 	if updateItem.ItemUrl != "" {
 		item.ItemUrl = updateItem.ItemUrl
 	}

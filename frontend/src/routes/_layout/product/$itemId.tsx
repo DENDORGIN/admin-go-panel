@@ -23,6 +23,10 @@ import DOMPurify from "dompurify";
 import React, { useState } from "react";
 import EditableProperties from "../../../components/Items/EditableProperties.tsx"
 import EditableImages from "../../../components/Items/EditableImages"
+import EditTitleModal from "../../../components/Items/EditTitleModal"
+import EditContentModal from "../../../components/Items/EditContentModal"
+import EditPriceModal from "../../../components/Items/EditPriceModal"
+import EditQuantityModal from "../../../components/Items/EditQuantityModal.tsx";
 
 export const Route = createFileRoute("/_layout/product/$itemId")({
     component: ItemDetails,
@@ -40,8 +44,13 @@ const SafeHtmlComponent: React.FC<SafeHtmlComponentProps> = ({ htmlContent }) =>
 function ItemDetails() {
     const { itemId } = Route.useParams()
     const navigate = useNavigate()
+
     const [isEditingImages, setIsEditingImages] = useState(false)
-    // const queryClient = useQueryClient()
+    const [isEditingTitle, setIsEditingTitle] = useState(false)
+    const [isEditingContent, setIsEditingContent] = useState(false)
+    const [isEditingPrice, setIsEditingPrice] = useState(false)
+    const [isEditingQuantity, setIsEditingQuantity] = useState(false)
+
 
     const { data: item, isLoading, error, refetch: refetchItem } = useQuery({
         queryKey: ["item", itemId],
@@ -100,9 +109,25 @@ function ItemDetails() {
                 Back to the product list
             </Link>
 
-            <Heading size="lg" mb={2}>
-                {item.title}
-            </Heading>
+            <Flex justify="space-between" align="center" mb={1}>
+                <Text fontWeight="bold">Title:</Text>
+                <IconButton
+                    icon={<EditIcon />}
+                    color={isEditingImages? "gray.600" : "orange.500"}
+                    size="sm"
+                    aria-label="Edit title"
+                    onClick={() => setIsEditingTitle(true)}
+                />
+            </Flex>
+
+            <Heading size="lg" mb={2}>{item.title}</Heading>
+
+            <EditTitleModal
+                isOpen={isEditingTitle}
+                onClose={() => setIsEditingTitle(false)}
+                item={item}
+                onSuccess={() => refetchItem()}
+            />
 
             <Text color="gray.500" mb={4}>
                 Category: {item.category || "Not Category"} | Language:{" "}
@@ -113,15 +138,33 @@ function ItemDetails() {
 
             <Stack spacing={4}>
                 <Box whiteSpace="pre-wrap" padding="4px">
-                    <Text fontWeight="bold">Content:</Text>
+                    <Flex justify="space-between" align="center" mb={1}>
+                        <Text fontWeight="bold">Content:</Text>
+                        <IconButton
+                            icon={<EditIcon />}
+                            size="sm"
+                            color="orange.500"
+                            aria-label="Edit content"
+                            onClick={() => setIsEditingContent(true)}
+                        />
+                    </Flex>
                     <SafeHtmlComponent htmlContent={item.content || "N/A"} />
                 </Box>
+
+                <EditContentModal
+                    isOpen={isEditingContent}
+                    onClose={() => setIsEditingContent(false)}
+                    item={item}
+                    onSuccess={() => refetchItem()}
+                />
+
 
                 <Box>
                     <Flex justify="space-between" align="center" mb={2}>
                         <Text fontWeight="bold">Images:</Text>
                         <IconButton
                             icon={isEditingImages ? <CloseIcon /> : <EditIcon />}
+                            color={isEditingImages ? "gray.600" : "orange.500"}
                             size="sm"
                             aria-label="Edit images"
                             onClick={() => setIsEditingImages(!isEditingImages)}
@@ -156,19 +199,69 @@ function ItemDetails() {
                 )}
 
                 <Box>
-                    <Text fontWeight="bold">Cost:</Text>
+                    <Flex justify="space-between" align="center" mb={1}>
+                        <Text fontWeight="bold">Cost:</Text>
+                        <IconButton
+                            icon={<EditIcon />}
+                            size="sm"
+                            color="orange.500"
+                            aria-label="Edit price"
+                            onClick={() => setIsEditingPrice(true)}
+                        />
+                    </Flex>
                     <Tag size="lg" colorScheme="green">
                         {item.price} {getCurrencySymbol(item.language)}
                     </Tag>
                 </Box>
 
+                <EditPriceModal
+                    isOpen={isEditingPrice}
+                    onClose={() => setIsEditingPrice(false)}
+                    item={item}
+                    onSuccess={() => refetchItem()}
+                />
 
                 <Box>
-                    <Text fontWeight="bold">Quantity:</Text>
-                    <Badge colorScheme="purple" fontSize="md" p={1}>
+                    <Flex justify="space-between" align="center" mb={1}>
+                        <Text fontWeight="bold">Quantity:</Text>
+                        <IconButton
+                            icon={<EditIcon />}
+                            size="sm"
+                            color="orange.500"
+                            aria-label="Edit quantity"
+                            onClick={() => setIsEditingQuantity(true)}
+                        />
+                    </Flex>
+                    <Badge
+                        colorScheme={
+                            item.quantity === 0
+                                ? "red"
+                                : item.quantity < 10
+                                    ? "yellow"
+                                    : "purple"
+                        }
+                        fontSize="md"
+                        p={1}
+                    >
                         {item.quantity}
                     </Badge>
+
                 </Box>
+
+                <EditQuantityModal
+                    isOpen={isEditingQuantity}
+                    onClose={() => setIsEditingQuantity(false)}
+                    item={item}
+                    onSuccess={() => refetchItem()}
+                />
+
+
+                {/*<Box>*/}
+                {/*    <Text fontWeight="bold">Quantity:</Text>*/}
+                {/*    <Badge colorScheme="purple" fontSize="md" p={1}>*/}
+                {/*        {item.quantity}*/}
+                {/*    </Badge>*/}
+                {/*</Box>*/}
 
                 <Box>
                     <Text fontWeight="bold">URL:</Text>

@@ -498,7 +498,7 @@ export class ItemsService {
    */
   public static updateItem(
       id: string,
-      data: JSON,
+      data: ItemUpdate,
   ): CancelablePromise<PostPublic> {
     return __request(OpenAPI, {
       method: "PUT",
