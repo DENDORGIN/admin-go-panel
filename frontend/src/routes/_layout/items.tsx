@@ -14,19 +14,18 @@ import {
   Tr,
   Badge
 } from "@chakra-ui/react"
-
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from "@chakra-ui/react"
 
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { z } from "zod"
 
 import { ItemsService } from "../../client"
 import ActionsMenu from "../../components/Common/ActionsMenu.tsx"
 import Navbar from "../../components/Common/Navbar"
 import { PaginationFooter } from "../../components/Common/PaginationFooter.tsx"
-import AddItem from "../../components/Items/AddItem"
+import AddItem, { type AddItemProps } from "../../components/Items/AddItem"
 import ImageGallery from "../../components/Modals/ModalImageGallery.tsx"
 import { UseAvailableLanguages } from "../../hooks/useAvailableLanguages.ts"
 
@@ -193,7 +192,14 @@ function ItemsTable({ language }: ItemsTableProps) {
 
 function Items() {
 
-  const { data: languages, isLoading } = UseAvailableLanguages()
+  const { data: fetchedLanguages = [], isLoading } = UseAvailableLanguages()
+  const [languages, setLanguages] = useState<string[]>([])
+  const [activeTabIndex, setActiveTabIndex] = useState(0)
+
+  useEffect(() => {
+    setLanguages(fetchedLanguages)
+  }, [fetchedLanguages])
+
   if (isLoading) {
     return <Box p={6}>Loading languages...</Box>
   }
@@ -210,6 +216,17 @@ function Items() {
       case "it": return "Italian"
       case "es": return "Spanish"
       case "fr": return "France"
+      case "lv": return "Latvia"
+      case "lt": return "Lithuanian"
+      case "ro": return "Romanian"
+      case "bg": return "Bulgarian"
+      case "tr": return "Turkish"
+      case "el": return "Greek"
+      case "nl": return "Dutch"
+      case "sv": return "Swedish"
+      case "cs": return "Czech"
+      case "sk": return "Slovak"
+      case "hu": return "Hungarian"
       default: return code.toUpperCase()
     }
   }
@@ -220,22 +237,44 @@ function Items() {
         Items Management
       </Heading>
 
-      <Navbar type={"Item"} addModalAs={AddItem} />
-      <Tabs isFitted variant="enclosed">
-        <TabList mb="1em">
-          {languages?.map((lang) => (
-              <Tab key={lang} _selected={{ color: "white", bg: "#D65A17" }}>
-                {getLanguageLabel(lang)}
-              </Tab>
-          ))}
-        </TabList>
+      <Navbar
+          type={"Item"}
+          addModalAs={(props: AddItemProps) => (
+              <AddItem
+                  {...props}
+                  onNewLanguage={(lang) => {
+                    if (!languages.includes(lang)) {
+                      setLanguages((prev) => [...prev, lang])
+                      setActiveTabIndex(languages.length) // перейти на останню табу
+                    }
+                  }}
+              />
+          )}
+      />
+
+      <Tabs
+          isFitted
+          variant="enclosed"
+          index={activeTabIndex}
+          onChange={setActiveTabIndex}
+      >
+        <Box overflowX="auto" whiteSpace="nowrap">
+          <TabList mb="1em" minW="max-content" width="full">
+            {languages.map((lang) => (
+                <Tab key={lang} _selected={{ color: "white", bg: "#D65A17" }} flexShrink={0}>
+                  {getLanguageLabel(lang)}
+                </Tab>
+            ))}
+          </TabList>
+        </Box>
+
         <TabPanels>
-          {languages?.map((lang) => (
-              <TabPanel key={lang}>
-                <ItemsTable language={lang} />
-              </TabPanel>
-          ))}
-        </TabPanels>
+            {languages?.map((lang) => (
+                <TabPanel key={lang}>
+                  <ItemsTable language={lang} />
+                </TabPanel>
+            ))}
+          </TabPanels>
       </Tabs>
     </Container>
   )

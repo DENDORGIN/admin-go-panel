@@ -33,8 +33,6 @@ import {UseAvailableLanguages} from "../../hooks/useAvailableLanguages.ts"
 import {useAvailableCategories} from "../../hooks/useAvailableCategories.ts"
 
 
-// import PropertiesModal from "../Modals/PropertiesModal"
-
 interface FileDetail {
   name: string;
   size: string;
@@ -46,12 +44,13 @@ interface ItemCreateExtended extends ItemCreate {
   images?: File[];
 }
 
-interface AddItemProps {
+export interface AddItemProps {
   isOpen: boolean;
   onClose: () => void;
+  onNewLanguage?: (lang: string) => void
 }
 
-const AddItem = ({ isOpen, onClose }: AddItemProps) => {
+const AddItem = ({ isOpen, onClose, onNewLanguage }: AddItemProps) => {
   const queryClient = useQueryClient();
   const showToast = useCustomToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -195,6 +194,11 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
     };
 
     await mutation.mutateAsync(payload);
+
+    if (onNewLanguage && payload.language && !languages.includes(payload.language)) {
+      onNewLanguage(payload.language)
+    }
+
   };
 
   return (

@@ -86,6 +86,7 @@ function ItemDetails() {
                 mb={4}
                 display="inline-flex"
                 alignItems="center"
+                px={10}
             >
                 <ArrowBackIcon mr={2} />
                 Back to the product list
