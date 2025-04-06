@@ -86,6 +86,22 @@ func GetAvailableLanguages(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"languages": langs})
 }
 
+func GetAvailableCategories(ctx *gin.Context) {
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	var categories []string
+	err := db.Model(&entities.Items{}).Distinct("category").Pluck("category", &categories).Error
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"categories": categories})
+}
+
 func UpdateItemByIdHandler(ctx *gin.Context) {
 	userID, ok := utils.GetUserIDFromContext(ctx)
 	if !ok {

@@ -16,7 +16,6 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
-  Select,
   Switch,
 } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,6 +27,11 @@ import useCustomToast from "../../hooks/useCustomToast";
 import { handleError } from "../../utils";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import LanguageSelector from "./LanguageSelector"
+import CategorySelector from "./CategorySelector"
+import {UseAvailableLanguages} from "../../hooks/useAvailableLanguages.ts"
+import {useAvailableCategories} from "../../hooks/useAvailableCategories.ts"
+
 
 // import PropertiesModal from "../Modals/PropertiesModal"
 
@@ -52,12 +56,14 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
   const showToast = useCustomToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<FileDetail[]>([]);
+
   const {
     register,
     handleSubmit,
     reset,
     setValue,
     watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ItemCreateExtended>({
     mode: "onBlur",
@@ -69,6 +75,9 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
       images: [],
     },
   });
+
+  const { data: languages = [] } = UseAvailableLanguages()
+  const { data: categories = [] } = useAvailableCategories()
 
   const [propertyData, setPropertyData] = useState<PropertiesFormData | null>(null);
 
@@ -268,23 +277,13 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
                 )}
               </Card>
             </FormControl>
-            <FormControl mt={4} isInvalid={!!errors.category}>
-              <FormLabel htmlFor="category">Category</FormLabel>
-              <Select
-                  placeholder="Select Categories"
-                  {...register("category", {
-                    required: "Please select a category",
-                  })}
-              >
-                <option value="Angels">Angels</option>
-                <option value="Buddy">Buddy</option>
-                <option value="Pots and Drinkers">Pots and Drinkers</option>
-                <option value="Animals">Animals</option>
-              </Select>
-              {errors.category && (
-                  <FormErrorMessage>{errors.category.message}</FormErrorMessage>
-              )}
-            </FormControl>
+            <CategorySelector
+                control={control}
+                name="category"
+                error={errors.category}
+                options={categories}
+            />
+
             <FormControl mt={4}>
               <FormLabel htmlFor="url">URL</FormLabel>
               <Input
@@ -297,22 +296,13 @@ const AddItem = ({ isOpen, onClose }: AddItemProps) => {
                   <FormErrorMessage>{errors.item_url.message}</FormErrorMessage>
               )}
             </FormControl>
-            <FormControl mt={4} isInvalid={!!errors.language}>
-              <FormLabel htmlFor="language">Language</FormLabel>
-              <Select
-                  placeholder="Select language"
-                  {...register("language", {
-                    required: "Please select a language",
-                  })}
-              >
-                <option value="pl">PL</option>
-                <option value="en">EN</option>
-                <option value="de">DE</option>
-              </Select>
-              {errors.language && (
-                  <FormErrorMessage>{errors.language.message}</FormErrorMessage>
-              )}
-            </FormControl>
+            <LanguageSelector
+                control={control}
+                name="language"
+                error={errors.language}
+                options={languages}
+            />
+
 
             <FormControl mt={4} isInvalid={!!errors.price}>
               <FormLabel htmlFor="price">Price</FormLabel>

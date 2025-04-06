@@ -539,6 +539,16 @@ export class ItemsService {
       },
     })
   }
+  public static readItemsCategories(): Promise<{ categories: string[] }> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/v1/items/categories",
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+
 }
 
 export type TDataCreateCalendarEvent = {

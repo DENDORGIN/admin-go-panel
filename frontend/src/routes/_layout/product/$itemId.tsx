@@ -44,6 +44,7 @@ function ItemDetails() {
         enabled: !!itemId
     })
 
+
     const getCurrencySymbol = (lang: string) => {
         switch (lang) {
             case "pl":
@@ -70,6 +71,12 @@ function ItemDetails() {
     if (!item || error)
         return <Text textAlign="center">Товар не знайдено або сталася помилка.</Text>
 
+    const imageArray = Array.isArray(item.images)
+        ? item.images
+        : item.images
+            ? [item.images]
+            : []
+
     return (
         <Container maxW="4xl" py={8}>
             <Link
@@ -81,7 +88,7 @@ function ItemDetails() {
                 alignItems="center"
             >
                 <ArrowBackIcon mr={2} />
-                Назад до списку товарів
+                Back to the product list
             </Link>
 
             <Heading size="lg" mb={2}>
@@ -103,11 +110,13 @@ function ItemDetails() {
 
                 <Box>
                     <Text fontWeight="bold">Images:</Text>
-                    <ImageGallery images={Array.isArray(item.images) ? item.images : item.images ? [item.images] : []}
-                                  title={item.title}
-                                  numberOfImages={Array.isArray(item.images) ? item.images.length : item.images ? 1 : 0}
+                    <ImageGallery
+                        images={imageArray}
+                        title={item.title}
+                        numberOfImages={imageArray.length}
                     />
                 </Box>
+
                 {item.property?.ID && (
                 <EditableProperties
                     propertyId={item.property.ID}
@@ -126,7 +135,7 @@ function ItemDetails() {
 
 
                 <Box>
-                    <Text fontWeight="bold">Кількість:</Text>
+                    <Text fontWeight="bold">Quantity:</Text>
                     <Badge colorScheme="purple" fontSize="md" p={1}>
                         {item.quantity}
                     </Badge>
@@ -144,12 +153,12 @@ function ItemDetails() {
                         {item.item_url ? formatUrl(item.item_url) : "No URL"}
                       </Link>
                     ) : (
-                        "Немає URL"
+                        "Not URL"
                     )}
                 </Box>
 
                 <Box>
-                    <Text fontWeight="bold">Статус:</Text>
+                    <Text fontWeight="bold">Status:</Text>
                     <Flex align="center" gap={2}>
                         <Box
                             w="12px"
@@ -157,7 +166,7 @@ function ItemDetails() {
                             borderRadius="full"
                             bg={item.status ? "green.500" : "red.500"}
                         />
-                        {item.status ? "Активний" : "Неактивний"}
+                        {item.status ? "Active" : "Inactive"}
                     </Flex>
                 </Box>
             </Stack>

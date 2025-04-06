@@ -12,6 +12,7 @@ import {
   Th,
   Thead,
   Tr,
+  Badge
 } from "@chakra-ui/react"
 
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from "@chakra-ui/react"
@@ -27,6 +28,7 @@ import Navbar from "../../components/Common/Navbar"
 import { PaginationFooter } from "../../components/Common/PaginationFooter.tsx"
 import AddItem from "../../components/Items/AddItem"
 import ImageGallery from "../../components/Modals/ModalImageGallery.tsx"
+import { UseAvailableLanguages } from "../../hooks/useAvailableLanguages.ts"
 
 const itemsSearchSchema = z.object({
   page: z.number().catch(1),
@@ -38,9 +40,6 @@ export const Route = createFileRoute("/_layout/items")({
 })
 
 const PER_PAGE = 7
-// const POLAND = "pl"
-// const ENGLISH = "en"
-// const GERMAN = "de"
 
 interface ItemsTableProps {
   language: string // Визначення типу для 'language'
@@ -62,17 +61,6 @@ function getItemsQueryOptions({ page, language }: ItemsQueryOptions) {
     queryKey: ["items", language, { page }],
   }
 }
-
-const useAvailableLanguages = () => {
-  return useQuery({
-    queryKey: ["items-languages"],
-    queryFn: async () => {
-      const res = await ItemsService.readItemsLanguages()
-      return res.languages // напр., ["pl", "en", "de", "ua"]
-    },
-  })
-}
-
 
 
 function ItemsTable({ language }: ItemsTableProps) {
@@ -118,7 +106,6 @@ function ItemsTable({ language }: ItemsTableProps) {
               <Th>Title</Th>
               <Th>Images</Th>
               <Th>Category</Th>
-              <Th>Language</Th>
               <Th>Price</Th>
               <Th>Quantity</Th>
               <Th>Status</Th>
@@ -141,40 +128,56 @@ function ItemsTable({ language }: ItemsTableProps) {
               </Tr>
             </Tbody>
           ) : (
-            <Tbody>
-              {(items?.Data || []).map((item) => (
-                  <Tr key={item.ID} opacity={isPlaceholderData ? 0.5 : 1}>
-                  <Td>{item.position}</Td>
-                    <Link
-                        onClick={() => navigate({ to:`/product/$itemId`, params: { itemId: item.ID } })}
-                        color="blue.500"
-                        _hover={{ textDecoration: "underline" }}
-                    >
-                      {item.title}
-                    </Link>
+              <Tbody>
+                {(items?.Data || []).map((item) => {
+                  const imageArray = Array.isArray(item.images)
+                      ? item.images
+                      : item.images
+                          ? [item.images]
+                          : []
 
-                  <Td>
-                    <ImageGallery images={Array.isArray(item.images) ? item.images : item.images ? [item.images] : []}
+                  return (
+                      <Tr key={item.ID} opacity={isPlaceholderData ? 0.5 : 1}>
+                        <Td>{item.position}</Td>
+                        <Td>
+                          <Link
+                              onClick={() => navigate({ to: `/product/$itemId`, params: { itemId: item.ID } })}
+                              color="blue.500"
+                              _hover={{ textDecoration: "underline" }}
+                          >
+                            {item.title}
+                          </Link>
+                        </Td>
+                        <Td>
+                          {imageArray.length > 0 ? (
+                              <ImageGallery
+                                  images={imageArray}
                                   title={item.title}
-                                  numberOfImages={1}/>
-                  </Td>
-                  <Td>{item.category || "No Category"}</Td>
+                                  numberOfImages={1}
+                              />
+                          ) : (
+                              <Badge colorScheme="gray" variant="subtle">
+                                N/A
+                              </Badge>
+                          )}
+                        </Td>
+                        <Td>{item.category || "No Category"}</Td>
+                        <Td>{item.price}</Td>
+                        <Td>{item.quantity}</Td>
+                        <Td py={1} px={2} fontSize="sm">
+                          <Flex align="center" gap={1}>
+                            <Box w="10px" h="10px" borderRadius="full" bg={item.status ? "green.500" : "red.500"} />
+                            {item.status ? "Active" : "Inactive"}
+                          </Flex>
+                        </Td>
+                        <Td>
+                          <ActionsMenu type={"Item"} value={item} />
+                        </Td>
+                      </Tr>
+                  )
+                })}
+              </Tbody>
 
-                  <Td>{item.language || "No Language"}</Td>
-                  <Td>{item.price}</Td>
-                  <Td>{item.quantity}</Td>
-                    <Td py={1} px={2} fontSize="sm">
-                      <Flex align="center" gap={1}>
-                        <Box w="10px" h="10px" borderRadius="full" bg={item.status ? "green.500" : "red.500"} />
-                        {item.status ? "Active" : "Inactive"}
-                      </Flex>
-                    </Td>
-                    <Td>
-                    <ActionsMenu type={"Item"} value={item} />
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
           )}
         </Table>
       </TableContainer>
@@ -190,7 +193,7 @@ function ItemsTable({ language }: ItemsTableProps) {
 
 function Items() {
 
-  const { data: languages, isLoading } = useAvailableLanguages()
+  const { data: languages, isLoading } = UseAvailableLanguages()
   if (isLoading) {
     return <Box p={6}>Loading languages...</Box>
   }
@@ -204,6 +207,9 @@ function Items() {
       case "en": return "English"
       case "de": return "German"
       case "ua": return "Ukrainian"
+      case "it": return "Italian"
+      case "es": return "Spanish"
+      case "fr": return "France"
       default: return code.toUpperCase()
     }
   }
