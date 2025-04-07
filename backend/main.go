@@ -114,7 +114,7 @@ func main() {
 	r.GET("/v1/items/:id", routes.GetItemByID)
 	r.GET("/v1/items/languages", routes.GetAvailableLanguages)
 	r.GET("/v1/items/categories", routes.GetAvailableCategories)
-	r.PUT("/v1/items/:id", routes.UpdateItemByIdHandler)
+	r.PATCH("/v1/items/:id", routes.UpdateItemByIdHandler)
 	r.DELETE("/v1/items/:id", routes.DeleteItemByIdHandler)
 
 	// Download files

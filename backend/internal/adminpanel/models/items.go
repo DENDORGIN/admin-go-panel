@@ -40,14 +40,14 @@ type ItemGet struct {
 }
 
 type ItemUpdate struct {
-	Title    string  `json:"title"`
-	Content  string  `json:"content"`
-	Price    float64 `json:"price"`
-	Quantity int     `json:"quantity"`
-	Position int     `json:"position"`
-	ItemUrl  string  `json:"item_url"`
-	Category string  `json:"category"`
-	Status   bool    `json:"status"`
+	Title    *string  `json:"title"`
+	Content  *string  `json:"content"`
+	Price    *float64 `json:"price"`
+	Quantity *int     `json:"quantity"`
+	Position *int     `json:"position"`
+	ItemUrl  *string  `json:"item_url"`
+	Category *string  `json:"category"`
+	Status   *bool    `json:"status"`
 }
 
 type ItemGetAll struct {
@@ -154,32 +154,35 @@ func UpdateItemById(db *gorm.DB, itemId uuid.UUID, updateItem *ItemUpdate) (*Ite
 		return nil, err
 	}
 
-	if updateItem.Position != item.Position {
-		err = repository.ShiftPositions[entities.Items](db, updateItem.Position, item.Language)
+	if updateItem.Position != nil && *updateItem.Position != item.Position {
+		err = repository.ShiftPositions[entities.Items](db, *updateItem.Position, item.Language)
 		if err != nil {
 			return nil, err
 		}
-		item.Position = updateItem.Position
-	}
-	if updateItem.Title != "" {
-		item.Title = updateItem.Title
-	}
-	if updateItem.Content != "" {
-		item.Content = updateItem.Content
-	}
-	if updateItem.Price != 0 {
-		item.Price = updateItem.Price
+		item.Position = *updateItem.Position
 	}
 
-	item.Quantity = updateItem.Quantity
-
-	if updateItem.ItemUrl != "" {
-		item.ItemUrl = updateItem.ItemUrl
+	if updateItem.Title != nil {
+		item.Title = *updateItem.Title
 	}
-	if updateItem.Category != "" {
-		item.Category = updateItem.Category
+	if updateItem.Content != nil {
+		item.Content = *updateItem.Content
 	}
-	item.Status = updateItem.Status
+	if updateItem.Price != nil {
+		item.Price = *updateItem.Price
+	}
+	if updateItem.Quantity != nil {
+		item.Quantity = *updateItem.Quantity
+	}
+	if updateItem.ItemUrl != nil {
+		item.ItemUrl = *updateItem.ItemUrl
+	}
+	if updateItem.Category != nil {
+		item.Category = *updateItem.Category
+	}
+	if updateItem.Status != nil {
+		item.Status = *updateItem.Status
+	}
 
 	err = db.Save(&item).Error
 	if err != nil {
