@@ -9,7 +9,6 @@ import {
     Stack,
     Text,
     Tag,
-    Badge,
     IconButton
 } from "@chakra-ui/react"
 import { EditIcon, CloseIcon } from "@chakra-ui/icons"
@@ -26,7 +25,11 @@ import EditableImages from "../../../components/Items/EditableImages"
 import EditTitleModal from "../../../components/Items/EditTitleModal"
 import EditContentModal from "../../../components/Items/EditContentModal"
 import EditPriceModal from "../../../components/Items/EditPriceModal"
-import EditQuantityModal from "../../../components/Items/EditQuantityModal.tsx";
+import EditQuantityModal from "../../../components/Items/EditQuantityModal";
+import EditPositionModal from "../../../components/Items/EditPositionModal"
+import EditUrlModal from "../../../components/Items/EditUrlModal"
+import ItemStatusSwitch from "../../../components/Items/ItemStatusSwitch"
+
 
 export const Route = createFileRoute("/_layout/product/$itemId")({
     component: ItemDetails,
@@ -50,6 +53,8 @@ function ItemDetails() {
     const [isEditingContent, setIsEditingContent] = useState(false)
     const [isEditingPrice, setIsEditingPrice] = useState(false)
     const [isEditingQuantity, setIsEditingQuantity] = useState(false)
+    const [isEditingUrl, setIsEditingUrl] = useState(false)
+    const [isEditingPosition, setIsEditingPosition] = useState(false)
 
 
     const { data: item, isLoading, error, refetch: refetchItem } = useQuery({
@@ -158,6 +163,7 @@ function ItemDetails() {
                     onSuccess={() => refetchItem()}
                 />
 
+                <Divider />
 
                 <Box>
                     <Flex justify="space-between" align="center" mb={2}>
@@ -188,6 +194,7 @@ function ItemDetails() {
                     </Box>
                 </Box>
 
+                <Divider />
 
                 {item.property?.ID && (
                 <EditableProperties
@@ -220,6 +227,7 @@ function ItemDetails() {
                     item={item}
                     onSuccess={() => refetchItem()}
                 />
+                <Divider />
 
                 <Box>
                     <Flex justify="space-between" align="center" mb={1}>
@@ -232,7 +240,7 @@ function ItemDetails() {
                             onClick={() => setIsEditingQuantity(true)}
                         />
                     </Flex>
-                    <Badge
+                    <Tag
                         colorScheme={
                             item.quantity === 0
                                 ? "red"
@@ -240,13 +248,14 @@ function ItemDetails() {
                                     ? "yellow"
                                     : "purple"
                         }
-                        fontSize="md"
+                        size="lg"
                         p={1}
                     >
                         {item.quantity}
-                    </Badge>
-
+                    </Tag>
                 </Box>
+
+                <Divider />
 
                 <EditQuantityModal
                     isOpen={isEditingQuantity}
@@ -255,42 +264,69 @@ function ItemDetails() {
                     onSuccess={() => refetchItem()}
                 />
 
-
-                {/*<Box>*/}
-                {/*    <Text fontWeight="bold">Quantity:</Text>*/}
-                {/*    <Badge colorScheme="purple" fontSize="md" p={1}>*/}
-                {/*        {item.quantity}*/}
-                {/*    </Badge>*/}
-                {/*</Box>*/}
-
                 <Box>
-                    <Text fontWeight="bold">URL:</Text>
+                    <Flex justify="space-between" align="center" mb={1}>
+                        <Text fontWeight="bold">URL:</Text>
+                        <IconButton
+                            icon={<EditIcon />}
+                            size="sm"
+                            color="orange.500"
+                            aria-label="Edit Url"
+                            onClick={() => setIsEditingUrl(true)}
+                        />
+                    </Flex>
                     {item.item_url ? (
                         <Link
-                        href={item.item_url || "#"}
-                        isExternal
-                        color="blue.500"
-                        textDecoration="underline"
-                      >
-                        {item.item_url ? formatUrl(item.item_url) : "No URL"}
-                      </Link>
+                            href={item.item_url || "#"}
+                            isExternal
+                            color="blue.500"
+                            textDecoration="underline"
+                        >
+                            {item.item_url ? formatUrl(item.item_url) : "No URL"}
+                        </Link>
                     ) : (
                         "Not URL"
                     )}
                 </Box>
 
+                <EditUrlModal
+                    isOpen={isEditingUrl}
+                    onClose={() => setIsEditingUrl(false)}
+                    item={item}
+                    onSuccess={() => refetchItem()}
+                />
+
+                <Divider />
+
                 <Box>
-                    <Text fontWeight="bold">Status:</Text>
-                    <Flex align="center" gap={2}>
-                        <Box
-                            w="12px"
-                            h="12px"
-                            borderRadius="full"
-                            bg={item.status ? "green.500" : "red.500"}
+                    <Flex justify="space-between" align="center" mb={1}>
+                        <Text fontWeight="bold">Position:</Text>
+                        <IconButton
+                            icon={<EditIcon />}
+                            size="sm"
+                            color="orange.500"
+                            aria-label="Edit price"
+                            onClick={() => setIsEditingPosition(true)}
                         />
-                        {item.status ? "Active" : "Inactive"}
                     </Flex>
+                    <Tag size="lg" colorScheme="green">
+                        {item.position}
+                    </Tag>
                 </Box>
+
+                <EditPositionModal
+                    isOpen={isEditingPosition}
+                    onClose={() => setIsEditingPosition(false)}
+                    item={item}
+                    onSuccess={() => refetchItem()}
+                />
+
+                <Divider />
+
+                <ItemStatusSwitch item={item} onUpdated={() => refetchItem()} />
+
+
+                <Divider />
             </Stack>
         </Container>
     )
