@@ -3,7 +3,6 @@ import {
   Container,
   Flex,
   Heading,
-  Link,
   SkeletonText,
   Table,
   TableContainer,
@@ -136,18 +135,22 @@ function ItemsTable({ language }: ItemsTableProps) {
                           : []
 
                   return (
-                      <Tr key={item.ID} opacity={isPlaceholderData ? 0.5 : 1}>
+                      <Tr
+                          key={item.ID}
+                          opacity={isPlaceholderData ? 0.5 : 1}
+                          cursor="pointer"
+                          _hover={{ bg: "gray.50" }}
+                          onClick={() =>
+                              navigate({ to: `/product/$itemId`, params: { itemId: item.ID } })
+                          }
+                      >
                         <Td>{item.position}</Td>
-                        <Td>
-                          <Link
-                              onClick={() => navigate({ to: `/product/$itemId`, params: { itemId: item.ID } })}
-                              color="blue.500"
-                              _hover={{ textDecoration: "underline" }}
-                          >
-                            {item.title}
-                          </Link>
-                        </Td>
-                        <Td>
+
+                        <Td>{item.title}</Td>
+
+                        <Td
+                            onClick={(e) => e.stopPropagation()} // 🛑 Зупиняє перехід
+                        >
                           {imageArray.length > 0 ? (
                               <ImageGallery
                                   images={imageArray}
@@ -160,22 +163,33 @@ function ItemsTable({ language }: ItemsTableProps) {
                               </Badge>
                           )}
                         </Td>
+
                         <Td>{item.category || "No Category"}</Td>
                         <Td>{item.price}</Td>
                         <Td>{item.quantity}</Td>
+
                         <Td py={1} px={2} fontSize="sm">
                           <Flex align="center" gap={1}>
-                            <Box w="10px" h="10px" borderRadius="full" bg={item.status ? "green.500" : "red.500"} />
+                            <Box
+                                w="10px"
+                                h="10px"
+                                borderRadius="full"
+                                bg={item.status ? "green.500" : "red.500"}
+                            />
                             {item.status ? "Active" : "Inactive"}
                           </Flex>
                         </Td>
-                        <Td>
+
+                        <Td
+                            onClick={(e) => e.stopPropagation()} // ⛔ щоб ActionsMenu працював
+                        >
                           <ActionsMenu type={"Item"} value={item} />
                         </Td>
                       </Tr>
                   )
                 })}
               </Tbody>
+
 
           )}
         </Table>

@@ -7,12 +7,11 @@ import {
   useDisclosure,
 } from "@chakra-ui/react"
 import { BsThreeDotsVertical } from "react-icons/bs"
-import { FiEdit, FiTrash } from "react-icons/fi"
+import { FiTrash } from "react-icons/fi"
 
 import type { ItemPublic, PostPublic, UserPublic } from "../../client"
 import EditUser from "../Admin/EditUser"
 import EditPost from "../Blog/EditPost"
-import EditItem from "../Items/EditItem"
 import Delete from "./DeleteAlert"
 import useAuth from "../../hooks/useAuth.ts";
 
@@ -44,13 +43,6 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
           />
           <MenuList>
             <MenuItem
-                onClick={editModal.onOpen}
-                icon={<FiEdit fontSize="16px" />}
-                isDisabled={!isAllowed}
-            >
-              Edit {type}
-            </MenuItem>
-            <MenuItem
                 onClick={deleteModal.onOpen}
                 icon={<FiTrash fontSize="16px" />}
                 color="red.500"
@@ -66,14 +58,6 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
                 user={value as UserPublic}
                 isOpen={editModal.isOpen}
                 onClose={editModal.onClose}
-            />
-        )}
-        {type === "Item" && (
-            <EditItem
-                item={value as ItemPublic}
-                isOpen={editModal.isOpen}
-                onClose={editModal.onClose}
-                isDisabled={!isAllowed}
             />
         )}
         {type === "Post" && (
