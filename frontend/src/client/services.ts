@@ -501,7 +501,7 @@ export class ItemsService {
       data: ItemUpdate,
   ): CancelablePromise<PostPublic> {
     return __request(OpenAPI, {
-      method: "PUT",
+      method: "PATCH",
       url: `/v1/items/${id}`,
       body: data,
       errors: {
