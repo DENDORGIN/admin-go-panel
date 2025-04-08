@@ -115,6 +115,7 @@ type Calendar struct {
 	Vacation       bool      `gorm:"default false" json:"vacation"`
 	Weekend        bool      `gorm:"default false" json:"weekend"`
 	SendEmail      bool      `gorm:"default false" json:"sendEmail"`
+	ReminderSent   bool      `gorm:"default false" json:"reminderSent"`
 	UserID         uuid.UUID `gorm:"not null;index" json:"-"`
 	User           User      `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user"`
 }

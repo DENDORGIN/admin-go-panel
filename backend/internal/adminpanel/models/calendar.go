@@ -24,6 +24,7 @@ type CalendarEvent struct {
 	Vacation       bool      `json:"vacation"`
 	Weekend        bool      `json:"weekend"`
 	SendMail       bool      `json:"sendEmail"`
+	ReminderSent   bool      `json:"reminderSent"`
 	UserID         uuid.UUID `json:"user_id"`
 }
 
@@ -40,6 +41,7 @@ type CalendarEventUpdate struct {
 	Vacation       bool      `json:"vacation"`
 	Weekend        bool      `json:"weekend"`
 	SendMail       bool      `json:"sendEmail"`
+	ReminderSent   bool      `json:"reminderSent"`
 }
 
 func CreateEvent(db *gorm.DB, c *entities.Calendar) (*CalendarEvent, error) {
@@ -82,6 +84,7 @@ func CreateEvent(db *gorm.DB, c *entities.Calendar) (*CalendarEvent, error) {
 		Vacation:       c.Vacation,
 		Weekend:        c.Weekend,
 		SendMail:       c.SendEmail,
+		ReminderSent:   c.ReminderSent,
 		UserID:         c.UserID,
 	}, nil
 }
@@ -118,6 +121,7 @@ func GetAllEvents(db *gorm.DB, userId uuid.UUID) ([]CalendarEvent, error) {
 			Vacation:       event.Vacation,
 			Weekend:        event.Weekend,
 			SendMail:       event.SendEmail,
+			ReminderSent:   event.ReminderSent,
 			UserID:         event.UserID,
 		})
 	}
@@ -148,6 +152,7 @@ func GetEventById(db *gorm.DB, eventId uuid.UUID) (*CalendarEvent, error) {
 		Vacation:       calendar.Vacation,
 		Weekend:        calendar.Weekend,
 		SendMail:       calendar.SendEmail,
+		ReminderSent:   calendar.ReminderSent,
 		UserID:         calendar.UserID,
 	}, nil
 }
@@ -219,6 +224,7 @@ func CalendarUpdateEvent(db *gorm.DB, eventId uuid.UUID, eventUpdate *CalendarEv
 		Vacation:       event.Vacation,
 		Weekend:        event.Weekend,
 		SendMail:       event.SendEmail,
+		ReminderSent:   event.ReminderSent,
 		UserID:         event.UserID,
 	}, nil
 }
@@ -242,7 +248,7 @@ func GetUpcomingReminders(db *gorm.DB) ([]entities.Calendar, error) {
 	//log.Printf("🌍 UTC час сервера: %v", now.UTC())
 
 	err := db.
-		Where("start_date - (INTERVAL '1 minute' * reminder_offset) <= ? AND send_email = ?", now, false).
+		Where("start_date - (INTERVAL '1 minute' * reminder_offset) <= ? AND reminder_sent = false AND send_email = true", now).
 		Find(&upcomingEvents).Error
 
 	if err != nil {
@@ -256,5 +262,7 @@ func GetUpcomingReminders(db *gorm.DB) ([]entities.Calendar, error) {
 
 // MarkReminderSent Позначити подію як відправлену
 func MarkReminderSent(db *gorm.DB, eventID uuid.UUID) error {
-	return db.Model(&entities.Calendar{}).Where("id = ?", eventID).Update("send_email", true).Error
+	return db.Model(&entities.Calendar{}).
+		Where("id = ?", eventID).
+		Update("reminder_sent", true).Error
 }

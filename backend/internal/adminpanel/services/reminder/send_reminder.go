@@ -16,6 +16,9 @@ func SendReminder(db *gorm.DB, event entities.Calendar) {
 		log.Printf("⚠️ Event '%s' has no user email, skipped.\n", event.Title)
 		return
 	}
+
+	log.Printf("👤 Found user: %s (%s)", user.FullName, user.Email)
+
 	warsawLoc, err := time.LoadLocation("Europe/Warsaw")
 	if err != nil {
 		log.Fatal(err)

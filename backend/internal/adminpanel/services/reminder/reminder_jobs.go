@@ -8,30 +8,30 @@ import (
 	"time"
 )
 
-func StartReminderJobs(db *gorm.DB) {
-	go scheduleReminders(db)
-	log.Println("✅ The reminder has been launched!")
+func StartReminderJobs(db *gorm.DB, tenantDomain string) {
+	go scheduleReminders(db, tenantDomain)
+	log.Printf("✅ Reminder launched for %s!", tenantDomain)
 }
 
-func scheduleReminders(db *gorm.DB) {
+func scheduleReminders(db *gorm.DB, tenantDomain string) {
 	// Завантажуємо часовий пояс Варшави
 	warsawLoc, err := time.LoadLocation("Europe/Warsaw")
 	if err != nil {
 		log.Fatal(err)
 	}
 	for {
-		log.Println("🔄 Checking events...")
+		log.Printf("[🔁 %s] Checking events...", tenantDomain)
 
 		time.Sleep(1 * time.Minute) // Перевіряємо кожну хвилину
 
 		events, err := models.GetUpcomingReminders(db)
 		if err != nil {
-			log.Println("❌ Error receiving events:", err)
+			log.Printf("[❌ %s] Error receiving events: %v", tenantDomain, err)
 			continue
 		}
 
 		if len(events) == 0 {
-			log.Println("✅ No events to remind you.")
+			log.Printf("[✅ %s] No events to remind you.", tenantDomain)
 			continue
 		}
 
@@ -39,7 +39,7 @@ func scheduleReminders(db *gorm.DB) {
 			reminderTime := event.StartDate.Add(-time.Duration(event.ReminderOffset) * time.Minute).In(warsawLoc)
 			timeUntilReminder := time.Until(reminderTime)
 
-			log.Printf("📌 Event '%s' should be reminded at %s (via %v)", event.Title, reminderTime, timeUntilReminder)
+			log.Printf("[📌 %s] Event '%s' should be reminded at %s (via %v)", tenantDomain, event.Title, reminderTime, timeUntilReminder)
 
 			scheduleReminder(db, event, reminderTime)
 		}
