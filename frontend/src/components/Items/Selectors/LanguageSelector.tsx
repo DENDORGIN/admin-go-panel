@@ -1,16 +1,12 @@
-import { useState, useMemo } from "react"
-import {
-    FormControl,
-    FormLabel,
-    FormErrorMessage,
-} from "@chakra-ui/react"
+import { FormControl, FormErrorMessage, FormLabel } from "@chakra-ui/react"
 import CreatableSelect from "react-select/creatable"
 import { Controller } from "react-hook-form"
-import { useReactSelectStyles } from "../../theme/reactSelectStyles.ts"
+import { useReactSelectStyles } from "../../../theme/reactSelectStyles.ts"
+import { useState, useMemo } from "react"
 
 type Option = { label: string; value: string }
 
-interface CategorySelectorProps {
+interface LanguageSelectorProps {
     control: any
     name: string
     error?: any
@@ -19,27 +15,22 @@ interface CategorySelectorProps {
     placeholder?: string
 }
 
-const normalizeLabel = (label: string) =>
-    label
-        .trim()
-        .toLowerCase()
-        .replace(/^\w/, (c) => c.toUpperCase())
-
-const CategorySelector = ({
+const LanguageSelector = ({
                               control,
                               name,
                               error,
                               options,
-                              label = "Category",
-                              placeholder = "Select or create category",
-                          }: CategorySelectorProps) => {
+                              label = "Language",
+                              placeholder = "Select or type language",
+                          }: LanguageSelectorProps) => {
     const styles = useReactSelectStyles()
+
     const [createdOptions, setCreatedOptions] = useState<Option[]>([])
 
-    const categoryOptions: Option[] = useMemo(() => {
-        const base = options.map((cat) => ({
-            label: normalizeLabel(cat),
-            value: cat,
+    const languageOptions: Option[] = useMemo(() => {
+        const base = options.map((lang) => ({
+            label: lang.toUpperCase(),
+            value: lang,
         }))
         return [...base, ...createdOptions]
     }, [options, createdOptions])
@@ -50,35 +41,29 @@ const CategorySelector = ({
             <Controller
                 name={name}
                 control={control}
-                rules={{ required: "Please select or enter a category" }}
+                rules={{ required: "Please select or enter a language" }}
                 render={({ field }) => {
                     const selectedValue =
-                        categoryOptions.find((opt) => opt.value === field.value) ?? null
+                        languageOptions.find((opt) => opt.value === field.value) ?? null
 
                     return (
                         <CreatableSelect
                             {...field}
                             value={selectedValue}
-                            options={categoryOptions}
+                            options={languageOptions}
                             placeholder={placeholder}
                             styles={styles}
-                            formatCreateLabel={(val) =>
-                                `Create "${normalizeLabel(val)}"`
-                            }
                             onChange={(val) => {
-                                const newVal = val?.value.trim()
+                                const newVal = val?.value.toLowerCase()
                                 field.onChange(newVal)
 
-                                const alreadyExists = categoryOptions.some(
+                                const alreadyExists = languageOptions.some(
                                     (opt) => opt.value === newVal
                                 )
                                 if (!alreadyExists && newVal) {
                                     setCreatedOptions((prev) => [
                                         ...prev,
-                                        {
-                                            value: newVal,
-                                            label: normalizeLabel(newVal),
-                                        },
+                                        { value: newVal, label: newVal.toUpperCase() },
                                     ])
                                 }
                             }}
@@ -87,11 +72,9 @@ const CategorySelector = ({
                     )
                 }}
             />
-            {error && (
-                <FormErrorMessage>{error.message}</FormErrorMessage>
-            )}
+            {error && <FormErrorMessage>{error.message}</FormErrorMessage>}
         </FormControl>
     )
 }
 
-export default CategorySelector
+export default LanguageSelector

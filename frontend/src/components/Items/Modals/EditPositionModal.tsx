@@ -4,9 +4,9 @@ import {
 } from "@chakra-ui/react"
 import { useForm } from "react-hook-form"
 import { useMutation } from "@tanstack/react-query"
-import {ItemsService, type ApiError, type ItemUpdate, type ItemPublic} from "../../client"
-import { handleError } from "../../utils"
-import useCustomToast from "../../hooks/useCustomToast";
+import {ItemsService, type ApiError, type ItemUpdate, type ItemPublic} from "../../../client"
+import { handleError } from "../../../utils"
+import useCustomToast from "../../../hooks/useCustomToast";
 
 interface EditPositionModalProps {
     isOpen: boolean

@@ -27,8 +27,8 @@ import useCustomToast from "../../hooks/useCustomToast";
 import { handleError } from "../../utils";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import LanguageSelector from "./LanguageSelector"
-import CategorySelector from "./CategorySelector"
+import LanguageSelector from "./Selectors/LanguageSelector.tsx"
+import CategorySelector from "./Selectors/CategorySelector.tsx"
 import {UseAvailableLanguages} from "../../hooks/useAvailableLanguages.ts"
 import {useAvailableCategories} from "../../hooks/useAvailableCategories.ts"
 

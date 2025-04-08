@@ -47,6 +47,7 @@ type ItemUpdate struct {
 	Position *int     `json:"position"`
 	ItemUrl  *string  `json:"item_url"`
 	Category *string  `json:"category"`
+	Language *string  `json:"language"`
 	Status   *bool    `json:"status"`
 }
 
@@ -179,6 +180,9 @@ func UpdateItemById(db *gorm.DB, itemId uuid.UUID, updateItem *ItemUpdate) (*Ite
 	}
 	if updateItem.Category != nil {
 		item.Category = *updateItem.Category
+	}
+	if updateItem.Language != nil {
+		item.Language = *updateItem.Language
 	}
 	if updateItem.Status != nil {
 		item.Status = *updateItem.Status

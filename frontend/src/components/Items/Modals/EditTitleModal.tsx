@@ -4,29 +4,32 @@ import {
 } from "@chakra-ui/react"
 import { useForm } from "react-hook-form"
 import { useMutation } from "@tanstack/react-query"
-import {ItemsService, type ApiError, type ItemUpdate, type ItemPublic} from "../../client"
-import { handleError } from "../../utils"
-import useCustomToast from "../../hooks/useCustomToast";
+import { type ItemUpdate, ItemsService, type ApiError, type ItemPublic } from "../../../client"
+import { handleError } from "../../../utils"
+import useCustomToast from "../../../hooks/useCustomToast";
 
-interface EditPriceModalProps {
+interface EditTitleModalProps {
     isOpen: boolean
     onClose: () => void
     item: ItemPublic
     onSuccess: () => void
 }
 
-const EditPriceModal = ({ isOpen, onClose, item, onSuccess }: EditPriceModalProps) => {
+const EditTitleModal = ({ isOpen, onClose, item, onSuccess }: EditTitleModalProps) => {
     const showToast = useCustomToast()
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ItemUpdate>({
-        defaultValues: { price: item.price },
-        mode: "onBlur"
-    })
 
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting }
+    } = useForm<ItemUpdate>({
+        defaultValues: { title: item.title }
+    })
 
     const mutation = useMutation({
         mutationFn: (data: ItemUpdate) => ItemsService.updateItem(item.ID, data),
         onSuccess: () => {
-            showToast("Success", "Title price", "success" )
+            showToast("Success", "Title updated", "success" )
             onSuccess()
             onClose()
         },
@@ -39,24 +42,12 @@ const EditPriceModal = ({ isOpen, onClose, item, onSuccess }: EditPriceModalProp
         <Modal isOpen={isOpen} onClose={onClose} isCentered>
             <ModalOverlay />
             <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
-                <ModalHeader>Edit Price</ModalHeader>
+                <ModalHeader>Edit Title</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
-                    <FormControl isInvalid={!!errors.price} isRequired>
-                        <FormLabel>Price</FormLabel>
-                        <Input
-                            type="number"
-                            step="0.01"
-                            {...register("price", {
-                                required: "Price is required",
-                                valueAsNumber: true,
-                                min: {
-                                    value: 0,
-                                    message: "Price must be 0 or greater"
-                                }
-                            })}
-                        />
-
+                    <FormControl isInvalid={!!errors.title} isRequired>
+                        <FormLabel>Title</FormLabel>
+                        <Input {...register("title", { required: "Title is required" })} />
                     </FormControl>
                 </ModalBody>
                 <ModalFooter>
@@ -68,4 +59,4 @@ const EditPriceModal = ({ isOpen, onClose, item, onSuccess }: EditPriceModalProp
     )
 }
 
-export default EditPriceModal;
+export default EditTitleModal

@@ -4,21 +4,21 @@ import {
 } from "@chakra-ui/react"
 import { useForm } from "react-hook-form"
 import { useMutation } from "@tanstack/react-query"
-import {ItemsService, type ApiError, type ItemUpdate, type ItemPublic} from "../../client"
-import { handleError } from "../../utils"
-import useCustomToast from "../../hooks/useCustomToast";
+import {ItemsService, type ApiError, type ItemUpdate, type ItemPublic} from "../../../client"
+import { handleError } from "../../../utils"
+import useCustomToast from "../../../hooks/useCustomToast";
 
-interface EditQuantityModalProps {
+interface EditPriceModalProps {
     isOpen: boolean
     onClose: () => void
     item: ItemPublic
     onSuccess: () => void
 }
 
-const EditQuantityModal = ({ isOpen, onClose, item, onSuccess }: EditQuantityModalProps) => {
+const EditPriceModal = ({ isOpen, onClose, item, onSuccess }: EditPriceModalProps) => {
     const showToast = useCustomToast()
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ItemUpdate>({
-        defaultValues: { quantity: item.quantity },
+        defaultValues: { price: item.price },
         mode: "onBlur"
     })
 
@@ -26,7 +26,7 @@ const EditQuantityModal = ({ isOpen, onClose, item, onSuccess }: EditQuantityMod
     const mutation = useMutation({
         mutationFn: (data: ItemUpdate) => ItemsService.updateItem(item.ID, data),
         onSuccess: () => {
-            showToast("Success", "Title quantity", "success" )
+            showToast("Success", "Title price", "success" )
             onSuccess()
             onClose()
         },
@@ -39,20 +39,20 @@ const EditQuantityModal = ({ isOpen, onClose, item, onSuccess }: EditQuantityMod
         <Modal isOpen={isOpen} onClose={onClose} isCentered>
             <ModalOverlay />
             <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
-                <ModalHeader>Edit Quantity</ModalHeader>
+                <ModalHeader>Edit Price</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
-                    <FormControl isInvalid={!!errors.quantity} isRequired>
-                        <FormLabel>Quantity</FormLabel>
+                    <FormControl isInvalid={!!errors.price} isRequired>
+                        <FormLabel>Price</FormLabel>
                         <Input
                             type="number"
                             step="0.01"
-                            {...register("quantity", {
-                                required: "Quantity is required",
+                            {...register("price", {
+                                required: "Price is required",
                                 valueAsNumber: true,
                                 min: {
                                     value: 0,
-                                    message: "Quantity cannot be negative"
+                                    message: "Price must be 0 or greater"
                                 }
                             })}
                         />
@@ -68,4 +68,4 @@ const EditQuantityModal = ({ isOpen, onClose, item, onSuccess }: EditQuantityMod
     )
 }
 
-export default EditQuantityModal;
+export default EditPriceModal;
