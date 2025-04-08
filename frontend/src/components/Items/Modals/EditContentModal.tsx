@@ -4,9 +4,9 @@ import {
 } from "@chakra-ui/react"
 import { useForm } from "react-hook-form"
 import { useMutation } from "@tanstack/react-query"
-import { type ItemUpdate, ItemsService, type ApiError, type ItemPublic } from "../../client"
-import { handleError } from "../../utils"
-import useCustomToast from "../../hooks/useCustomToast"
+import { type ItemUpdate, ItemsService, type ApiError, type ItemPublic } from "../../../client"
+import { handleError } from "../../../utils"
+import useCustomToast from "../../../hooks/useCustomToast"
 import ReactQuill from "react-quill";
 
 interface EditContentModalProps {

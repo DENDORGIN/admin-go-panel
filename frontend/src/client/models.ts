@@ -47,6 +47,7 @@ export type ItemUpdate = {
   position?: number
   item_url?: string | null
   category?: string
+  language?: string
   status?: boolean
 }
 

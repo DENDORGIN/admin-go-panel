@@ -4,32 +4,29 @@ import {
 } from "@chakra-ui/react"
 import { useForm } from "react-hook-form"
 import { useMutation } from "@tanstack/react-query"
-import { type ItemUpdate, ItemsService, type ApiError, type ItemPublic } from "../../client"
-import { handleError } from "../../utils"
-import useCustomToast from "../../hooks/useCustomToast";
+import {ItemsService, type ApiError, type ItemUpdate, type ItemPublic} from "../../../client"
+import { handleError } from "../../../utils"
+import useCustomToast from "../../../hooks/useCustomToast";
 
-interface EditTitleModalProps {
+interface EditQuantityModalProps {
     isOpen: boolean
     onClose: () => void
     item: ItemPublic
     onSuccess: () => void
 }
 
-const EditTitleModal = ({ isOpen, onClose, item, onSuccess }: EditTitleModalProps) => {
+const EditQuantityModal = ({ isOpen, onClose, item, onSuccess }: EditQuantityModalProps) => {
     const showToast = useCustomToast()
-
-    const {
-        register,
-        handleSubmit,
-        formState: { errors, isSubmitting }
-    } = useForm<ItemUpdate>({
-        defaultValues: { title: item.title }
+    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ItemUpdate>({
+        defaultValues: { quantity: item.quantity },
+        mode: "onBlur"
     })
+
 
     const mutation = useMutation({
         mutationFn: (data: ItemUpdate) => ItemsService.updateItem(item.ID, data),
         onSuccess: () => {
-            showToast("Success", "Title updated", "success" )
+            showToast("Success", "Title quantity", "success" )
             onSuccess()
             onClose()
         },
@@ -42,12 +39,24 @@ const EditTitleModal = ({ isOpen, onClose, item, onSuccess }: EditTitleModalProp
         <Modal isOpen={isOpen} onClose={onClose} isCentered>
             <ModalOverlay />
             <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
-                <ModalHeader>Edit Title</ModalHeader>
+                <ModalHeader>Edit Quantity</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
-                    <FormControl isInvalid={!!errors.title} isRequired>
-                        <FormLabel>Title</FormLabel>
-                        <Input {...register("title", { required: "Title is required" })} />
+                    <FormControl isInvalid={!!errors.quantity} isRequired>
+                        <FormLabel>Quantity</FormLabel>
+                        <Input
+                            type="number"
+                            step="0.01"
+                            {...register("quantity", {
+                                required: "Quantity is required",
+                                valueAsNumber: true,
+                                min: {
+                                    value: 0,
+                                    message: "Quantity cannot be negative"
+                                }
+                            })}
+                        />
+
                     </FormControl>
                 </ModalBody>
                 <ModalFooter>
@@ -59,4 +68,4 @@ const EditTitleModal = ({ isOpen, onClose, item, onSuccess }: EditTitleModalProp
     )
 }
 
-export default EditTitleModal
+export default EditQuantityModal;

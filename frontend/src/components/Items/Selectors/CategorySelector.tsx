@@ -1,12 +1,16 @@
-import { FormControl, FormErrorMessage, FormLabel } from "@chakra-ui/react"
+import { useState, useMemo } from "react"
+import {
+    FormControl,
+    FormLabel,
+    FormErrorMessage,
+} from "@chakra-ui/react"
 import CreatableSelect from "react-select/creatable"
 import { Controller } from "react-hook-form"
-import { useReactSelectStyles } from "../../theme/reactSelectStyles.ts"
-import { useState, useMemo } from "react"
+import { useReactSelectStyles } from "../../../theme/reactSelectStyles.ts"
 
 type Option = { label: string; value: string }
 
-interface LanguageSelectorProps {
+interface CategorySelectorProps {
     control: any
     name: string
     error?: any
@@ -15,22 +19,27 @@ interface LanguageSelectorProps {
     placeholder?: string
 }
 
-const LanguageSelector = ({
+const normalizeLabel = (label: string) =>
+    label
+        .trim()
+        .toLowerCase()
+        .replace(/^\w/, (c) => c.toUpperCase())
+
+const CategorySelector = ({
                               control,
                               name,
                               error,
                               options,
-                              label = "Language",
-                              placeholder = "Select or type language",
-                          }: LanguageSelectorProps) => {
+                              label = "Category",
+                              placeholder = "Select or create category",
+                          }: CategorySelectorProps) => {
     const styles = useReactSelectStyles()
-
     const [createdOptions, setCreatedOptions] = useState<Option[]>([])
 
-    const languageOptions: Option[] = useMemo(() => {
-        const base = options.map((lang) => ({
-            label: lang.toUpperCase(),
-            value: lang,
+    const categoryOptions: Option[] = useMemo(() => {
+        const base = options.map((cat) => ({
+            label: normalizeLabel(cat),
+            value: cat,
         }))
         return [...base, ...createdOptions]
     }, [options, createdOptions])
@@ -41,29 +50,35 @@ const LanguageSelector = ({
             <Controller
                 name={name}
                 control={control}
-                rules={{ required: "Please select or enter a language" }}
+                rules={{ required: "Please select or enter a category" }}
                 render={({ field }) => {
                     const selectedValue =
-                        languageOptions.find((opt) => opt.value === field.value) ?? null
+                        categoryOptions.find((opt) => opt.value === field.value) ?? null
 
                     return (
                         <CreatableSelect
                             {...field}
                             value={selectedValue}
-                            options={languageOptions}
+                            options={categoryOptions}
                             placeholder={placeholder}
                             styles={styles}
+                            formatCreateLabel={(val) =>
+                                `Create "${normalizeLabel(val)}"`
+                            }
                             onChange={(val) => {
-                                const newVal = val?.value.toLowerCase()
+                                const newVal = val?.value.trim()
                                 field.onChange(newVal)
 
-                                const alreadyExists = languageOptions.some(
+                                const alreadyExists = categoryOptions.some(
                                     (opt) => opt.value === newVal
                                 )
                                 if (!alreadyExists && newVal) {
                                     setCreatedOptions((prev) => [
                                         ...prev,
-                                        { value: newVal, label: newVal.toUpperCase() },
+                                        {
+                                            value: newVal,
+                                            label: normalizeLabel(newVal),
+                                        },
                                     ])
                                 }
                             }}
@@ -72,9 +87,11 @@ const LanguageSelector = ({
                     )
                 }}
             />
-            {error && <FormErrorMessage>{error.message}</FormErrorMessage>}
+            {error && (
+                <FormErrorMessage>{error.message}</FormErrorMessage>
+            )}
         </FormControl>
     )
 }
 
-export default LanguageSelector
+export default CategorySelector

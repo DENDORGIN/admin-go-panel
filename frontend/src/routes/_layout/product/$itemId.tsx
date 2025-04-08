@@ -22,13 +22,15 @@ import DOMPurify from "dompurify";
 import React, { useState } from "react";
 import EditableProperties from "../../../components/Items/EditableProperties.tsx"
 import EditableImages from "../../../components/Items/EditableImages"
-import EditTitleModal from "../../../components/Items/EditTitleModal"
-import EditContentModal from "../../../components/Items/EditContentModal"
-import EditPriceModal from "../../../components/Items/EditPriceModal"
-import EditQuantityModal from "../../../components/Items/EditQuantityModal";
-import EditPositionModal from "../../../components/Items/EditPositionModal"
-import EditUrlModal from "../../../components/Items/EditUrlModal"
+import EditTitleModal from "../../../components/Items/Modals/EditTitleModal.tsx"
+import EditContentModal from "../../../components/Items/Modals/EditContentModal.tsx"
+import EditPriceModal from "../../../components/Items/Modals/EditPriceModal.tsx"
+import EditQuantityModal from "../../../components/Items/Modals/EditQuantityModal.tsx";
+import EditPositionModal from "../../../components/Items/Modals/EditPositionModal.tsx"
+import EditUrlModal from "../../../components/Items/Modals/EditUrlModal.tsx"
 import ItemStatusSwitch from "../../../components/Items/ItemStatusSwitch"
+import EditMetaModal from "../../../components/Items/Modals/EditMetaModal"
+
 
 
 export const Route = createFileRoute("/_layout/product/$itemId")({
@@ -55,6 +57,8 @@ function ItemDetails() {
     const [isEditingQuantity, setIsEditingQuantity] = useState(false)
     const [isEditingUrl, setIsEditingUrl] = useState(false)
     const [isEditingPosition, setIsEditingPosition] = useState(false)
+    const [isEditingMeta, setIsEditingMeta] = useState(false)
+
 
 
     const { data: item, isLoading, error, refetch: refetchItem } = useQuery({
@@ -134,10 +138,27 @@ function ItemDetails() {
                 onSuccess={() => refetchItem()}
             />
 
-            <Text color="gray.500" mb={4}>
-                Category: {item.category || "Not Category"} | Language:{" "}
-                {item.language?.toUpperCase()}
-            </Text>
+            <Flex justify="space-between" align="center" mb={1}>
+                <Text color="gray.500">
+                    Category: {item.category || "Not Category"} | Language:{" "}
+                    {item.language?.toUpperCase()}
+                </Text>
+                <IconButton
+                    icon={<EditIcon />}
+                    size="sm"
+                    aria-label="Edit meta"
+                    color="orange.500"
+                    onClick={() => setIsEditingMeta(true)}
+                />
+            </Flex>
+
+            <EditMetaModal
+                isOpen={isEditingMeta}
+                onClose={() => setIsEditingMeta(false)}
+                item={item}
+                onSuccess={() => refetchItem()}
+            />
+
 
             <Divider my={4} />
 

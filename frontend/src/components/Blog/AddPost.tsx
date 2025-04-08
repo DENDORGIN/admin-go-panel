@@ -73,13 +73,13 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
     toolbar: [
       [{ 'header': [1, 2, 3, false] }],
       [{ 'font': [] }],
-      [{ 'color': [] }, { 'background': [] }], // Колір тексту та фону
-      [{ 'align': [] }], // Вирівнювання
-      ['bold', 'italic', 'underline', 'strike'], // Стилізація тексту
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }], // Списки
-      [{ 'indent': '-1' }, { 'indent': '+1' }], // Відступи
-      ['link', 'image', 'video'], // Додавання медіа
-      ['clean'], // Очищення форматування
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'align': [] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'indent': '-1' }, { 'indent': '+1' }],
+      ['link', 'image', 'video'],
+      ['clean'],
     ],
   };
 
