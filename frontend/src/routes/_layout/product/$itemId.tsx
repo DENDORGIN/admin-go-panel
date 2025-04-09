@@ -9,9 +9,10 @@ import {
     Stack,
     Text,
     Tag,
-    IconButton
+    IconButton,
+    Button
 } from "@chakra-ui/react"
-import { EditIcon, CloseIcon } from "@chakra-ui/icons"
+import { EditIcon, CloseIcon, ExternalLinkIcon } from "@chakra-ui/icons"
 import { createFileRoute } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
 import {type ApiError, ItemsService} from "../../../client"
@@ -53,6 +54,7 @@ function ItemDetails() {
     const [isEditingImages, setIsEditingImages] = useState(false)
     const [isEditingTitle, setIsEditingTitle] = useState(false)
     const [isEditingContent, setIsEditingContent] = useState(false)
+    const [showFullContent, setShowFullContent] = useState(false)
     const [isEditingPrice, setIsEditingPrice] = useState(false)
     const [isEditingQuantity, setIsEditingQuantity] = useState(false)
     const [isEditingUrl, setIsEditingUrl] = useState(false)
@@ -159,22 +161,40 @@ function ItemDetails() {
                 onSuccess={() => refetchItem()}
             />
 
-
             <Divider my={4} />
 
             <Stack spacing={4}>
                 <Box whiteSpace="pre-wrap" padding="4px">
                     <Flex justify="space-between" align="center" mb={1}>
                         <Text fontWeight="bold">Content:</Text>
-                        <IconButton
-                            icon={<EditIcon />}
-                            size="sm"
-                            color="orange.500"
-                            aria-label="Edit content"
-                            onClick={() => setIsEditingContent(true)}
-                        />
+                        <Flex gap={2}>
+                            <IconButton
+                                icon={<EditIcon />}
+                                size="sm"
+                                color="orange.500"
+                                aria-label="Edit content"
+                                onClick={() => setIsEditingContent(true)}
+                            />
+                        </Flex>
                     </Flex>
-                    <SafeHtmlComponent htmlContent={item.content || "N/A"} />
+
+                    <Box
+                        maxHeight={showFullContent ? "none" : "200px"}
+                        overflow="hidden"
+                        transition="max-height 0.3s ease"
+                        position="relative"
+                        pr={2}
+                    >
+                        <SafeHtmlComponent htmlContent={item.content || "N/A"} />
+                    </Box>
+                    <Button
+                        variant="link"
+                        size="sm"
+                        colorScheme="blue"
+                        onClick={() => setShowFullContent((prev) => !prev)}
+                    >
+                        {showFullContent ? "Show less" : "Show more"}
+                    </Button>
                 </Box>
 
                 <EditContentModal
@@ -183,6 +203,7 @@ function ItemDetails() {
                     item={item}
                     onSuccess={() => refetchItem()}
                 />
+
 
                 <Divider />
 
@@ -304,6 +325,7 @@ function ItemDetails() {
                             textDecoration="underline"
                         >
                             {item.item_url ? formatUrl(item.item_url) : "No URL"}
+                            <ExternalLinkIcon mx='4px' />
                         </Link>
                     ) : (
                         "Not URL"

@@ -13,6 +13,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { type ApiError, PropertyService} from "../../client"
 import { handleError } from "../../utils";
 import useCustomToast from "../../hooks/useCustomToast";
+import {EditIcon} from "@chakra-ui/icons";
 
 type EditablePropertiesProps = {
     propertyId: string
@@ -92,8 +93,8 @@ const EditableProperties = ({ propertyId, property, onSuccess, onError }: Editab
                         </Button>
                     </Flex>
                 ) : (
-                    <Button size="sm" variant="primary" onClick={() => setIsEditing(true)}>
-                        Edit
+                    <Button size="sm" color="orange.500" onClick={() => setIsEditing(true)}>
+                        <EditIcon />
                     </Button>
                 )}
             </Flex>

@@ -259,7 +259,7 @@ function Items() {
                   onNewLanguage={(lang) => {
                     if (!languages.includes(lang)) {
                       setLanguages((prev) => [...prev, lang])
-                      setActiveTabIndex(languages.length) // перейти на останню табу
+                      setActiveTabIndex(languages.length)
                     }
                   }}
               />
