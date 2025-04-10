@@ -10,8 +10,11 @@ import {
     Text,
     Tag,
     IconButton,
-    Button
+    Button,
+    Collapse,
+    AbsoluteCenter
 } from "@chakra-ui/react"
+
 import { EditIcon, CloseIcon, ExternalLinkIcon } from "@chakra-ui/icons"
 import { createFileRoute } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
@@ -53,8 +56,10 @@ function ItemDetails() {
 
     const [isEditingImages, setIsEditingImages] = useState(false)
     const [isEditingTitle, setIsEditingTitle] = useState(false)
+
     const [isEditingContent, setIsEditingContent] = useState(false)
     const [showFullContent, setShowFullContent] = useState(false)
+
     const [isEditingPrice, setIsEditingPrice] = useState(false)
     const [isEditingQuantity, setIsEditingQuantity] = useState(false)
     const [isEditingUrl, setIsEditingUrl] = useState(false)
@@ -161,39 +166,42 @@ function ItemDetails() {
                 onSuccess={() => refetchItem()}
             />
 
-            <Divider my={4} />
+
 
             <Stack spacing={4}>
-                <Box whiteSpace="pre-wrap" padding="4px">
-                    <Flex justify="space-between" align="center" mb={1}>
-                        <Text fontWeight="bold">Content:</Text>
-                        <Flex gap={2}>
-                            <IconButton
-                                icon={<EditIcon />}
-                                size="sm"
-                                color="orange.500"
-                                aria-label="Edit content"
-                                onClick={() => setIsEditingContent(true)}
-                            />
-                        </Flex>
+
+                <Box py={4}>
+                    <Flex align="center" mb={4}>
+                        <Box flex="1" position="relative">
+                            <Divider />
+                            <AbsoluteCenter  fontWeight="bold" px="4">
+                                Content
+                            </AbsoluteCenter>
+                        </Box>
+
+                        <IconButton
+                            icon={<EditIcon />}
+                            size="sm"
+                            color="orange.500"
+                            aria-label="Edit content"
+                            ml={4}
+                            onClick={() => setIsEditingContent(true)}
+                        />
                     </Flex>
 
-                    <Box
-                        maxHeight={showFullContent ? "none" : "200px"}
-                        overflow="hidden"
-                        transition="max-height 0.3s ease"
-                        position="relative"
-                        pr={2}
-                    >
+
+                    <Collapse startingHeight={100} in={showFullContent}>
                         <SafeHtmlComponent htmlContent={item.content || "N/A"} />
-                    </Box>
+                    </Collapse>
+
                     <Button
-                        variant="link"
                         size="sm"
+                        onClick={() => setShowFullContent(!showFullContent)}
+                        mt="0.5rem"
+                        variant="link"
                         colorScheme="blue"
-                        onClick={() => setShowFullContent((prev) => !prev)}
                     >
-                        {showFullContent ? "Show less" : "Show more"}
+                        Show {showFullContent ? "Less" : "More"}
                     </Button>
                 </Box>
 
@@ -204,17 +212,20 @@ function ItemDetails() {
                     onSuccess={() => refetchItem()}
                 />
 
-
-                <Divider />
-
                 <Box>
-                    <Flex justify="space-between" align="center" mb={2}>
-                        <Text fontWeight="bold">Images:</Text>
+                    <Flex align="center" mb={4}>
+                        <Box flex="1" position="relative">
+                            <Divider />
+                            <AbsoluteCenter  fontWeight="bold" px="4">
+                                Images
+                            </AbsoluteCenter>
+                        </Box>
                         <IconButton
                             icon={isEditingImages ? <CloseIcon /> : <EditIcon />}
                             color={isEditingImages ? "gray.600" : "orange.500"}
                             size="sm"
                             aria-label="Edit images"
+                            ml={4}
                             onClick={() => setIsEditingImages(!isEditingImages)}
                         />
                     </Flex>
