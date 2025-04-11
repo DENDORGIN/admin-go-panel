@@ -126,7 +126,7 @@ func main() {
 
 	// Properties routes
 	r.POST("/v1/properties/", routes.CreatePropertiesHandler)
-	//r.GET("/api/v1/properties/", routes.GetAllPropertiesHandler)
+	//r.GET("/v1/properties/", routes.GetAllPropertiesHandler)
 	r.GET("/v1/properties/:id", routes.GetPropertyByIDHandler)
 	r.PUT("/v1/properties/:id", routes.UpdatePropertyHandler)
 	r.DELETE("/v1/properties/:id", routes.DeletePropertyHandler)

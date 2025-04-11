@@ -1,7 +1,8 @@
 import {
+    AbsoluteCenter,
     Box,
-    Button,
-    Flex,
+    Button, Divider,
+    Flex, IconButton,
     Input,
     Table,
     Tbody,
@@ -20,13 +21,14 @@ type EditablePropertiesProps = {
     property: Record<string, string>
     onSuccess?: () => void
     onError?: (err: ApiError) => void
+    bgColor: string
 }
 
 
 
 
 
-const EditableProperties = ({ propertyId, property, onSuccess, onError }: EditablePropertiesProps) => {
+const EditableProperties = ({ propertyId, property, onSuccess, onError, bgColor }: EditablePropertiesProps) => {
     const [isEditing, setIsEditing] = useState(false)
 
     const getEditableProps = (props: Record<string, string>) => {
@@ -82,7 +84,12 @@ const EditableProperties = ({ propertyId, property, onSuccess, onError }: Editab
     return (
         <Box mt={4}>
             <Flex justify="space-between" align="center" mb={2}>
-                <strong>Property:</strong>
+                <Box flex="1" position="relative">
+                    <Divider />
+                    <AbsoluteCenter bg={bgColor} fontWeight="bold" px="4">
+                        Property
+                    </AbsoluteCenter>
+                </Box>
                 {isEditing ? (
                     <Flex gap={2}>
                         <Button size="sm" variant="primary" onClick={handleSave} isLoading={mutation.isPending}>
@@ -93,9 +100,14 @@ const EditableProperties = ({ propertyId, property, onSuccess, onError }: Editab
                         </Button>
                     </Flex>
                 ) : (
-                    <Button size="sm" color="orange.500" onClick={() => setIsEditing(true)}>
-                        <EditIcon />
-                    </Button>
+                    <IconButton
+                        icon={<EditIcon />}
+                        size="sm"
+                        color="orange.500"
+                        ml={4}
+                        aria-label="Edit property"
+                        onClick={() => setIsEditing(true)}
+                    />
                 )}
             </Flex>
 
