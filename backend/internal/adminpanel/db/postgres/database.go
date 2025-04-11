@@ -5,6 +5,7 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log"
 	"os"
 )
 
@@ -19,10 +20,10 @@ func Connect() error {
 		return fmt.Errorf("error loading .env file database: %v", err)
 	}
 
-	// Логування для перевірки змінних середовища
-	fmt.Println("POSTGRES_SERVER:", os.Getenv("POSTGRES_SERVER"))
-	fmt.Println("POSTGRES_USER:", os.Getenv("POSTGRES_USER"))
-	fmt.Println("POSTGRES_DB:", os.Getenv("POSTGRES_DB"))
+	//// Логування для перевірки змінних середовища
+	//fmt.Println("POSTGRES_SERVER:", os.Getenv("POSTGRES_SERVER"))
+	//fmt.Println("POSTGRES_USER:", os.Getenv("POSTGRES_USER"))
+	//fmt.Println("POSTGRES_DB:", os.Getenv("POSTGRES_DB"))
 
 	// Формування DSN рядка для підключення
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
@@ -52,7 +53,7 @@ func Connect() error {
 	}
 
 	DB = d
-	fmt.Println("Database connected successfully")
+	log.Println("Database connected successfully")
 	return nil
 }
 

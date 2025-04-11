@@ -14,7 +14,7 @@ import {
     Collapse,
     AbsoluteCenter
 } from "@chakra-ui/react"
-
+import { useColorModeValue } from "@chakra-ui/react"
 import { EditIcon, CloseIcon, ExternalLinkIcon } from "@chakra-ui/icons"
 import { createFileRoute } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
@@ -66,7 +66,7 @@ function ItemDetails() {
     const [isEditingPosition, setIsEditingPosition] = useState(false)
     const [isEditingMeta, setIsEditingMeta] = useState(false)
 
-
+    const contentBg = useColorModeValue("white", "#1A202C")
 
     const { data: item, isLoading, error, refetch: refetchItem } = useQuery({
         queryKey: ["item", itemId],
@@ -126,17 +126,23 @@ function ItemDetails() {
             </Link>
 
             <Flex justify="space-between" align="center" mb={1}>
-                <Text fontWeight="bold">Title:</Text>
+                <Box flex="1" position="relative">
+                    <Divider />
+                    <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
+                        Title
+                    </AbsoluteCenter>
+                </Box>
                 <IconButton
                     icon={<EditIcon />}
                     color={isEditingImages? "gray.600" : "orange.500"}
                     size="sm"
+                    ml={4}
                     aria-label="Edit title"
                     onClick={() => setIsEditingTitle(true)}
                 />
             </Flex>
 
-            <Heading size="lg" mb={2}>{item.title}</Heading>
+            <Heading size="lg"  mb={2}>{item.title}</Heading>
 
             <EditTitleModal
                 isOpen={isEditingTitle}
@@ -174,7 +180,7 @@ function ItemDetails() {
                     <Flex align="center" mb={4}>
                         <Box flex="1" position="relative">
                             <Divider />
-                            <AbsoluteCenter  fontWeight="bold" px="4">
+                            <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
                                 Content
                             </AbsoluteCenter>
                         </Box>
@@ -216,7 +222,7 @@ function ItemDetails() {
                     <Flex align="center" mb={4}>
                         <Box flex="1" position="relative">
                             <Divider />
-                            <AbsoluteCenter  fontWeight="bold" px="4">
+                            <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
                                 Images
                             </AbsoluteCenter>
                         </Box>
@@ -247,24 +253,30 @@ function ItemDetails() {
                     </Box>
                 </Box>
 
-                <Divider />
 
                 {item.property?.ID && (
                 <EditableProperties
                     propertyId={item.property.ID}
                     property={item.property}
+                    bgColor={contentBg}
                     onSuccess={() => console.log("Оновлено!")}
                     onError={(err: ApiError) => console.warn("Помилка редагування:", err)}
-                                    />
+                />
                 )}
 
                 <Box>
                     <Flex justify="space-between" align="center" mb={1}>
-                        <Text fontWeight="bold">Cost:</Text>
+                        <Box flex="1" position="relative">
+                            <Divider />
+                            <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
+                                Cost
+                            </AbsoluteCenter>
+                        </Box>
                         <IconButton
                             icon={<EditIcon />}
                             size="sm"
                             color="orange.500"
+                            ml={4}
                             aria-label="Edit price"
                             onClick={() => setIsEditingPrice(true)}
                         />
@@ -280,11 +292,15 @@ function ItemDetails() {
                     item={item}
                     onSuccess={() => refetchItem()}
                 />
-                <Divider />
 
                 <Box>
                     <Flex justify="space-between" align="center" mb={1}>
-                        <Text fontWeight="bold">Quantity:</Text>
+                        <Box flex="1" position="relative">
+                            <Divider />
+                            <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
+                                Quantity
+                            </AbsoluteCenter>
+                        </Box>
                         <IconButton
                             icon={<EditIcon />}
                             size="sm"
@@ -308,7 +324,6 @@ function ItemDetails() {
                     </Tag>
                 </Box>
 
-                <Divider />
 
                 <EditQuantityModal
                     isOpen={isEditingQuantity}
@@ -319,7 +334,12 @@ function ItemDetails() {
 
                 <Box>
                     <Flex justify="space-between" align="center" mb={1}>
-                        <Text fontWeight="bold">URL:</Text>
+                        <Box flex="1" position="relative">
+                            <Divider />
+                            <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
+                                URL
+                            </AbsoluteCenter>
+                        </Box>
                         <IconButton
                             icon={<EditIcon />}
                             size="sm"
@@ -350,11 +370,14 @@ function ItemDetails() {
                     onSuccess={() => refetchItem()}
                 />
 
-                <Divider />
-
                 <Box>
                     <Flex justify="space-between" align="center" mb={1}>
-                        <Text fontWeight="bold">Position:</Text>
+                        <Box flex="1" position="relative">
+                            <Divider />
+                            <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
+                                Position
+                            </AbsoluteCenter>
+                        </Box>
                         <IconButton
                             icon={<EditIcon />}
                             size="sm"
