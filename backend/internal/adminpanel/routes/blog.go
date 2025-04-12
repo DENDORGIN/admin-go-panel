@@ -39,19 +39,20 @@ func CreateBlogHandler(ctx *gin.Context) {
 }
 
 func GetAllBlogsHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
-	if !ok {
-		return
-	}
 
 	db, ok := utils.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	isSuperUser, _ := utils.GetIsSuperUser(db, userID)
+	user, ok := utils.GetCurrentUserFromContext(ctx, db)
+	if !ok {
+		return
+	}
 
-	blogs, err := models.GetAllBlogs(db, userID, isSuperUser)
+	isSuperUser, _ := utils.GetIsSuperUser(db, user.ID)
+
+	blogs, err := models.GetAllBlogs(db, user.ID, isSuperUser)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -91,10 +92,6 @@ func GetBlogByIdHandler(ctx *gin.Context) {
 }
 
 func UpdateBlogByIdHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
-	if !ok {
-		return
-	}
 
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -102,6 +99,11 @@ func UpdateBlogByIdHandler(ctx *gin.Context) {
 		return
 	}
 	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	user, ok := utils.GetCurrentUserFromContext(ctx, db)
 	if !ok {
 		return
 	}
@@ -118,7 +120,7 @@ func UpdateBlogByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	if blog.OwnerID != userID {
+	if blog.OwnerID != user.ID {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}
@@ -128,11 +130,12 @@ func UpdateBlogByIdHandler(ctx *gin.Context) {
 }
 
 func DeleteBlogByIdHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
+
+	db, ok := utils.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
-	db, ok := utils.GetDBFromContext(ctx)
+	user, ok := utils.GetCurrentUserFromContext(ctx, db)
 	if !ok {
 		return
 	}
@@ -148,13 +151,8 @@ func DeleteBlogByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	isSuperUser, err := utils.GetIsSuperUser(db, userID)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
 
-	if blog.OwnerID != userID || !isSuperUser {
+	if blog.OwnerID != user.ID || !user.IsSuperUser {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}

@@ -9,6 +9,9 @@ import (
 	"net/http"
 )
 
+const userKey = "currentUser"
+
+// Отримати userID з контексту
 func GetUserIDFromContext(ctx *gin.Context) (uuid.UUID, bool) {
 	userIDRaw, exists := ctx.Get("id")
 	if !exists {
@@ -25,6 +28,33 @@ func GetUserIDFromContext(ctx *gin.Context) (uuid.UUID, bool) {
 	return userID, true
 }
 
+// Отримати користувача з контексту або БД з кешуванням
+func GetCurrentUserFromContext(ctx *gin.Context, db *gorm.DB) (*entities.User, bool) {
+	// 1. Шукаємо в контексті
+	if cached, ok := ctx.Get(userKey); ok {
+		if user, valid := cached.(*entities.User); valid {
+			return user, true
+		}
+	}
+
+	// 2. Отримуємо userID
+	userID, ok := GetUserIDFromContext(ctx)
+	if !ok {
+		return nil, false
+	}
+
+	// 3. Отримуємо користувача з БД
+	var user entities.User
+	if err := repository.GetByID(db, userID, &user); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot get user"})
+		return nil, false
+	}
+
+	// 4. Кладемо у кеш
+	ctx.Set(userKey, &user)
+
+	return &user, true
+}
 func GetIsSuperUser(db *gorm.DB, id uuid.UUID) (bool, error) {
 	var user entities.User
 	err := repository.GetByID(db, id, &user)

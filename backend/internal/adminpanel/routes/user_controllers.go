@@ -84,22 +84,19 @@ func ReadUserMe(ctx *gin.Context) {
 		return
 	}
 
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	user, ok := utils.GetCurrentUserFromContext(ctx, db)
 	if !ok {
 		return
 	}
-
-	user, err := models.GetUserById(db, userID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-			return
-		}
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+	response := &models.UserResponse{
+		ID:          user.ID,
+		FullName:    user.FullName,
+		Avatar:      user.Avatar,
+		Email:       user.Email,
+		IsActive:    user.IsActive,
+		IsSuperUser: user.IsSuperUser,
 	}
-
-	ctx.JSON(http.StatusOK, user)
+	ctx.JSON(http.StatusOK, response)
 }
 
 func ReadAllUsers(ctx *gin.Context) {

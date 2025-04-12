@@ -37,7 +37,9 @@ func Connect() error {
 	)
 
 	// Підключення до бази даних
-	d, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	d, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		PrepareStmt: true,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to connect to the database: %v", err)
 	}

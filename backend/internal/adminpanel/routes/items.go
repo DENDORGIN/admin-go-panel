@@ -140,18 +140,19 @@ func UpdateItemByIdHandler(ctx *gin.Context) {
 }
 
 func GetAllItemsHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
-	if !ok {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
 
 	db, ok := utils.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	isSuperUser, _ := utils.GetIsSuperUser(db, userID)
+	user, ok := utils.GetCurrentUserFromContext(ctx, db)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	isSuperUser, _ := utils.GetIsSuperUser(db, user.ID)
 
 	language := ctx.DefaultQuery("language", "pl")
 	skip, _ := strconv.Atoi(ctx.DefaultQuery("skip", "0"))
@@ -163,7 +164,7 @@ func GetAllItemsHandler(ctx *gin.Context) {
 		Limit:    limit,
 	}
 
-	items, err := models.GetAllItems(db, userID, isSuperUser, params)
+	items, err := models.GetAllItems(db, user.ID, isSuperUser, params)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -173,11 +174,13 @@ func GetAllItemsHandler(ctx *gin.Context) {
 }
 
 func DeleteItemByIdHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
+
+	db, ok := utils.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
-	db, ok := utils.GetDBFromContext(ctx)
+
+	user, ok := utils.GetCurrentUserFromContext(ctx, db)
 	if !ok {
 		return
 	}
@@ -193,13 +196,8 @@ func DeleteItemByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	isSuperUser, err := utils.GetIsSuperUser(db, userID)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
 
-	if item.OwnerID != userID || !isSuperUser {
+	if item.OwnerID != user.ID || !user.IsSuperUser {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}

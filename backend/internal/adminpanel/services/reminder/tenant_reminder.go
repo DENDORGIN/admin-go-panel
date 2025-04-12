@@ -16,8 +16,9 @@ func StartAllTenantReminderJobs() {
 	}
 
 	for _, tenant := range tenants {
+		t := tenant
 		go func(t entities.Tenant) {
-			db, err := postgres.Manager.GetConnection(t)
+			db, err := postgres.Manager.GetConnectionByDomain(t.Domain)
 			if err != nil {
 				log.Printf("❌ DB error for tenant %s: %v", t.Domain, err)
 				return
@@ -25,6 +26,6 @@ func StartAllTenantReminderJobs() {
 
 			StartReminderJobs(db, t.Domain)
 			log.Printf("✅ Reminder started for tenant: %s", t.Domain)
-		}(tenant)
+		}(t)
 	}
 }

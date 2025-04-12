@@ -119,10 +119,6 @@ function ItemsTable({ language }: ItemsTableProps) {
       new Set((items?.Data || []).map((item) => item.category).filter(Boolean))
   )
 
-
-
-
-
   return (
     <>
       <Flex justify="flex-end" mb={4} gap={4} flexWrap="wrap">
@@ -328,15 +324,15 @@ function Items() {
           </TabList>
         </Box>
 
-          <TabPanels>
-            {languages?.map((lang) => (
-                <TabPanel key={lang}>
-                  <Box overflowX="auto">
-                  <ItemsTable language={lang} />
-                  </Box>
-                </TabPanel>
-            ))}
-          </TabPanels>
+        <TabPanels>
+          {languages?.map((lang, index) => (
+              <TabPanel key={lang}>
+                {index === activeTabIndex && (
+                    <ItemsTable language={lang} />
+                )}
+              </TabPanel>
+          ))}
+        </TabPanels>
 
       </Tabs>
       </Box>
