@@ -55,12 +55,12 @@ func main() {
 	// Запуск планувальника
 	reminder.StartAllTenantReminderJobs()
 
-	r.GET("/health", func(c *gin.Context) {
+	r.GET("/api/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Healthy",
 		})
 	})
-	r.GET("/init", func(c *gin.Context) {
+	r.GET("/api/init", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Init",
 		})
