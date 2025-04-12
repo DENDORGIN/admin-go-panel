@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"os"
+	"time"
 )
 
 var (
@@ -49,6 +50,9 @@ func Connect() error {
 	if err != nil {
 		return fmt.Errorf("failed to get database instance: %v", err)
 	}
+	sqlDB.SetMaxOpenConns(10)
+	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetConnMaxLifetime(time.Hour)
 
 	if err = sqlDB.Ping(); err != nil {
 		return fmt.Errorf("database ping failed: %v", err)

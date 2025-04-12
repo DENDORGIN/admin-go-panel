@@ -6,7 +6,6 @@ import (
 	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/routes"
 	"backend/internal/adminpanel/services/reminder"
-	"backend/internal/adminpanel/services/tenant"
 	"backend/internal/middleware"
 	"fmt"
 	"github.com/gin-contrib/cors"
@@ -46,9 +45,9 @@ func main() {
 	r.Use(redirectFromWWW())
 	r.Use(CustomCors())
 
-	r.POST("/api/v1/tenant", tenant.TenantHandler)
-	r.POST("/admin/migrate-all", tenant.MigrateAllTenantsHandler)
-	r.GET("/admin/migrate-all/status", tenant.GetMigrationStatusHandler)
+	//r.POST("/api/v1/tenant", tenant.TenantHandler)
+	//r.POST("/admin/migrate-all", tenant.MigrateAllTenantsHandler)
+	//r.GET("/admin/migrate-all/status", tenant.GetMigrationStatusHandler)
 
 	// Choose DB
 	r.Use(middleware.TenantMiddleware())
