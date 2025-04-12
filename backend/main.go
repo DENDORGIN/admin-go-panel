@@ -60,6 +60,11 @@ func main() {
 			"message": "Healthy",
 		})
 	})
+	r.GET("/init", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Init",
+		})
+	})
 
 	//Auth
 	r.POST("/v1/login/access-token", routes.LoginHandler)
