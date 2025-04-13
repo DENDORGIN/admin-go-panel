@@ -247,7 +247,6 @@ function ItemsTable({ language }: ItemsTableProps) {
 }
 
 function Items() {
-
   const { data: fetchedLanguages = [], isLoading } = UseAvailableLanguages()
   const [languages, setLanguages] = useState<string[]>([])
   const [activeTabIndex, setActiveTabIndex] = useState(0)
@@ -255,13 +254,6 @@ function Items() {
   useEffect(() => {
     setLanguages(fetchedLanguages)
   }, [fetchedLanguages])
-
-  if (isLoading) {
-    return <Box p={6}>Loading languages...</Box>
-  }
-  if (!languages || languages.length === 0) {
-    return <Box p={6}>No languages available to display.</Box>
-  }
 
   const getLanguageLabel = (code: string) => {
     switch (code) {
@@ -288,55 +280,60 @@ function Items() {
   }
 
   return (
-    <Container maxW="full" overflow="hidden">
-      <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={10}>
-        Items Management
-      </Heading>
+      <Container maxW="full" overflow="hidden">
+        <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={10} mb={4}>
+          Items Management
+        </Heading>
 
-      <Navbar
-          type={"Item"}
-          addModalAs={(props: AddItemProps) => (
-              <AddItem
-                  {...props}
-                  onNewLanguage={(lang) => {
-                    if (!languages.includes(lang)) {
-                      setLanguages((prev) => [...prev, lang])
-                      setActiveTabIndex(languages.length)
-                    }
-                  }}
-              />
-          )}
-      />
-      <Box w="full" overflowX="auto">
-      <Tabs
-          isFitted
-          variant="enclosed"
-          index={activeTabIndex}
-          onChange={setActiveTabIndex}
-      >
-        <Box overflowX="auto" whiteSpace="nowrap">
-          <TabList mb="1em" minW="max-content">
-          {languages.map((lang) => (
-                <Tab key={lang} _selected={{ color: "white", bg: "#D65A17" }} flexShrink={0}>
-                  {getLanguageLabel(lang)}
-                </Tab>
-            ))}
-          </TabList>
-        </Box>
+        <Navbar
+            type={"Item"}
+            addModalAs={(props: AddItemProps) => (
+                <AddItem
+                    {...props}
+                    onNewLanguage={(lang) => {
+                      if (!languages.includes(lang)) {
+                        setLanguages((prev) => [...prev, lang])
+                        setActiveTabIndex(languages.length)
+                      }
+                    }}
+                />
+            )}
+        />
 
-        <TabPanels>
-          {languages?.map((lang, index) => (
-              <TabPanel key={lang}>
-                {index === activeTabIndex && (
-                    <ItemsTable language={lang} />
-                )}
-              </TabPanel>
-          ))}
-        </TabPanels>
+        {isLoading ? (
+            <Box p={6}>Loading languages...</Box>
+        ) : languages.length === 0 ? (
+            <Box p={6}>No languages available to display.</Box>
+        ) : (
+            <Box w="full" overflowX="auto">
+              <Tabs
+                  isFitted
+                  variant="enclosed"
+                  index={activeTabIndex}
+                  onChange={setActiveTabIndex}
+              >
+                <Box overflowX="auto" whiteSpace="nowrap">
+                  <TabList mb="1em" minW="max-content">
+                    {languages.map((lang) => (
+                        <Tab key={lang} _selected={{ color: "white", bg: "#D65A17" }} flexShrink={0}>
+                          {getLanguageLabel(lang)}
+                        </Tab>
+                    ))}
+                  </TabList>
+                </Box>
 
-      </Tabs>
-      </Box>
-    </Container>
+                <TabPanels>
+                  {languages.map((lang, index) => (
+                      <TabPanel key={lang}>
+                        {index === activeTabIndex && <ItemsTable language={lang} />}
+                      </TabPanel>
+                  ))}
+                </TabPanels>
+              </Tabs>
+            </Box>
+        )}
+      </Container>
   )
 }
+
 

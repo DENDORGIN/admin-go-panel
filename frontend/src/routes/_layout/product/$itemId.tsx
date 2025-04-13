@@ -318,7 +318,6 @@ function ItemDetails() {
                                     : "purple"
                         }
                         size="lg"
-                        p={1}
                     >
                         {item.quantity}
                     </Tag>
