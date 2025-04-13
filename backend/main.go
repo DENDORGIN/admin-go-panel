@@ -94,7 +94,7 @@ func main() {
 	r.GET("/v1/users/", routes.ReadAllUsers)
 	r.POST("/v1/users/", routes.CreateUser)
 	r.PATCH("/v1/users/me", routes.UpdateCurrentUser)
-	r.PATCH("v1/users/me/password/", routes.UpdatePasswordCurrentUser)
+	r.PATCH("/v1/users/me/password/", routes.UpdatePasswordCurrentUser)
 	r.DELETE("/v1/users/:id", routes.DeleteUser)
 
 	// Calendar
@@ -166,6 +166,9 @@ func redirectFromWWW() gin.HandlerFunc {
 }
 
 func CustomCors() gin.HandlerFunc {
+	appHost := os.Getenv("APP_HOST")
+	appUrl := os.Getenv("APP_URL")
+
 	config := cors.Config{
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
@@ -174,11 +177,11 @@ func CustomCors() gin.HandlerFunc {
 		MaxAge:           12 * 60 * 60, // 12 годин
 		AllowOriginFunc: func(origin string) bool {
 
-			if strings.HasSuffix(origin, ".localhost:5173") || origin == "http://localhost:5173" {
+			if strings.HasSuffix(origin, "."+appHost) || origin == "http://"+appHost {
 				return true
 			}
 
-			if strings.HasSuffix(origin, ".dbgone.com") || origin == "https://dbgone.com" {
+			if strings.HasSuffix(origin, "."+appUrl) || origin == "https://"+appUrl {
 				return true
 			}
 
