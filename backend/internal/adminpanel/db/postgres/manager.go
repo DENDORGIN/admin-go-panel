@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"backend/internal/adminpanel/entities"
+	"backend/internal/adminpanel/services/utils"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -52,10 +53,16 @@ func (m *DBManager) GetConnectionByDomain(domain string) (*gorm.DB, error) {
 		return conn, nil
 	}
 
+	//5.1. Розшифровуємо дані
+	tenantCreds, err := utils.DecryptTenantCreds(&tenant)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt tenant credentials: %w", err)
+	}
+
 	// 5. Формуємо DSN
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Warsaw",
-		tenant.DBHost, tenant.DBUser, tenant.DBPassword, tenant.DBName, tenant.DBPort,
+		tenantCreds.DBHost, tenantCreds.DBUser, tenantCreds.DBPassword, tenantCreds.DBName, tenant.DBPort,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
