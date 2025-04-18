@@ -45,36 +45,30 @@ func (m *DBManager) GetConnectionByDomain(domain string) (*gorm.DB, error) {
 	}
 
 	// 4. Повертаємо з'єднання або створюємо нове
-	m.mu.RLock()
-	conn, exists := m.connections[domain]
-	m.mu.RUnlock()
-
-	if exists {
+	if conn, exists := Pool.Get(domain); exists {
 		return conn, nil
 	}
 
-	//5.1. Розшифровуємо дані
+	// 5. Розшифровуємо дані
 	tenantCreds, err := utils.DecryptTenantCreds(&tenant)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt tenant credentials: %w", err)
 	}
 
-	// 5. Формуємо DSN
+	// 6 Формуємо DSN
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Warsaw",
 		tenantCreds.DBHost, tenantCreds.DBUser, tenantCreds.DBPassword, tenantCreds.DBName, tenant.DBPort,
 	)
 
+	// 7. Підключення
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to tenant DB: %w", err)
 	}
 
-	// 6. Кешуємо з'єднання
-	m.mu.Lock()
-	m.connections[domain] = db
-	m.mu.Unlock()
-
+	// 8. Кешуємо через пул
+	Pool.Set(domain, db)
 	return db, nil
 }
 
@@ -83,7 +77,7 @@ func (m *DBManager) ClearTenantCache(domain string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	delete(m.tenantCache, domain)
-	delete(m.connections, domain)
+	Pool.Delete(domain) // 💡 очищаємо і пул
 }
 
 func (m *DBManager) TenantFromCache(domain string) entities.Tenant {
