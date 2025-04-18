@@ -35,4 +35,5 @@ COPY .env .env
 EXPOSE 5180
 
 # 10. Запускаємо сервіс з .env змінними
-CMD ["sh", "-c", "export $(cat .env | xargs) && ./main"]
+#CMD ["sh", "-c", "export $(cat .env | xargs) && ./main"]
+CMD ["./main"]
