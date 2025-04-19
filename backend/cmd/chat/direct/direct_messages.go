@@ -1,4 +1,4 @@
-package routes
+package direct
 
 import (
 	"backend/internal/adminpanel/entities"
@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"net/http"
 	"time"
 )
 
@@ -83,4 +84,24 @@ func GetMessagesHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(200, gin.H{"messages": result})
+}
+
+func GetChatUsersHandler(ctx *gin.Context) {
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "DB context missing"})
+		return
+	}
+	userID, ok := utils.GetUserIDFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	users, err := GetDirectChatUsers(db, userID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load users"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, users)
 }

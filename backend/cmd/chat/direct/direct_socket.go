@@ -2,6 +2,7 @@ package direct
 
 import (
 	"backend/internal/adminpanel/services/utils"
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"net/http"
@@ -49,5 +50,19 @@ func ServeWs(hub *Hub) gin.HandlerFunc {
 
 		go client.Read()
 		go client.Write()
+
+		go func() {
+			allChats, err := LoadAllConversations(db, user.ID)
+			if err != nil {
+				return
+			}
+			for _, history := range allChats {
+				data, err := json.Marshal(history)
+				if err != nil {
+					continue
+				}
+				client.Send <- data
+			}
+		}()
 	}
 }

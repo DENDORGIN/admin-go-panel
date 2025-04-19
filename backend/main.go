@@ -140,7 +140,8 @@ func main() {
 	r.DELETE("/v1/rooms/:id", routes.DeleteRoomByIdHandler)
 
 	// Direct messages routes
-	r.GET("/v1/direct/:user_id/messages", routes.GetMessagesHandler)
+	r.GET("/v1/direct/users", direct.GetChatUsersHandler)
+	r.GET("/v1/direct/:user_id/messages", direct.GetMessagesHandler)
 
 	// Run the server
 	if err := r.Run(port); err != nil {
