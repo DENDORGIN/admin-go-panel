@@ -42,12 +42,9 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.New()
+	r.Use(gin.Logger())
 	r.Use(redirectFromWWW())
 	r.Use(CustomCors())
-
-	//r.POST("/api/v1/tenant", tenant.TenantHandler)
-	//r.POST("/admin/migrate-all", tenant.MigrateAllTenantsHandler)
-	//r.GET("/admin/migrate-all/status", tenant.GetMigrationStatusHandler)
 
 	// Choose DB
 	r.Use(middleware.TenantMiddleware())

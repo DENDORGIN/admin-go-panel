@@ -4,6 +4,7 @@ import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
@@ -40,10 +41,6 @@ func CreateItemHandler(ctx *gin.Context) {
 }
 
 func GetItemByID(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
-	if !ok {
-		return
-	}
 
 	itemId, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -55,13 +52,19 @@ func GetItemByID(ctx *gin.Context) {
 		return
 	}
 
+	user, ok := utils.GetCurrentUserFromContext(ctx, db)
+	if !ok {
+		return
+	}
+	fmt.Println(user.IsSuperUser)
+
 	item, err := models.GetItemById(db, itemId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if item.OwnerID != userID {
+	if item.OwnerID != user.ID && !user.IsSuperUser {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}
@@ -103,10 +106,6 @@ func GetAvailableCategories(ctx *gin.Context) {
 }
 
 func UpdateItemByIdHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
-	if !ok {
-		return
-	}
 
 	id, err := uuid.Parse(ctx.Param("id"))
 	if err != nil {
@@ -114,6 +113,11 @@ func UpdateItemByIdHandler(ctx *gin.Context) {
 		return
 	}
 	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	user, ok := utils.GetCurrentUserFromContext(ctx, db)
 	if !ok {
 		return
 	}
@@ -130,7 +134,7 @@ func UpdateItemByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	if item.OwnerID != userID {
+	if item.OwnerID != user.ID && !user.IsSuperUser {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}
