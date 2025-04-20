@@ -20,6 +20,7 @@ import { Route as LayoutIndexImport } from './routes/_layout/index'
 import { Route as LayoutSettingsImport } from './routes/_layout/settings'
 import { Route as LayoutRoomsImport } from './routes/_layout/rooms'
 import { Route as LayoutItemsImport } from './routes/_layout/items'
+import { Route as LayoutDirectImport } from './routes/_layout/direct'
 import { Route as LayoutCalendarImport } from './routes/_layout/calendar'
 import { Route as LayoutBlogImport } from './routes/_layout/blog'
 import { Route as LayoutAdminImport } from './routes/_layout/admin'
@@ -70,6 +71,11 @@ const LayoutRoomsRoute = LayoutRoomsImport.update({
 
 const LayoutItemsRoute = LayoutItemsImport.update({
   path: '/items',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
+const LayoutDirectRoute = LayoutDirectImport.update({
+  path: '/direct',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -134,6 +140,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutCalendarImport
       parentRoute: typeof LayoutImport
     }
+    '/_layout/direct': {
+      preLoaderRoute: typeof LayoutDirectImport
+      parentRoute: typeof LayoutImport
+    }
     '/_layout/items': {
       preLoaderRoute: typeof LayoutItemsImport
       parentRoute: typeof LayoutImport
@@ -168,6 +178,7 @@ export const routeTree = rootRoute.addChildren([
     LayoutAdminRoute,
     LayoutBlogRoute,
     LayoutCalendarRoute,
+    LayoutDirectRoute,
     LayoutItemsRoute,
     LayoutRoomsRoute,
     LayoutSettingsRoute,

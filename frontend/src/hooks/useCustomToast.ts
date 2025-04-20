@@ -11,6 +11,7 @@ const useCustomToast = () => {
         description,
         status,
         isClosable: true,
+        duration: 5000,
         position: "bottom-right",
       })
     },

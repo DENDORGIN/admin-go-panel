@@ -68,9 +68,17 @@ const useAuth = () => {
       window.location.reload()
     },
     onError: (err: ApiError) => {
-      let errDetail = (err.body as any)?.detail
+
+      let errDetail = (err.body as any)?.detail ?? (err.body as any)?.error
 
       if (err instanceof AxiosError) {
+        if (err.response?.status === 429) {
+          const message = (err.response.data as any)?.error ?? "Too many login attempts"
+          showToast("Blocked", message, "error")
+          setError(null) // не показуємо повідомлення під полем
+          return
+        }
+
         errDetail = err.message
       }
 

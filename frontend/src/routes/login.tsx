@@ -162,14 +162,17 @@ function Login() {
           Log In
         </Button>
 
-        {/*<Text>*/}
-        {/*  Don't have an account?{" "}*/}
-        {/*  <Link as={RouterLink} to="/signup" color="blue.500">*/}
-        {/*    Sign up*/}
-        {/*  </Link>*/}
-        {/*</Text>*/}
+
       </Container>
   )
 }
 
 export default Login
+
+
+{/*<Text>*/}
+{/*  Don't have an account?{" "}*/}
+{/*  <Link as={RouterLink} to="/signup" color="blue.500">*/}
+{/*    Sign up*/}
+{/*  </Link>*/}
+{/*</Text>*/}

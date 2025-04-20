@@ -18,7 +18,7 @@ func InitAdminDB() {
 	db := GetDB()
 
 	// Виконання міграцій для таблиць
-	err = db.AutoMigrate(&entities.User{}, &entities.Tenant{})
+	err = db.AutoMigrate(&entities.User{}, &entities.Tenant{}, &entities.LoginAttempt{})
 	if err != nil {
 		log.Fatalf("Failed to migrate: %v", err)
 	}

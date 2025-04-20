@@ -46,10 +46,13 @@ func main() {
 	r.Use(redirectFromWWW())
 	r.Use(CustomCors())
 
+	// Login limiter middleware
+	r.Use(middleware.LoginLimiterMiddleware())
+
 	// Choose DB
 	r.Use(middleware.TenantMiddleware())
 
-	// Запуск планувальника
+	// Start reminder jobs
 	reminder.StartAllTenantReminderJobs()
 
 	r.GET("/api/health", func(c *gin.Context) {
@@ -76,6 +79,7 @@ func main() {
 	// Chat routes
 	r.GET("/ws/chat", chat.HandleWebSocket)
 
+	//Direct messages
 	hub := direct.NewHub()
 	go hub.Run()
 	r.GET("/ws/direct", direct.ServeWs(hub))
@@ -99,8 +103,6 @@ func main() {
 	r.POST("/v1/calendar/events", routes.CreateEventHandler)
 	r.PUT("/v1/calendar/events/:id", routes.UpdateCalendarEventHandler)
 	r.DELETE("/v1/calendar/events/:id", routes.DeleteEvent)
-
-	//reminder.StartReminderJobs()
 
 	// Blogs routes
 	r.POST("/v1/blog/", routes.CreateBlogHandler)
