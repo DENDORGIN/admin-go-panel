@@ -37,11 +37,6 @@ func TenantMiddleware() gin.HandlerFunc {
 		c.Set("DB", tenantDB)
 		c.Set("tenant", tenant)
 
-		//if !tenant.Migrated {
-		//	postgres.InitDB(c)
-		//	postgres.GetDB().Model(&tenant).Update("migrated", true)
-		//}
-
 		c.Next()
 	}
 }
