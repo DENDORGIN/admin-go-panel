@@ -4,6 +4,19 @@ updates:
     directory: "/backend"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "fix(deps)"
+    reviewers:
+      - "Nevojt"
+    labels:
+      - "dependencies"
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "fix(deps)"
     reviewers:
       - "Nevojt"
     labels:
