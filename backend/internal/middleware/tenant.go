@@ -23,16 +23,23 @@ func TenantMiddleware() gin.HandlerFunc {
 
 		tenantDB, err := postgres.Manager.GetConnectionByDomain(subdomain)
 		if err != nil {
+			// якщо tenant.Status == false — повертаємо 403, інакше 404
+			statusCode := http.StatusNotFound
+			errMsg := "Tenant not found or DB error"
+			if strings.Contains(err.Error(), "inactive") {
+				statusCode = http.StatusForbidden
+				errMsg = "Tenant is inactive"
+			}
 			if isWebSocketRequest(c) {
-				c.AbortWithStatus(http.StatusNotFound)
+				c.AbortWithStatus(statusCode)
 			} else {
-				c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Tenant not found or DB error"})
+				c.AbortWithStatusJSON(statusCode, gin.H{"error": errMsg})
 			}
 			return
 		}
 
 		// Дістаємо tenant із кешу після підключення
-		tenant := postgres.Manager.TenantFromCache(subdomain) // 👈 додай цей метод
+		tenant := postgres.Manager.TenantFromCache(subdomain)
 
 		c.Set("DB", tenantDB)
 		c.Set("tenant", tenant)

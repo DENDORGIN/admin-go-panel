@@ -23,8 +23,6 @@ func init() {
 	if err != nil {
 		_ = fmt.Errorf("error loading .env file: %v", err)
 	}
-	//_ = os.Setenv("TZ", "UTC")
-	//time.Local = time.UTC
 }
 
 func main() {

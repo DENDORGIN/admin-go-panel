@@ -16,6 +16,7 @@ type Tenant struct {
 	DBPassword string    `json:"db_password"`
 	DBName     string    `json:"db_name"`
 	Migrated   bool      `gorm:"default:false" json:"migrated"`
+	Status     bool      `gorm:"default:false" json:"status"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }

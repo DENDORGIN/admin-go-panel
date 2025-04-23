@@ -43,6 +43,9 @@ func (m *DBManager) GetConnectionByDomain(domain string) (*gorm.DB, error) {
 		m.tenantCache[domain] = tenant
 		m.mu.Unlock()
 	}
+	if !tenant.Status {
+		return nil, fmt.Errorf("tenant inactive")
+	}
 
 	// 4. Повертаємо з'єднання або створюємо нове
 	if conn, exists := Pool.Get(domain); exists {
