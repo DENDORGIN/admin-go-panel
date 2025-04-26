@@ -188,3 +188,5 @@ func CustomCors() gin.HandlerFunc {
 	}
 	return cors.New(config)
 }
+
+// Update the code to use the new middleware
