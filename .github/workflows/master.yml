@@ -31,4 +31,4 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=yes \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
-            "cd /home/denborgin/dbgone && ./start_bild"
+            "cd /home/denborgin/dbgone && ./deploy.sh"
