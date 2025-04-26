@@ -7,70 +7,78 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"sync"
+	"time"
 )
+
+const cacheTTL = 60 // час життя кешу в секундах
+
+type CachedTenant struct {
+	Tenant     entities.Tenant
+	LastUpdate int64
+}
 
 type DBManager struct {
 	mu          sync.RWMutex
 	connections map[string]*gorm.DB
-	tenantCache map[string]entities.Tenant
+	tenantCache map[string]CachedTenant
 }
 
 var Manager = &DBManager{
 	connections: make(map[string]*gorm.DB),
-	tenantCache: make(map[string]entities.Tenant),
+	tenantCache: make(map[string]CachedTenant),
 }
 
 // Отримати підключення до БД тентанта
 func (m *DBManager) GetConnectionByDomain(domain string) (*gorm.DB, error) {
 	var tenant entities.Tenant
 
-	// 1. Шукаємо tenant у кеші
+	now := time.Now().Unix()
+
 	m.mu.RLock()
 	cachedTenant, found := m.tenantCache[domain]
 	m.mu.RUnlock()
 
-	if found {
-		tenant = cachedTenant
+	if found && now-cachedTenant.LastUpdate < cacheTTL {
+		tenant = cachedTenant.Tenant
 	} else {
-		// 2. Якщо нема — тягнемо з головної БД
-		err := GetDB().Where("domain = ?", domain).First(&tenant).Error
-		if err != nil {
+		// Оновлюємо tenant з БД
+		if err := GetDB().Where("domain = ?", domain).First(&tenant).Error; err != nil {
 			return nil, fmt.Errorf("tenant not found: %w", err)
 		}
 
-		// 3. Кладемо в кеш
 		m.mu.Lock()
-		m.tenantCache[domain] = tenant
+		m.tenantCache[domain] = CachedTenant{
+			Tenant:     tenant,
+			LastUpdate: now,
+		}
 		m.mu.Unlock()
 	}
+
+	// Перевіряємо активність тентанта
 	if !tenant.Status {
 		return nil, fmt.Errorf("tenant inactive")
 	}
 
-	// 4. Повертаємо з'єднання або створюємо нове
+	// Повертаємо чинне підключення або створюємо нове
 	if conn, exists := Pool.Get(domain); exists {
 		return conn, nil
 	}
 
-	// 5. Розшифровуємо дані
 	tenantCreds, err := utils.DecryptTenantCreds(&tenant)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt tenant credentials: %w", err)
 	}
 
-	// 6 Формуємо DSN
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Europe/Warsaw",
 		tenantCreds.DBHost, tenantCreds.DBUser, tenantCreds.DBPassword, tenantCreds.DBName, tenant.DBPort,
 	)
 
-	// 7. Підключення
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to tenant DB: %w", err)
 	}
 
-	// 8. Кешуємо через пул
 	Pool.Set(domain, db)
 	return db, nil
 }
@@ -83,8 +91,9 @@ func (m *DBManager) ClearTenantCache(domain string) {
 	Pool.Delete(domain) // 💡 очищаємо і пул
 }
 
+// Дістати тентанта з кешу
 func (m *DBManager) TenantFromCache(domain string) entities.Tenant {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	return m.tenantCache[domain]
+	return m.tenantCache[domain].Tenant
 }
