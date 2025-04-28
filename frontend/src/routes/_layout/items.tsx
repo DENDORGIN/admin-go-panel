@@ -72,6 +72,7 @@ function ItemsTable({ language }: ItemsTableProps) {
   const navigate = useNavigate({ from: Route.fullPath })
   const setPage = (page: number) =>
     navigate({
+      // @ts-ignore
       search: (prev: { [key: string]: string }) => ({ ...prev, page }),
     })
 
