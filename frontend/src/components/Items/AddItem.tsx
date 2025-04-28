@@ -25,8 +25,7 @@ import { useRef, useState } from "react";
 import {type ApiError, type ItemCreate, ItemsService, MediaService, type PropertiesFormData, PropertyService} from "../../client";
 import useCustomToast from "../../hooks/useCustomToast";
 import { handleError } from "../../utils";
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import RichTextEditor from "../Editor/RichTextEditor.tsx";
 import LanguageSelector from "./Selectors/LanguageSelector.tsx"
 import CategorySelector from "./Selectors/CategorySelector.tsx"
 import {UseAvailableLanguages} from "../../hooks/useAvailableLanguages.ts"
@@ -79,27 +78,6 @@ const AddItem = ({ isOpen, onClose, onNewLanguage }: AddItemProps) => {
   const { data: categories = [] } = useAvailableCategories()
 
   const [propertyData, setPropertyData] = useState<PropertiesFormData | null>(null);
-
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      [{ 'font': [] }],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'align': [] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'indent': '-1' }, { 'indent': '+1' }],
-      ['link', 'image', 'video'],
-      ['clean'],
-    ],
-  };
-
-  const formats = [
-    'header', 'font', 'color', 'background', 'align',
-    'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet', 'indent',
-    'link', 'image', 'video'
-  ];
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
@@ -227,19 +205,17 @@ const AddItem = ({ isOpen, onClose, onNewLanguage }: AddItemProps) => {
             </FormControl>
             <FormControl mt={4} isInvalid={!!errors.content}>
               <FormLabel htmlFor="content">Content</FormLabel>
-              <ReactQuill
-                  theme="snow"
+              <RichTextEditor
                   value={watch('content') || ''}
                   onChange={(_, __, ___, editor) => {
                     setValue('content', editor.getHTML());
                   }}
-                  modules={modules}
-                  formats={formats}
               />
               {errors.content && (
                   <FormErrorMessage>{errors.content.message}</FormErrorMessage>
               )}
             </FormControl>
+
 
             <FormControl mt={4}>
               <FormLabel htmlFor="images">Images</FormLabel>

@@ -21,7 +21,7 @@ import {
 
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
-import ReactQuill from "react-quill";
+import RichTextEditor from "../Editor/RichTextEditor.tsx";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type SubmitHandler, useForm } from "react-hook-form";
@@ -69,26 +69,6 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
     },
   });
 
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      [{ 'font': [] }],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'align': [] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'indent': '-1' }, { 'indent': '+1' }],
-      ['link', 'image', 'video'],
-      ['clean'],
-    ],
-  };
-
-  const formats = [
-    'header', 'font', 'color', 'background', 'align',
-    'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet', 'indent',
-    'link', 'image', 'video'
-  ];
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
@@ -183,28 +163,22 @@ const AddPost = ({ isOpen, onClose }: AddPostProps) => {
           <ModalBody pb={6}>
             <FormControl isRequired isInvalid={!!errors.title}>
               <FormLabel htmlFor="title">Title</FormLabel>
-              <ReactQuill
-                  theme="snow"
-                  value={watch('title')  || ''}
-                  onChange={(_, __, ___, editor) => {
-                    setValue('title', editor.getHTML()); // Update form state with HTML content
-                  }}
-                  modules={modules}
-                  formats={formats}
-              />
+              <RichTextEditor
+                value={watch('title') || ''}
+                onChange={(_, __, ___, editor) => {
+                setValue('title', editor.getHTML());
+              }}
+                />
               {errors.title && <FormErrorMessage>{errors.title.message}</FormErrorMessage>}
             </FormControl>
 
             <FormControl mt={4} isInvalid={!!errors.content}>
-              <FormLabel htmlFor="description">Description</FormLabel>
-              <ReactQuill
-                  theme="snow"
-                  value={watch('content')  || ''}
+              <FormLabel htmlFor="description">Content</FormLabel>
+              <RichTextEditor
+                  value={watch('content') || ''}
                   onChange={(_, __, ___, editor) => {
-                    setValue('content', editor.getHTML()); // Update form state with HTML content
+                    setValue('content', editor.getHTML());
                   }}
-                  modules={modules}
-                  formats={formats}
               />
               {errors.content && (
                   <FormErrorMessage>{errors.content.message}</FormErrorMessage>

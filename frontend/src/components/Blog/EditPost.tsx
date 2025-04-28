@@ -31,7 +31,7 @@ import {
 } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 import { handleError } from "../../utils"
-import ReactQuill from "react-quill";
+import RichTextEditor from "../Editor/RichTextEditor.tsx";
 
 interface EditPostProps {
   post: PostPublic
@@ -56,27 +56,6 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
   const showToast = useCustomToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<FileDetail[]>([])
-
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      [{ 'font': [] }],
-      [{ 'color': [] }, { 'background': [] }], // Колір тексту та фону
-      [{ 'align': [] }], // Вирівнювання
-      ['bold', 'italic', 'underline', 'strike'], // Стилізація тексту
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }], // Списки
-      [{ 'indent': '-1' }, { 'indent': '+1' }], // Відступи
-      ['link', 'image', 'video'], // Додавання медіа
-      ['clean'], // Очищення форматування
-    ],
-  };
-
-  const formats = [
-    'header', 'font', 'color', 'background', 'align',
-    'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet', 'indent',
-    'link', 'image', 'video'
-  ];
 
 
 
@@ -255,29 +234,23 @@ const EditPost = ({ post, isOpen, onClose }: EditPostProps) => {
         <ModalBody pb={6}>
           <FormControl isRequired isInvalid={!!errors.title}>
             <FormLabel htmlFor="title">Title</FormLabel>
-            <ReactQuill
-                theme="snow"
+            <RichTextEditor
                 value={watch('title') || ''}
                 onChange={(_, __, ___, editor) => {
                   setValue('title', editor.getHTML());
                 }}
-                modules={modules}
-                formats={formats}
             />
             {errors.title && (
               <FormErrorMessage>{errors.title.message}</FormErrorMessage>
             )}
           </FormControl>
           <FormControl mt={4} isInvalid={!!errors.content}>
-            <FormLabel htmlFor="description">Description</FormLabel>
-            <ReactQuill
-                theme="snow"
+            <FormLabel htmlFor="description">Content</FormLabel>
+            <RichTextEditor
                 value={watch('content') || ''}
                 onChange={(_, __, ___, editor) => {
                   setValue('content', editor.getHTML());
                 }}
-                modules={modules}
-                formats={formats}
             />
             {errors.content && (
                 <FormErrorMessage>{errors.content.message}</FormErrorMessage>

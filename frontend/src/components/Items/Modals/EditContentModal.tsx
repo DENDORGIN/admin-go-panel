@@ -7,7 +7,7 @@ import { useMutation } from "@tanstack/react-query"
 import { type ItemUpdate, ItemsService, type ApiError, type ItemPublic } from "../../../client"
 import { handleError } from "../../../utils"
 import useCustomToast from "../../../hooks/useCustomToast"
-import ReactQuill from "react-quill";
+import RichTextEditor from "../../Editor/RichTextEditor.tsx";
 
 interface EditContentModalProps {
     isOpen: boolean
@@ -40,26 +40,6 @@ const EditContentModal = ({ isOpen, onClose, item, onSuccess }: EditContentModal
 
     const onSubmit = (data: ItemUpdate) => mutation.mutate(data)
 
-    const modules = {
-        toolbar: [
-            [{ 'header': [1, 2, 3, false] }],
-            [{ 'font': [] }],
-            [{ 'color': [] }, { 'background': [] }], // Колір тексту та фону
-            [{ 'align': [] }], // Вирівнювання
-            ['bold', 'italic', 'underline', 'strike'], // Стилізація тексту
-            [{ 'list': 'ordered' }, { 'list': 'bullet' }], // Списки
-            [{ 'indent': '-1' }, { 'indent': '+1' }], // Відступи
-            ['link', 'image', 'video'], // Додавання медіа
-            ['clean'], // Очищення форматування
-        ],
-    };
-
-    const formats = [
-        'header', 'font', 'color', 'background', 'align',
-        'bold', 'italic', 'underline', 'strike',
-        'list', 'bullet', 'indent',
-        'link', 'image', 'video'
-    ];
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -70,14 +50,11 @@ const EditContentModal = ({ isOpen, onClose, item, onSuccess }: EditContentModal
                 <ModalBody>
                     <FormControl isInvalid={!!errors.content} isRequired>
                         <FormLabel>Content</FormLabel>
-                        <ReactQuill
-                            theme="snow"
+                        <RichTextEditor
                             value={watch('content') || ''}
                             onChange={(_, __, ___, editor) => {
                                 setValue('content', editor.getHTML());
                             }}
-                            modules={modules}
-                            formats={formats}
                         />
                     </FormControl>
                 </ModalBody>
