@@ -2,6 +2,7 @@ package models
 
 import (
 	"backend/internal/adminpanel/entities"
+	//blog "backend/modules/blog/models"
 	"github.com/google/uuid"
 )
 
@@ -14,7 +15,7 @@ type UserResponse struct {
 	IsSuperUser bool      `json:"isSuperUser"`
 
 	Calendar []entities.Calendar `gorm:"foreignKey:UserID" json:"calendars"`
-	Blog     []entities.Blog     `gorm:"foreignKey:OwnerID" json:"blogs"`
+	//Blog     []blog.Blog     `gorm:"foreignKey:OwnerID" json:"blogs"`
 }
 
 type AllUsers struct {
@@ -36,4 +37,9 @@ type UpdatePassword struct {
 type ResetPasswordRequest struct {
 	Token       string `json:"token"`
 	NewPassword string `json:"newPassword"`
+}
+
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }

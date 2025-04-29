@@ -5,8 +5,9 @@ import (
 	"backend/internal/adminpanel/routes"
 	"backend/internal/adminpanel/services/reminder"
 	"backend/internal/middleware"
+	"backend/modules/blog"
 	"backend/modules/chat"
-	direct2 "backend/modules/chat/direct"
+	"backend/modules/direct"
 	"backend/modules/user"
 	"backend/modules/user/handlers"
 	"fmt"
@@ -80,9 +81,9 @@ func main() {
 	r.GET("/ws/chat", chat.HandleWebSocket)
 
 	//Direct messages
-	hub := direct2.NewHub()
+	hub := direct.NewHub()
 	go hub.Run()
-	r.GET("/ws/direct", direct2.ServeWs(hub))
+	r.GET("/ws/direct", direct.ServeWs(hub))
 
 	// Link preview
 	r.GET("/link-preview", routes.FetchLinkPreview)
@@ -94,18 +95,14 @@ func main() {
 	version := r.Group("/v1")
 	user.RegisterRoutes(version)
 
+	// Blogs routes
+	blog.RegisterRoutes(version)
+
 	// Calendar
 	r.GET("/v1/calendar/events", routes.GetAllEventsHandler)
 	r.POST("/v1/calendar/events", routes.CreateEventHandler)
 	r.PUT("/v1/calendar/events/:id", routes.UpdateCalendarEventHandler)
 	r.DELETE("/v1/calendar/events/:id", routes.DeleteEvent)
-
-	// Blogs routes
-	r.POST("/v1/blog/", routes.CreateBlogHandler)
-	r.GET("/v1/blog/", routes.GetAllBlogsHandler)
-	r.GET("/v1/blog/:id", routes.GetBlogByIdHandler)
-	r.PUT("/v1/blog/:id", routes.UpdateBlogByIdHandler)
-	r.DELETE("/v1/blog/:id", routes.DeleteBlogByIdHandler)
 
 	// Items routes
 	r.POST("/v1/items/", routes.CreateItemHandler)
@@ -138,8 +135,8 @@ func main() {
 	r.DELETE("/v1/rooms/:id", routes.DeleteRoomByIdHandler)
 
 	// Direct messages routes
-	r.GET("/v1/direct/users", direct2.GetChatUsersHandler)
-	r.GET("/v1/direct/:user_id/messages", direct2.GetMessagesHandler)
+	r.GET("/v1/direct/users", direct.GetChatUsersHandler)
+	r.GET("/v1/direct/:user_id/messages", direct.GetMessagesHandler)
 
 	// Run the server
 	if err := r.Run(port); err != nil {

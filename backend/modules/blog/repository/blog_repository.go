@@ -1,60 +1,28 @@
-package models
+package repository
 
 import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
+	"backend/modules/blog/models"
 	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-type BlogPost struct {
-	ID       uuid.UUID
-	Title    string    `json:"title"`
-	Content  string    `json:"content"`
-	Position int       `json:"position"`
-	Language string    `json:"language"`
-	Status   bool      `json:"status"`
-	OwnerID  uuid.UUID `json:"owner_id"`
-}
-
-type BlogGet struct {
-	ID       uuid.UUID
-	Title    string    `json:"title"`
-	Content  string    `json:"content"`
-	Position int       `json:"position"`
-	Language string    `json:"language"`
-	Status   bool      `json:"status"`
-	OwnerID  uuid.UUID `json:"owner_id"`
-	Images   []string  `json:"images"`
-}
-
-type BlogUpdate struct {
-	Title    string `json:"title"`
-	Content  string `json:"content"`
-	Position int    `json:"position"`
-	Status   bool   `json:"status"`
-}
-
-type BlogGetAll struct {
-	Data  []*BlogGet
-	Count int
-}
-
-func CreateBlog(db *gorm.DB, b *entities.Blog) (*BlogPost, error) {
+func CreateBlog(db *gorm.DB, b *models.Blog) (*models.BlogPost, error) {
 	if b.Title == "" {
 		return nil, errors.New("the product title cannot be empty")
 	}
 
-	err := repository.GetPosition(db, b.Position, &entities.Blog{})
+	err := repository.GetPosition(db, b.Position, &models.Blog{})
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 
 	// Якщо позиція існує, зсуваємо всі наступні
 	if err == nil {
-		if shiftErr := repository.ShiftPositions[entities.Blog](db, b.Position, b.Language); shiftErr != nil {
+		if shiftErr := repository.ShiftPositions[models.Blog](db, b.Position, b.Language); shiftErr != nil {
 			return nil, shiftErr
 		}
 	}
@@ -63,7 +31,7 @@ func CreateBlog(db *gorm.DB, b *entities.Blog) (*BlogPost, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &BlogPost{
+	return &models.BlogPost{
 		ID:       b.ID,
 		Title:    b.Title,
 		Content:  b.Content,
@@ -74,13 +42,13 @@ func CreateBlog(db *gorm.DB, b *entities.Blog) (*BlogPost, error) {
 	}, nil
 }
 
-func GetAllBlogs(db *gorm.DB, userId uuid.UUID, isSuperUser bool) (*BlogGetAll, error) {
-	var blogs []*entities.Blog
+func GetAllBlogs(db *gorm.DB, userId uuid.UUID, isSuperUser bool) (*models.BlogGetAll, error) {
+	var blogs []*models.Blog
 	var media []*entities.Media
-	response := &BlogGetAll{}
+	response := &models.BlogGetAll{}
 
 	// Формуємо базовий запит
-	query := db.Model(&entities.Blog{}).Order("position ASC")
+	query := db.Model(&models.Blog{}).Order("position ASC")
 	if !isSuperUser {
 		query = query.Where("owner_id = ?", userId)
 	}
@@ -112,7 +80,7 @@ func GetAllBlogs(db *gorm.DB, userId uuid.UUID, isSuperUser bool) (*BlogGetAll, 
 
 	// Формуємо відповідь
 	for _, blog := range blogs {
-		response.Data = append(response.Data, &BlogGet{
+		response.Data = append(response.Data, &models.BlogGet{
 			ID:       blog.ID,
 			Title:    blog.Title,
 			Content:  blog.Content,
@@ -127,8 +95,8 @@ func GetAllBlogs(db *gorm.DB, userId uuid.UUID, isSuperUser bool) (*BlogGetAll, 
 	return response, nil
 }
 
-func GetBlogById(db *gorm.DB, id uuid.UUID) (*BlogGet, error) {
-	var blog entities.Blog
+func GetBlogById(db *gorm.DB, id uuid.UUID) (*models.BlogGet, error) {
+	var blog models.Blog
 	var media []*entities.Media
 
 	err := repository.GetByID(db, id, &blog)
@@ -146,7 +114,7 @@ func GetBlogById(db *gorm.DB, id uuid.UUID) (*BlogGet, error) {
 		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
 	}
 
-	return &BlogGet{
+	return &models.BlogGet{
 		ID:       blog.ID,
 		Title:    blog.Title,
 		Content:  blog.Content,
@@ -157,8 +125,8 @@ func GetBlogById(db *gorm.DB, id uuid.UUID) (*BlogGet, error) {
 	}, nil
 }
 
-func UpdateBlogById(db *gorm.DB, id uuid.UUID, updateBlog *BlogUpdate) (*BlogGet, error) {
-	var blog entities.Blog
+func UpdateBlogById(db *gorm.DB, id uuid.UUID, updateBlog *models.BlogUpdate) (*models.BlogGet, error) {
+	var blog models.Blog
 
 	// Знаходимо блог за ID
 	err := repository.GetByID(db, id, &blog)
@@ -168,7 +136,7 @@ func UpdateBlogById(db *gorm.DB, id uuid.UUID, updateBlog *BlogUpdate) (*BlogGet
 
 	// Якщо позиція змінилася - зсуваємо інші блоги
 	if updateBlog.Position != blog.Position {
-		err = repository.ShiftPositions[entities.Blog](db, updateBlog.Position, blog.Language) // Передаємо тільки число
+		err = repository.ShiftPositions[models.Blog](db, updateBlog.Position, blog.Language) // Передаємо тільки число
 		if err != nil {
 			return nil, err
 		}
@@ -196,7 +164,7 @@ func UpdateBlogById(db *gorm.DB, id uuid.UUID, updateBlog *BlogUpdate) (*BlogGet
 }
 
 func DeleteBlogById(db *gorm.DB, id uuid.UUID) error {
-	var blog entities.Blog
+	var blog models.Blog
 	var mediaList []entities.Media
 
 	err := repository.DeleteByID(db, id, &blog)

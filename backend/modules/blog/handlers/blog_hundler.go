@@ -1,9 +1,9 @@
-package routes
+package handlers
 
 import (
-	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
+	"backend/modules/blog/models"
+	"backend/modules/blog/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
@@ -21,7 +21,7 @@ func CreateBlogHandler(ctx *gin.Context) {
 		return
 	}
 
-	var blog entities.Blog
+	var blog models.Blog
 	if err := ctx.ShouldBindJSON(&blog); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -29,7 +29,7 @@ func CreateBlogHandler(ctx *gin.Context) {
 
 	blog.OwnerID = userID
 
-	newBlog, err := models.CreateBlog(db, &blog)
+	newBlog, err := repository.CreateBlog(db, &blog)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -52,7 +52,7 @@ func GetAllBlogsHandler(ctx *gin.Context) {
 
 	isSuperUser, _ := utils.GetIsSuperUser(db, user.ID)
 
-	blogs, err := models.GetAllBlogs(db, user.ID, isSuperUser)
+	blogs, err := repository.GetAllBlogs(db, user.ID, isSuperUser)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -77,7 +77,7 @@ func GetBlogByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	blog, err := models.GetBlogById(db, id)
+	blog, err := repository.GetBlogById(db, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -114,7 +114,7 @@ func UpdateBlogByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	blog, err := models.UpdateBlogById(db, id, &update)
+	blog, err := repository.UpdateBlogById(db, id, &update)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -146,7 +146,7 @@ func DeleteBlogByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	blog, err := models.GetBlogById(db, id)
+	blog, err := repository.GetBlogById(db, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -156,7 +156,7 @@ func DeleteBlogByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}
-	err = models.DeleteBlogById(db, id)
+	err = repository.DeleteBlogById(db, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
