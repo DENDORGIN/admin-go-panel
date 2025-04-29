@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
+	"backend/modules/user/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -29,10 +29,10 @@ func GetUserIDFromContext(ctx *gin.Context) (uuid.UUID, bool) {
 }
 
 // Отримати користувача з контексту або БД з кешуванням
-func GetCurrentUserFromContext(ctx *gin.Context, db *gorm.DB) (*entities.User, bool) {
+func GetCurrentUserFromContext(ctx *gin.Context, db *gorm.DB) (*models.User, bool) {
 	// 1. Шукаємо в контексті
 	if cached, ok := ctx.Get(userKey); ok {
-		if user, valid := cached.(*entities.User); valid {
+		if user, valid := cached.(*models.User); valid {
 			return user, true
 		}
 	}
@@ -44,7 +44,7 @@ func GetCurrentUserFromContext(ctx *gin.Context, db *gorm.DB) (*entities.User, b
 	}
 
 	// 3. Отримуємо користувача з БД
-	var user entities.User
+	var user models.User
 	if err := repository.GetByID(db, userID, &user); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Cannot get user"})
 		return nil, false
@@ -56,7 +56,7 @@ func GetCurrentUserFromContext(ctx *gin.Context, db *gorm.DB) (*entities.User, b
 	return &user, true
 }
 func GetIsSuperUser(db *gorm.DB, id uuid.UUID) (bool, error) {
-	var user entities.User
+	var user models.User
 	err := repository.GetByID(db, id, &user)
 	if err != nil {
 		return false, err

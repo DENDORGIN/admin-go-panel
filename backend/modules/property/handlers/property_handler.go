@@ -1,9 +1,9 @@
-package routes
+package handlers
 
 import (
-	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
+	"backend/modules/property/models"
+	"backend/modules/property/repository"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -17,13 +17,13 @@ func CreatePropertiesHandler(ctx *gin.Context) {
 		return
 	}
 
-	var property entities.Property
+	var property models.Property
 	if err := ctx.ShouldBindJSON(&property); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	newProps, err := models.CreateProperty(db, &property)
+	newProps, err := repository.CreateProperty(db, &property)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -43,7 +43,7 @@ func GetPropertyByIDHandler(ctx *gin.Context) {
 		return
 	}
 
-	property, err := models.GetPropertyById(db, id)
+	property, err := repository.GetPropertyById(db, id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -69,7 +69,7 @@ func UpdatePropertyHandler(ctx *gin.Context) {
 		return
 	}
 
-	updatedProperty, err := models.UpdateProperty(db, id, &update)
+	updatedProperty, err := repository.UpdateProperty(db, id, &update)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Property not found"})
 		return
@@ -93,7 +93,7 @@ func DeletePropertyHandler(ctx *gin.Context) {
 	if !ok {
 		return
 	}
-	err = models.DeleteProperty(db, id)
+	err = repository.DeleteProperty(db, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

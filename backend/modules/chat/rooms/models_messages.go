@@ -4,6 +4,7 @@ import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
+	"backend/modules/user/models"
 	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -140,7 +141,7 @@ func GetMessagesPaginated(db *gorm.DB, roomId uuid.UUID, limit int, before *uuid
 
 func GetMessageById(db *gorm.DB, messageID uuid.UUID) (*Message, error) {
 	var message entities.Messages
-	var user entities.User
+	var user models.User
 	var media []entities.Media
 
 	err := repository.GetByID(db, messageID, &message)

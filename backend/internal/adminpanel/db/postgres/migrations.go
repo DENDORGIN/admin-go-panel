@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"backend/internal/adminpanel/entities"
+	"backend/modules/user/models"
 	"log"
 )
 
@@ -18,37 +19,9 @@ func InitAdminDB() {
 	db := GetDB()
 
 	// Виконання міграцій для таблиць
-	err = db.AutoMigrate(&entities.User{}, &entities.Tenant{}, &entities.LoginAttempt{})
+	err = db.AutoMigrate(&models.User{}, &entities.Tenant{}, &entities.LoginAttempt{})
 	if err != nil {
 		log.Fatalf("Failed to migrate: %v", err)
 	}
 
 }
-
-//
-//func InitDB(ctx *gin.Context) {
-//	db, ok := utils.GetDBFromContext(ctx)
-//	if !ok {
-//		log.Println("Database not found in context")
-//		return
-//	}
-//
-//	log.Println("Running tenant-specific migrations...")
-//
-//	err := db.AutoMigrate(
-//		&entities.User{},
-//		&entities.Calendar{},
-//		&entities.Blog{},
-//		&entities.Media{},
-//		&entities.Items{},
-//		&entities.Property{},
-//		&entities.ChatRooms{},
-//		&entities.Messages{},
-//		&entities.DirectMessage{},
-//		&entities.Conversations{},
-//		&entities.Reaction{},
-//	)
-//	if err != nil {
-//		log.Fatalf("Failed to migrate: %v", err)
-//	}
-//}

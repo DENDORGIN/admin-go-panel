@@ -33,7 +33,7 @@ func GetDirectChatUsers(db *gorm.DB, userID uuid.UUID) ([]models.UserResponse, e
 		}
 	}
 
-	var users []entities.User
+	var users []models.User
 	if len(userIDs) > 0 {
 		err = db.Where("id IN ?", userIDs).Find(&users).Error
 		if err != nil {

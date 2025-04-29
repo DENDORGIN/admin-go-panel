@@ -680,7 +680,7 @@ export class BlogService {
     data: JSON,
   ): CancelablePromise<PostPublic> {
     return __request(OpenAPI, {
-      method: "PUT",
+      method: "PATCH",
       url: `/v1/blog/${id}`,
       body: data,
       errors: {
@@ -789,7 +789,7 @@ export class PropertyService {
    */
   public static UpdateProperties(id: string, data: UpdatePropertiesType): CancelablePromise<Properties> {
     return __request(OpenAPI, {
-      method: "PUT",
+      method: "PATCH",
       url: `/v1/properties/${id}`,
       body: data,
       headers: {
@@ -858,7 +858,7 @@ export class RoomService {
       data: JSON,
   ): CancelablePromise<RoomPublic> {
     return __request(OpenAPI, {
-      method: "PUT",
+      method: "PATCH",
       url: `/v1/rooms/${id}`,
       body: data,
       errors: {

@@ -1,73 +1,29 @@
-package models
+package repository
 
 import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"backend/internal/adminpanel/services/utils"
+	"backend/modules/item/models"
+	propModel "backend/modules/property/models"
+	propRepo "backend/modules/property/repository"
 	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-type ItemsPost struct {
-	ID       uuid.UUID
-	Title    string    `json:"title"`
-	Content  string    `json:"content"`
-	Price    float64   `json:"price"`
-	Quantity int       `json:"quantity"`
-	Position int       `json:"position"`
-	Language string    `json:"language"`
-	ItemUrl  string    `json:"item_url"`
-	Category string    `json:"category"`
-	Status   bool      `json:"status"`
-	OwnerID  uuid.UUID `json:"owner_id"`
-}
-
-type ItemGet struct {
-	ID       uuid.UUID
-	Title    string      `json:"title"`
-	Content  string      `json:"content"`
-	Price    float64     `json:"price"`
-	Quantity int         `json:"quantity"`
-	Position int         `json:"position"`
-	Language string      `json:"language"`
-	ItemUrl  string      `json:"item_url"`
-	Category string      `json:"category"`
-	Status   bool        `json:"status"`
-	Property PropertyGet `json:"property"`
-	OwnerID  uuid.UUID   `json:"owner_id"`
-	Images   []string    `json:"images"`
-}
-
-type ItemUpdate struct {
-	Title    *string  `json:"title"`
-	Content  *string  `json:"content"`
-	Price    *float64 `json:"price"`
-	Quantity *int     `json:"quantity"`
-	Position *int     `json:"position"`
-	ItemUrl  *string  `json:"item_url"`
-	Category *string  `json:"category"`
-	Language *string  `json:"language"`
-	Status   *bool    `json:"status"`
-}
-
-type ItemGetAll struct {
-	Data  []*ItemGet
-	Count int
-}
-
-func CreateItem(db *gorm.DB, i *entities.Items) (*ItemsPost, error) {
+func CreateItem(db *gorm.DB, i *models.Items) (*models.ItemsPost, error) {
 	if i.Title == "" {
 		return nil, errors.New("the product title cannot be empty")
 	}
-	err := repository.GetPosition(db, i.Position, &entities.Items{})
+	err := repository.GetPosition(db, i.Position, &models.Items{})
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
 
 	// Якщо позиція існує, зсуваємо всі наступні
 	if err == nil {
-		if shiftErr := repository.ShiftPositions[entities.Items](db, i.Position, i.Language); shiftErr != nil {
+		if shiftErr := repository.ShiftPositions[models.Items](db, i.Position, i.Language); shiftErr != nil {
 			return nil, shiftErr
 		}
 	}
@@ -76,7 +32,7 @@ func CreateItem(db *gorm.DB, i *entities.Items) (*ItemsPost, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ItemsPost{
+	return &models.ItemsPost{
 		ID:       i.ID,
 		Title:    i.Title,
 		Content:  i.Content,
@@ -91,9 +47,9 @@ func CreateItem(db *gorm.DB, i *entities.Items) (*ItemsPost, error) {
 	}, nil
 }
 
-func GetItemById(db *gorm.DB, itemId uuid.UUID) (*ItemGet, error) {
-	var item entities.Items
-	var property entities.Property
+func GetItemById(db *gorm.DB, itemId uuid.UUID) (*models.ItemGet, error) {
+	var item models.Items
+	var property propModel.Property
 	var media []*entities.Media
 
 	// Get product
@@ -117,7 +73,7 @@ func GetItemById(db *gorm.DB, itemId uuid.UUID) (*ItemGet, error) {
 	for _, m := range media {
 		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
 	}
-	return &ItemGet{
+	return &models.ItemGet{
 		ID:       item.ID,
 		Title:    item.Title,
 		Content:  item.Content,
@@ -128,7 +84,7 @@ func GetItemById(db *gorm.DB, itemId uuid.UUID) (*ItemGet, error) {
 		ItemUrl:  item.ItemUrl,
 		Category: item.Category,
 		Status:   item.Status,
-		Property: PropertyGet{
+		Property: propModel.PropertyGet{
 			ID:        property.ID,
 			Height:    property.Height,
 			Weight:    property.Weight,
@@ -147,8 +103,8 @@ func GetItemById(db *gorm.DB, itemId uuid.UUID) (*ItemGet, error) {
 
 }
 
-func UpdateItemById(db *gorm.DB, itemId uuid.UUID, updateItem *ItemUpdate) (*ItemGet, error) {
-	var item *entities.Items
+func UpdateItemById(db *gorm.DB, itemId uuid.UUID, updateItem *models.ItemUpdate) (*models.ItemGet, error) {
+	var item *models.Items
 
 	err := repository.GetByID(db, itemId, &item)
 	if err != nil {
@@ -156,7 +112,7 @@ func UpdateItemById(db *gorm.DB, itemId uuid.UUID, updateItem *ItemUpdate) (*Ite
 	}
 
 	if updateItem.Position != nil && *updateItem.Position != item.Position {
-		err = repository.ShiftPositions[entities.Items](db, *updateItem.Position, item.Language)
+		err = repository.ShiftPositions[models.Items](db, *updateItem.Position, item.Language)
 		if err != nil {
 			return nil, err
 		}
@@ -197,8 +153,8 @@ func UpdateItemById(db *gorm.DB, itemId uuid.UUID, updateItem *ItemUpdate) (*Ite
 }
 
 func DeleteItemById(db *gorm.DB, id uuid.UUID) error {
-	var item entities.Items
-	var property entities.Property
+	var item models.Items
+	var property propModel.Property
 	var mediaList []entities.Media
 
 	err := repository.DeleteByID(db, id, &item)
@@ -231,7 +187,7 @@ func DeleteItemById(db *gorm.DB, id uuid.UUID) error {
 	return nil
 }
 
-func GetAllItems(db *gorm.DB, userId uuid.UUID, isSuperUser bool, parameters *entities.Parameters) (*ItemGetAll, error) {
+func GetAllItems(db *gorm.DB, userId uuid.UUID, isSuperUser bool, parameters *entities.Parameters) (*models.ItemGetAll, error) {
 	if parameters == nil {
 		parameters = &entities.Parameters{}
 	}
@@ -247,10 +203,10 @@ func GetAllItems(db *gorm.DB, userId uuid.UUID, isSuperUser bool, parameters *en
 		parameters.Limit = 100
 	}
 
-	var items []*entities.Items
+	var items []*models.Items
 	var media []*entities.Media
 
-	response := &ItemGetAll{}
+	response := &models.ItemGetAll{}
 
 	// Формуємо базовий запит
 	query := db
@@ -294,9 +250,9 @@ func GetAllItems(db *gorm.DB, userId uuid.UUID, isSuperUser bool, parameters *en
 	}
 
 	// Отримуємо властивості
-	propertyMap := make(map[uuid.UUID]PropertyGet)
+	propertyMap := make(map[uuid.UUID]propModel.PropertyGet)
 	for _, item := range items {
-		property, err := GetPropertyByItemId(db, item.ID)
+		property, err := propRepo.GetPropertyByItemId(db, item.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -307,7 +263,7 @@ func GetAllItems(db *gorm.DB, userId uuid.UUID, isSuperUser bool, parameters *en
 
 	// Формуємо відповідь
 	for _, item := range items {
-		response.Data = append(response.Data, &ItemGet{
+		response.Data = append(response.Data, &models.ItemGet{
 			ID:       item.ID,
 			Title:    item.Title,
 			Content:  item.Content,

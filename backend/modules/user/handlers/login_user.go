@@ -3,6 +3,7 @@ package handlers
 import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/services/utils"
+	"backend/modules/user/models"
 	"backend/modules/user/repository"
 	utils2 "backend/modules/user/utils"
 	"errors"
@@ -13,7 +14,7 @@ import (
 )
 
 func LoginHandler(ctx *gin.Context) {
-	var loginRequest = entities.LoginRequest{}
+	var loginRequest = models.LoginRequest{}
 	if err := ctx.ShouldBindJSON(&loginRequest); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid login request"})
 		return

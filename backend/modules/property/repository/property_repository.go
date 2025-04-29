@@ -1,45 +1,19 @@
-package models
+package repository
 
 import (
-	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
+	"backend/modules/property/models"
 	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-type PropertyGet struct {
-	ID        uuid.UUID `json:"ID"`
-	Height    string    `json:"height"`
-	Width     string    `json:"width"`
-	Weight    string    `json:"weight"`
-	Color     string    `json:"color"`
-	Material  string    `json:"material"`
-	Brand     string    `json:"brand"`
-	Size      string    `json:"size"`
-	Motif     string    `json:"motif"`
-	Style     string    `json:"style"`
-	ContentID uuid.UUID `json:"content_id"`
-}
-
-type PropertyUpdate struct {
-	Height   string `json:"height"`
-	Width    string `json:"width"`
-	Weight   string `json:"weight"`
-	Color    string `json:"color"`
-	Material string `json:"material"`
-	Brand    string `json:"brand"`
-	Size     string `json:"size"`
-	Motif    string `json:"motif"`
-	Style    string `json:"style"`
-}
-
-func CreateProperty(db *gorm.DB, c *entities.Property) (*PropertyGet, error) {
+func CreateProperty(db *gorm.DB, c *models.Property) (*models.PropertyGet, error) {
 	err := repository.CreateEssence(db, c)
 	if err != nil {
 		return nil, err
 	}
-	return &PropertyGet{
+	return &models.PropertyGet{
 		ID:        c.ID,
 		Height:    c.Height,
 		Width:     c.Width,
@@ -54,13 +28,13 @@ func CreateProperty(db *gorm.DB, c *entities.Property) (*PropertyGet, error) {
 	}, nil
 }
 
-func GetPropertyById(db *gorm.DB, id uuid.UUID) (*PropertyGet, error) {
-	var property entities.Property
+func GetPropertyById(db *gorm.DB, id uuid.UUID) (*models.PropertyGet, error) {
+	var property models.Property
 	err := repository.GetByID(db, id, &property)
 	if err != nil {
 		return nil, err
 	}
-	return &PropertyGet{
+	return &models.PropertyGet{
 		ID:        property.ID,
 		Height:    property.Height,
 		Width:     property.Width,
@@ -75,18 +49,18 @@ func GetPropertyById(db *gorm.DB, id uuid.UUID) (*PropertyGet, error) {
 	}, nil
 }
 
-func GetPropertyByItemId(db *gorm.DB, itemid uuid.UUID) (*PropertyGet, error) {
-	var property entities.Property
+func GetPropertyByItemId(db *gorm.DB, itemid uuid.UUID) (*models.PropertyGet, error) {
+	var property models.Property
 	err := repository.GetAllContentByID(db, itemid, &property)
 	if err != nil {
 		// Якщо запис не знайдено — повертаємо пусту структуру без помилки
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return &PropertyGet{}, nil
+			return &models.PropertyGet{}, nil
 		}
 		// Якщо якась інша помилка — повертаємо її
 		return nil, err
 	}
-	return &PropertyGet{
+	return &models.PropertyGet{
 		ID:        property.ID,
 		Height:    property.Height,
 		Width:     property.Width,
@@ -101,8 +75,8 @@ func GetPropertyByItemId(db *gorm.DB, itemid uuid.UUID) (*PropertyGet, error) {
 	}, nil
 }
 
-func UpdateProperty(db *gorm.DB, id uuid.UUID, update *PropertyUpdate) (*PropertyGet, error) {
-	var property entities.Property
+func UpdateProperty(db *gorm.DB, id uuid.UUID, update *models.PropertyUpdate) (*models.PropertyGet, error) {
+	var property models.Property
 	err := repository.GetByID(db, id, &property)
 	if err != nil {
 		return nil, err
@@ -141,7 +115,7 @@ func UpdateProperty(db *gorm.DB, id uuid.UUID, update *PropertyUpdate) (*Propert
 		return nil, err
 	}
 
-	return &PropertyGet{
+	return &models.PropertyGet{
 		ID:        property.ID,
 		Height:    property.Height,
 		Width:     property.Width,
@@ -157,7 +131,7 @@ func UpdateProperty(db *gorm.DB, id uuid.UUID, update *PropertyUpdate) (*Propert
 }
 
 func DeleteProperty(db *gorm.DB, id uuid.UUID) error {
-	err := repository.DeleteByID(db, id, &entities.Property{})
+	err := repository.DeleteByID(db, id, &models.Property{})
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil
 	}

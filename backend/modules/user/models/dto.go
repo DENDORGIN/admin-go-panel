@@ -1,7 +1,6 @@
 package models
 
 import (
-	"backend/internal/adminpanel/entities"
 	//blog "backend/modules/blog/models"
 	"github.com/google/uuid"
 )
@@ -14,7 +13,7 @@ type UserResponse struct {
 	IsActive    bool      `json:"isActive"`
 	IsSuperUser bool      `json:"isSuperUser"`
 
-	Calendar []entities.Calendar `gorm:"foreignKey:UserID" json:"calendars"`
+	//Calendar []entities.Calendar `gorm:"foreignKey:UserID" json:"calendars"`
 	//Blog     []blog.Blog     `gorm:"foreignKey:OwnerID" json:"blogs"`
 }
 

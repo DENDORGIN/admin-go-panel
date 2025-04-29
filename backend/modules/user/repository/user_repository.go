@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
 	"backend/modules/user/models"
 	"backend/modules/user/utils"
@@ -44,7 +43,7 @@ func GetAllUsers(db *gorm.DB, limit int, skip int) ([]*models.User, error) {
 }
 
 func GetUserById(db *gorm.DB, id uuid.UUID) (*models.UserResponse, error) {
-	var user entities.User
+	var user models.User
 	err := repository.GetByID(db, id, &user)
 	if err != nil {
 		return nil, err
@@ -120,7 +119,7 @@ func UpdateUserById(db *gorm.DB, id uuid.UUID, updateUser *models.UpdateUser) (*
 
 func DeleteUserById(db *gorm.DB, id uuid.UUID) error {
 
-	err := repository.DeleteByID(db, id, &entities.User{})
+	err := repository.DeleteByID(db, id, &models.User{})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("user not found")

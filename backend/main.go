@@ -8,6 +8,8 @@ import (
 	"backend/modules/blog"
 	"backend/modules/chat"
 	"backend/modules/direct"
+	"backend/modules/item"
+	"backend/modules/property"
 	"backend/modules/user"
 	"backend/modules/user/handlers"
 	"fmt"
@@ -98,20 +100,17 @@ func main() {
 	// Blogs routes
 	blog.RegisterRoutes(version)
 
+	// Items routes
+	item.RegisterRoutes(version)
+
+	// Properties routes
+	property.RegisterRoutes(version)
+
 	// Calendar
 	r.GET("/v1/calendar/events", routes.GetAllEventsHandler)
 	r.POST("/v1/calendar/events", routes.CreateEventHandler)
 	r.PUT("/v1/calendar/events/:id", routes.UpdateCalendarEventHandler)
 	r.DELETE("/v1/calendar/events/:id", routes.DeleteEvent)
-
-	// Items routes
-	r.POST("/v1/items/", routes.CreateItemHandler)
-	r.GET("/v1/items/", routes.GetAllItemsHandler)
-	r.GET("/v1/items/:id", routes.GetItemByID)
-	r.GET("/v1/items/languages", routes.GetAvailableLanguages)
-	r.GET("/v1/items/categories", routes.GetAvailableCategories)
-	r.PATCH("/v1/items/:id", routes.UpdateItemByIdHandler)
-	r.DELETE("/v1/items/:id", routes.DeleteItemByIdHandler)
 
 	// Download files
 	r.POST("/v1/media/:postId/images", routes.DownloadMediaHandler)
@@ -119,13 +118,6 @@ func main() {
 	r.GET("/v1/media/images/:postId", routes.GetAllMediaByBlogIdHandler)
 	r.DELETE("/v1/media/images/:postId", routes.DeleteMediaHandler)
 	r.DELETE("/v1/media/images/url", routes.DeleteImageFromUrl)
-
-	// Properties routes
-	r.POST("/v1/properties/", routes.CreatePropertiesHandler)
-	//r.GET("/v1/properties/", routes.GetAllPropertiesHandler)
-	r.GET("/v1/properties/:id", routes.GetPropertyByIDHandler)
-	r.PUT("/v1/properties/:id", routes.UpdatePropertyHandler)
-	r.DELETE("/v1/properties/:id", routes.DeletePropertyHandler)
 
 	// Chat room routes
 	r.POST("/v1/rooms/", routes.CreateRoomHandler)
