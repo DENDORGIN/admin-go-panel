@@ -4,6 +4,7 @@ import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
+	"backend/modules/user/repository"
 	"fmt"
 	"gorm.io/gorm"
 	"log"
@@ -11,7 +12,7 @@ import (
 )
 
 func SendReminder(db *gorm.DB, event entities.Calendar) {
-	user, err := models.GetUserById(db, event.UserID)
+	user, err := repository.GetUserById(db, event.UserID)
 	if err != nil {
 		log.Printf("⚠️ Event '%s' has no user email, skipped.\n", event.Title)
 		return

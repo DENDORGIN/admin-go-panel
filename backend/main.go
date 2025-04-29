@@ -1,12 +1,14 @@
 package main
 
 import (
-	"backend/cmd/chat"
-	"backend/cmd/chat/direct"
 	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/routes"
 	"backend/internal/adminpanel/services/reminder"
 	"backend/internal/middleware"
+	"backend/modules/chat"
+	direct2 "backend/modules/chat/direct"
+	"backend/modules/user"
+	"backend/modules/user/handlers"
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -65,22 +67,22 @@ func main() {
 	})
 
 	//Auth
-	r.POST("/v1/login/access-token", routes.LoginHandler)
+	r.POST("/v1/login/access-token", handlers.LoginHandler)
 
 	// Password recovery
-	r.POST("/v1/password-recovery/:email", routes.RequestPasswordRecover)
-	r.POST("/v1/reset-password/", routes.ResetPassword)
+	//r.POST("/v1/password-recovery/:email", routes.RequestPasswordRecover)
+	//r.POST("/v1/reset-password/", routes.ResetPassword)
 
 	//Users
-	r.POST("/v1/users/signup", routes.CreateUser)
+	//r.POST("/v1/users/signup", routes.CreateUser)
 
 	// Chat routes
 	r.GET("/ws/chat", chat.HandleWebSocket)
 
 	//Direct messages
-	hub := direct.NewHub()
+	hub := direct2.NewHub()
 	go hub.Run()
-	r.GET("/ws/direct", direct.ServeWs(hub))
+	r.GET("/ws/direct", direct2.ServeWs(hub))
 
 	// Link preview
 	r.GET("/link-preview", routes.FetchLinkPreview)
@@ -89,12 +91,8 @@ func main() {
 	r.Use(middleware.AuthMiddleware())
 
 	// User routes
-	r.GET("/v1/users/me", routes.ReadUserMe)
-	r.GET("/v1/users/", routes.ReadAllUsers)
-	r.POST("/v1/users/", routes.CreateUser)
-	r.PATCH("/v1/users/me", routes.UpdateCurrentUser)
-	r.PATCH("/v1/users/me/password/", routes.UpdatePasswordCurrentUser)
-	r.DELETE("/v1/users/:id", routes.DeleteUser)
+	version := r.Group("/v1")
+	user.RegisterRoutes(version)
 
 	// Calendar
 	r.GET("/v1/calendar/events", routes.GetAllEventsHandler)
@@ -140,8 +138,8 @@ func main() {
 	r.DELETE("/v1/rooms/:id", routes.DeleteRoomByIdHandler)
 
 	// Direct messages routes
-	r.GET("/v1/direct/users", direct.GetChatUsersHandler)
-	r.GET("/v1/direct/:user_id/messages", direct.GetMessagesHandler)
+	r.GET("/v1/direct/users", direct2.GetChatUsersHandler)
+	r.GET("/v1/direct/:user_id/messages", direct2.GetMessagesHandler)
 
 	// Run the server
 	if err := r.Run(port); err != nil {

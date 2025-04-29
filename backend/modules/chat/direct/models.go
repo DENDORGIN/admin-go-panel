@@ -2,7 +2,7 @@ package direct
 
 import (
 	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/models"
+	"backend/modules/user/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

@@ -1,10 +1,10 @@
 package chat
 
 import (
-	"backend/cmd/chat/rooms"
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
+	"backend/modules/chat/rooms"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
