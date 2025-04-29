@@ -70,8 +70,8 @@ func main() {
 	r.POST("/v1/login/access-token", handlers.LoginHandler)
 
 	// Password recovery
-	//r.POST("/v1/password-recovery/:email", routes.RequestPasswordRecover)
-	//r.POST("/v1/reset-password/", routes.ResetPassword)
+	r.POST("/v1/password-recovery/:email", handlers.RequestPasswordRecover)
+	r.POST("/v1/reset-password/", handlers.ResetPassword)
 
 	//Users
 	//r.POST("/v1/users/signup", routes.CreateUser)

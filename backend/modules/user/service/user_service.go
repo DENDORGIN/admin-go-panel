@@ -1,9 +1,9 @@
 package service
 
 import (
-	"backend/internal/adminpanel/services/utils"
 	"backend/modules/user/models"
 	"backend/modules/user/repository"
+	"backend/modules/user/utils"
 	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"

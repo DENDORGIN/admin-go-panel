@@ -3,8 +3,8 @@ package repository
 import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
-	"backend/internal/adminpanel/services/utils"
 	"backend/modules/user/models"
+	"backend/modules/user/utils"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"

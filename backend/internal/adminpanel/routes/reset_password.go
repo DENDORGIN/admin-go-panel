@@ -1,18 +1,10 @@
 package routes
 
-//
-//import (
-//	"backend/internal/adminpanel/models"
-//	"backend/internal/adminpanel/services/utils"
-//	"github.com/gin-gonic/gin"
-//	"net/http"
-//)
-//
 //type ResetPasswordRequest struct {
 //	Token       string `json:"token"`
 //	NewPassword string `json:"newPassword"`
 //}
-//
+
 //func RequestPasswordRecover(ctx *gin.Context) {
 //	email := ctx.Param("email")
 //

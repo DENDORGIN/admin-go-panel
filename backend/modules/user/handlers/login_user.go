@@ -4,6 +4,7 @@ import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/services/utils"
 	"backend/modules/user/repository"
+	utils2 "backend/modules/user/utils"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -32,7 +33,7 @@ func LoginHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	if !utils.ComparePasswords(loginRequest.Password, user.Password) {
+	if !utils2.ComparePasswords(loginRequest.Password, user.Password) {
 		log.Println("Password mismatch for user:", user.Email)
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
