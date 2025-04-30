@@ -3,9 +3,10 @@ package main
 import (
 	"backend/internal/adminpanel/db/postgres"
 	"backend/internal/adminpanel/routes"
-	"backend/internal/adminpanel/services/reminder"
 	"backend/internal/middleware"
 	"backend/modules/blog"
+	"backend/modules/calendar"
+	"backend/modules/calendar/service/reminder"
 	"backend/modules/chat"
 	"backend/modules/direct"
 	"backend/modules/item"
@@ -107,10 +108,7 @@ func main() {
 	property.RegisterRoutes(version)
 
 	// Calendar
-	r.GET("/v1/calendar/events", routes.GetAllEventsHandler)
-	r.POST("/v1/calendar/events", routes.CreateEventHandler)
-	r.PUT("/v1/calendar/events/:id", routes.UpdateCalendarEventHandler)
-	r.DELETE("/v1/calendar/events/:id", routes.DeleteEvent)
+	calendar.RegisterRoutes(version)
 
 	// Download files
 	r.POST("/v1/media/:postId/images", routes.DownloadMediaHandler)

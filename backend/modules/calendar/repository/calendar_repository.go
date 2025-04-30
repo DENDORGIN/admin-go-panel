@@ -1,8 +1,8 @@
-package models
+package repository
 
 import (
-	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
+	"backend/modules/calendar/models"
 	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -10,41 +10,7 @@ import (
 	"time"
 )
 
-type CalendarEvent struct {
-	ID             uuid.UUID
-	Title          string    `json:"title"`
-	Description    string    `json:"description"`
-	StartDate      time.Time `json:"startDate"`
-	EndDate        time.Time `json:"endDate"`
-	ReminderOffset int       `json:"reminderOffset"`
-	AllDay         bool      `json:"allDay"`
-	Color          string    `json:"color"`
-	WorkingDay     bool      `json:"workingDay"`
-	SickDay        bool      `json:"sickDay"`
-	Vacation       bool      `json:"vacation"`
-	Weekend        bool      `json:"weekend"`
-	SendMail       bool      `json:"sendEmail"`
-	ReminderSent   bool      `json:"reminderSent"`
-	UserID         uuid.UUID `json:"user_id"`
-}
-
-type CalendarEventUpdate struct {
-	Title          string    `json:"title"`
-	Description    string    `json:"description"`
-	StartDate      time.Time `json:"startDate"`
-	EndDate        time.Time `json:"endDate"`
-	ReminderOffset int       `json:"reminderOffset"`
-	AllDay         bool      `json:"allDay"`
-	Color          string    `json:"color"`
-	WorkingDay     bool      `json:"workingDay"`
-	SickDay        bool      `json:"sickDay"`
-	Vacation       bool      `json:"vacation"`
-	Weekend        bool      `json:"weekend"`
-	SendMail       bool      `json:"sendEmail"`
-	ReminderSent   bool      `json:"reminderSent"`
-}
-
-func CreateEvent(db *gorm.DB, c *entities.Calendar) (*CalendarEvent, error) {
+func CreateEvent(db *gorm.DB, c *models.Calendar) (*models.CalendarEvent, error) {
 	if c.Title == "" {
 		return nil, errors.New("the event name cannot be empty")
 	}
@@ -70,7 +36,7 @@ func CreateEvent(db *gorm.DB, c *entities.Calendar) (*CalendarEvent, error) {
 		return nil, err
 	}
 
-	return &CalendarEvent{
+	return &models.CalendarEvent{
 		ID:             c.ID,
 		Title:          c.Title,
 		Description:    c.Description,
@@ -89,9 +55,9 @@ func CreateEvent(db *gorm.DB, c *entities.Calendar) (*CalendarEvent, error) {
 	}, nil
 }
 
-func GetAllEvents(db *gorm.DB, userId uuid.UUID) ([]CalendarEvent, error) {
-	var events []entities.Calendar
-	var response []CalendarEvent
+func GetAllEvents(db *gorm.DB, userId uuid.UUID) ([]models.CalendarEvent, error) {
+	var events []models.Calendar
+	var response []models.CalendarEvent
 
 	err := db.Where("user_id =?", userId).Find(&events).Error
 	if err != nil {
@@ -99,7 +65,7 @@ func GetAllEvents(db *gorm.DB, userId uuid.UUID) ([]CalendarEvent, error) {
 	}
 
 	if len(events) == 0 {
-		return []CalendarEvent{}, nil
+		return []models.CalendarEvent{}, nil
 	}
 	warsawLoc, err := time.LoadLocation("Europe/Warsaw")
 	if err != nil {
@@ -107,7 +73,7 @@ func GetAllEvents(db *gorm.DB, userId uuid.UUID) ([]CalendarEvent, error) {
 	}
 
 	for _, event := range events {
-		response = append(response, CalendarEvent{
+		response = append(response, models.CalendarEvent{
 			ID:             event.ID,
 			Title:          event.Title,
 			Description:    event.Description,
@@ -128,8 +94,8 @@ func GetAllEvents(db *gorm.DB, userId uuid.UUID) ([]CalendarEvent, error) {
 	return response, nil
 }
 
-func GetEventById(db *gorm.DB, eventId uuid.UUID) (*CalendarEvent, error) {
-	var calendar entities.Calendar
+func GetEventById(db *gorm.DB, eventId uuid.UUID) (*models.CalendarEvent, error) {
+	var calendar models.Calendar
 
 	err := repository.GetByID(db, eventId, &calendar)
 	if err != nil {
@@ -138,7 +104,7 @@ func GetEventById(db *gorm.DB, eventId uuid.UUID) (*CalendarEvent, error) {
 		}
 		return nil, err
 	}
-	return &CalendarEvent{
+	return &models.CalendarEvent{
 		ID:             calendar.ID,
 		Title:          calendar.Title,
 		Description:    calendar.Description,
@@ -157,8 +123,8 @@ func GetEventById(db *gorm.DB, eventId uuid.UUID) (*CalendarEvent, error) {
 	}, nil
 }
 
-func CalendarUpdateEvent(db *gorm.DB, eventId uuid.UUID, eventUpdate *CalendarEventUpdate) (*CalendarEvent, error) {
-	var event entities.Calendar
+func CalendarUpdateEvent(db *gorm.DB, eventId uuid.UUID, eventUpdate *models.CalendarEventUpdate) (*models.CalendarEvent, error) {
+	var event models.Calendar
 
 	err := repository.GetByID(db, eventId, &event)
 	if err != nil {
@@ -210,7 +176,7 @@ func CalendarUpdateEvent(db *gorm.DB, eventId uuid.UUID, eventUpdate *CalendarEv
 	if err != nil {
 		log.Fatal(err)
 	}
-	return &CalendarEvent{
+	return &models.CalendarEvent{
 		ID:             event.ID,
 		Title:          event.Title,
 		Description:    event.Description,
@@ -230,7 +196,7 @@ func CalendarUpdateEvent(db *gorm.DB, eventId uuid.UUID, eventUpdate *CalendarEv
 }
 
 func DeleteEventById(db *gorm.DB, eventId uuid.UUID) error {
-	err := repository.DeleteByID(db, eventId, &entities.Calendar{})
+	err := repository.DeleteByID(db, eventId, &models.Calendar{})
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("event not found")
@@ -238,31 +204,4 @@ func DeleteEventById(db *gorm.DB, eventId uuid.UUID) error {
 		return err
 	}
 	return nil
-}
-
-func GetUpcomingReminders(db *gorm.DB) ([]entities.Calendar, error) {
-	var upcomingEvents []entities.Calendar
-	now := time.Now().UTC()
-
-	//log.Printf("🕒 Локальний час сервера: %v", now)
-	//log.Printf("🌍 UTC час сервера: %v", now.UTC())
-
-	err := db.
-		Where("start_date - (INTERVAL '1 minute' * reminder_offset) <= ? AND reminder_sent = false AND send_email = true", now).
-		Find(&upcomingEvents).Error
-
-	if err != nil {
-		log.Printf("❌ Database query error: %v", err)
-		return nil, err
-	}
-
-	log.Printf("📋 Found %d events for reminder", len(upcomingEvents))
-	return upcomingEvents, nil
-}
-
-// MarkReminderSent Позначити подію як відправлену
-func MarkReminderSent(db *gorm.DB, eventID uuid.UUID) error {
-	return db.Model(&entities.Calendar{}).
-		Where("id = ?", eventID).
-		Update("reminder_sent", true).Error
 }

@@ -1,8 +1,8 @@
 package reminder
 
 import (
-	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/models"
+	"backend/modules/calendar/models"
+	"backend/modules/calendar/service"
 	"gorm.io/gorm"
 	"log"
 	"time"
@@ -24,7 +24,7 @@ func scheduleReminders(db *gorm.DB, tenantDomain string) {
 
 		time.Sleep(1 * time.Minute) // Перевіряємо кожну хвилину
 
-		events, err := models.GetUpcomingReminders(db)
+		events, err := service.GetUpcomingReminders(db)
 		if err != nil {
 			log.Printf("[❌ %s] Error receiving events: %v", tenantDomain, err)
 			continue
@@ -46,7 +46,7 @@ func scheduleReminders(db *gorm.DB, tenantDomain string) {
 	}
 }
 
-func scheduleReminder(db *gorm.DB, event entities.Calendar, reminderTime time.Time) {
+func scheduleReminder(db *gorm.DB, event models.Calendar, reminderTime time.Time) {
 	// Завантажуємо часовий пояс Варшави
 	warsawLoc, err := time.LoadLocation("Europe/Warsaw")
 	if err != nil {
