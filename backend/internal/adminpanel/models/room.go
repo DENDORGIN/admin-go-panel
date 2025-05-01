@@ -3,7 +3,8 @@ package models
 import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
-	"backend/internal/adminpanel/services/utils"
+	mediaModel "backend/modules/media/models"
+	"backend/modules/media/service"
 	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -149,7 +150,7 @@ func DeleteRoomById(db *gorm.DB, roomId uuid.UUID) error {
 		return err
 	}
 
-	err = utils.DeleteImageInBucket(roomGet.Image)
+	err = service.DeleteImageInBucket(roomGet.Image)
 	if err != nil {
 		return err
 	}
@@ -159,20 +160,20 @@ func DeleteRoomById(db *gorm.DB, roomId uuid.UUID) error {
 		return err
 	}
 	for _, message := range messages {
-		var tempMedia []entities.Media
+		var tempMedia []mediaModel.Media
 		err = repository.GetAllMediaByID(db, message.ID, &tempMedia)
 		if err != nil {
 			return err
 		}
 
 		for _, media := range tempMedia {
-			err = utils.DeleteImageInBucket(media.Url)
+			err = service.DeleteImageInBucket(media.Url)
 			if err != nil {
 				return err
 			}
 		}
 
-		err = repository.DeleteContentByID(db, message.ID, &entities.Media{})
+		err = repository.DeleteContentByID(db, message.ID, &mediaModel.Media{})
 		if err != nil {
 			return err
 		}

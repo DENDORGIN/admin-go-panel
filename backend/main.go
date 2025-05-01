@@ -10,6 +10,7 @@ import (
 	"backend/modules/chat"
 	"backend/modules/direct"
 	"backend/modules/item"
+	"backend/modules/media"
 	"backend/modules/property"
 	"backend/modules/user"
 	"backend/modules/user/handlers"
@@ -111,11 +112,7 @@ func main() {
 	calendar.RegisterRoutes(version)
 
 	// Download files
-	r.POST("/v1/media/:postId/images", routes.DownloadMediaHandler)
-	r.POST("/v1/media/images", routes.DownloadMediaOneImageHandler)
-	r.GET("/v1/media/images/:postId", routes.GetAllMediaByBlogIdHandler)
-	r.DELETE("/v1/media/images/:postId", routes.DeleteMediaHandler)
-	r.DELETE("/v1/media/images/url", routes.DeleteImageFromUrl)
+	media.RegisterRoutes(version)
 
 	// Chat room routes
 	r.POST("/v1/rooms/", routes.CreateRoomHandler)

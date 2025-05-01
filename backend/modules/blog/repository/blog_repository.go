@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
-	"backend/internal/adminpanel/services/utils"
 	"backend/modules/blog/models"
+	mediaModel "backend/modules/media/models"
+	"backend/modules/media/service"
 	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -44,7 +44,7 @@ func CreateBlog(db *gorm.DB, b *models.Blog) (*models.BlogPost, error) {
 
 func GetAllBlogs(db *gorm.DB, userId uuid.UUID, isSuperUser bool) (*models.BlogGetAll, error) {
 	var blogs []*models.Blog
-	var media []*entities.Media
+	var media []*mediaModel.Media
 	response := &models.BlogGetAll{}
 
 	// Формуємо базовий запит
@@ -97,7 +97,7 @@ func GetAllBlogs(db *gorm.DB, userId uuid.UUID, isSuperUser bool) (*models.BlogG
 
 func GetBlogById(db *gorm.DB, id uuid.UUID) (*models.BlogGet, error) {
 	var blog models.Blog
-	var media []*entities.Media
+	var media []*mediaModel.Media
 
 	err := repository.GetByID(db, id, &blog)
 	if err != nil {
@@ -165,7 +165,7 @@ func UpdateBlogById(db *gorm.DB, id uuid.UUID, updateBlog *models.BlogUpdate) (*
 
 func DeleteBlogById(db *gorm.DB, id uuid.UUID) error {
 	var blog models.Blog
-	var mediaList []entities.Media
+	var mediaList []mediaModel.Media
 
 	err := repository.DeleteByID(db, id, &blog)
 	if err != nil {
@@ -177,13 +177,13 @@ func DeleteBlogById(db *gorm.DB, id uuid.UUID) error {
 		return err
 	}
 	for _, media := range mediaList {
-		err = utils.DeleteImageInBucket(media.Url)
+		err = service.DeleteImageInBucket(media.Url)
 		if err != nil {
 			return err
 		}
 	}
 
-	err = repository.DeleteContentByID(db, id, &entities.Media{})
+	err = repository.DeleteContentByID(db, id, &mediaModel.Media{})
 	if err != nil {
 		return err
 	}

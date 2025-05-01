@@ -3,7 +3,8 @@ package rooms
 import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
-	"backend/internal/adminpanel/services/utils"
+	mediaModel "backend/modules/media/models"
+	"backend/modules/media/service"
 	"backend/modules/user/models"
 	"fmt"
 	"github.com/google/uuid"
@@ -103,7 +104,7 @@ func GetMessagesPaginated(db *gorm.DB, roomId uuid.UUID, limit int, before *uuid
 	}
 
 	// 5️⃣ Отримуємо всі медіа по повідомленнях
-	var media []entities.Media
+	var media []mediaModel.Media
 	if err := db.Where("content_id IN (?)", messageIDs).Find(&media).Error; err != nil {
 		return nil, err
 	}
@@ -142,7 +143,7 @@ func GetMessagesPaginated(db *gorm.DB, roomId uuid.UUID, limit int, before *uuid
 func GetMessageById(db *gorm.DB, messageID uuid.UUID) (*Message, error) {
 	var message entities.Messages
 	var user models.User
-	var media []entities.Media
+	var media []mediaModel.Media
 
 	err := repository.GetByID(db, messageID, &message)
 	if err != nil {
@@ -208,7 +209,7 @@ func EditMessageById(db *gorm.DB, messageID, userID uuid.UUID, editMessage *Edit
 
 func DeleteMessageById(db *gorm.DB, messageID, userID uuid.UUID) error {
 	var message entities.Messages
-	var mediaList []entities.Media
+	var mediaList []mediaModel.Media
 
 	err := repository.GetByID(db, messageID, &message)
 	if err != nil {
@@ -229,13 +230,13 @@ func DeleteMessageById(db *gorm.DB, messageID, userID uuid.UUID) error {
 		return err
 	}
 	for _, media := range mediaList {
-		err = utils.DeleteImageInBucket(media.Url)
+		err = service.DeleteImageInBucket(media.Url)
 		if err != nil {
 			return err
 		}
 	}
 
-	err = repository.DeleteContentByID(db, messageID, &entities.Media{})
+	err = repository.DeleteContentByID(db, messageID, &mediaModel.Media{})
 	if err != nil {
 		return err
 	}

@@ -3,8 +3,9 @@ package repository
 import (
 	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
-	"backend/internal/adminpanel/services/utils"
 	"backend/modules/item/models"
+	mediaModel "backend/modules/media/models"
+	"backend/modules/media/service"
 	propModel "backend/modules/property/models"
 	propRepo "backend/modules/property/repository"
 	"errors"
@@ -50,7 +51,7 @@ func CreateItem(db *gorm.DB, i *models.Items) (*models.ItemsPost, error) {
 func GetItemById(db *gorm.DB, itemId uuid.UUID) (*models.ItemGet, error) {
 	var item models.Items
 	var property propModel.Property
-	var media []*entities.Media
+	var media []*mediaModel.Media
 
 	// Get product
 	err := repository.GetByID(db, itemId, &item)
@@ -155,7 +156,7 @@ func UpdateItemById(db *gorm.DB, itemId uuid.UUID, updateItem *models.ItemUpdate
 func DeleteItemById(db *gorm.DB, id uuid.UUID) error {
 	var item models.Items
 	var property propModel.Property
-	var mediaList []entities.Media
+	var mediaList []mediaModel.Media
 
 	err := repository.DeleteByID(db, id, &item)
 	if err != nil {
@@ -173,13 +174,13 @@ func DeleteItemById(db *gorm.DB, id uuid.UUID) error {
 		return err
 	}
 	for _, media := range mediaList {
-		err = utils.DeleteImageInBucket(media.Url)
+		err = service.DeleteImageInBucket(media.Url)
 		if err != nil {
 			return err
 		}
 	}
 	// Delete media by content_id
-	err = repository.DeleteContentByID(db, id, &entities.Media{})
+	err = repository.DeleteContentByID(db, id, &mediaModel.Media{})
 	if err != nil {
 		return err
 	}
@@ -204,7 +205,7 @@ func GetAllItems(db *gorm.DB, userId uuid.UUID, isSuperUser bool, parameters *en
 	}
 
 	var items []*models.Items
-	var media []*entities.Media
+	var media []*mediaModel.Media
 
 	response := &models.ItemGetAll{}
 

@@ -1,29 +1,22 @@
-package models
+package repository
 
 import (
-	"backend/internal/adminpanel/entities"
 	"backend/internal/adminpanel/repository"
-	"backend/internal/adminpanel/services/utils"
+	"backend/modules/media/models"
+	"backend/modules/media/service"
 	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-type MediaPublic struct {
-	ID        uuid.UUID `json:"id"`
-	Url       string    `json:"url"`
-	Type      string    `json:"type"`
-	ContentID uuid.UUID `json:"content_id"`
-}
-
-func DownloadFiles(db *gorm.DB, media *entities.Media) (*MediaPublic, error) {
+func DownloadFiles(db *gorm.DB, media *models.Media) (*models.MediaPublic, error) {
 	media.ID = uuid.New()
 
 	if err := db.Create(&media).Error; err != nil {
 		return nil, err
 	}
 
-	return &MediaPublic{
+	return &models.MediaPublic{
 		ID:        media.ID,
 		Url:       media.Url,
 		Type:      media.Type,
@@ -31,9 +24,9 @@ func DownloadFiles(db *gorm.DB, media *entities.Media) (*MediaPublic, error) {
 	}, nil
 }
 
-func GetAllMediaByBlogId(db *gorm.DB, blogID uuid.UUID) ([]MediaPublic, error) {
-	var media []entities.Media
-	var listMedia []MediaPublic
+func GetAllMediaByBlogId(db *gorm.DB, blogID uuid.UUID) ([]models.MediaPublic, error) {
+	var media []models.Media
+	var listMedia []models.MediaPublic
 
 	err := repository.GetAllMediaByID(db, blogID, &media)
 	if err != nil {
@@ -41,7 +34,7 @@ func GetAllMediaByBlogId(db *gorm.DB, blogID uuid.UUID) ([]MediaPublic, error) {
 	}
 
 	for _, item := range media {
-		listMedia = append(listMedia, MediaPublic{
+		listMedia = append(listMedia, models.MediaPublic{
 			ID:        item.ID,
 			Url:       item.Url,
 			Type:      item.Type,
@@ -74,7 +67,7 @@ func DeleteFiles(db *gorm.DB, id uuid.UUID) error {
 		return err
 	}
 
-	err = repository.DeleteByID(db, id, &entities.Media{})
+	err = repository.DeleteByID(db, id, &models.Media{})
 
 	if err != nil {
 		return errors.New("user not found")
@@ -83,14 +76,14 @@ func DeleteFiles(db *gorm.DB, id uuid.UUID) error {
 }
 
 func DeleteInBucket(db *gorm.DB, id uuid.UUID) error {
-	var media *entities.Media
+	var media *models.Media
 
 	err := repository.GetByID(db, id, &media)
 	if err != nil {
 		return err
 	}
 
-	err = utils.DeleteImageInBucket(media.Url)
+	err = service.DeleteImageInBucket(media.Url)
 	if err != nil {
 		return err
 	}

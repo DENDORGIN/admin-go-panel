@@ -1,9 +1,10 @@
-package routes
+package handlers
 
 import (
-	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/models"
 	"backend/internal/adminpanel/services/utils"
+	"backend/modules/media/models"
+	"backend/modules/media/repository"
+	"backend/modules/media/service"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"log"
@@ -46,7 +47,7 @@ func DownloadMediaHandler(ctx *gin.Context) {
 	// Завантажуємо кожен файл по черзі
 	for _, fileHeader := range files {
 		// Завантажуємо файл у Backblaze B2
-		fileUrl, err := utils.UploadFile(ctx, fileHeader)
+		fileUrl, err := service.UploadFile(ctx, fileHeader)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -54,14 +55,14 @@ func DownloadMediaHandler(ctx *gin.Context) {
 		fileUrls = append(fileUrls, fileUrl)
 
 		// Створюємо об'єкт Media для збереження в базі даних
-		media := entities.Media{
+		media := models.Media{
 			ContentId: postId,
 			Url:       fileUrl,                               // URL завантаженого файлу
 			Type:      fileHeader.Header.Get("Content-Type"), // Тип файлу
 		}
 
 		// Зберігаємо дані про файл в базі даних
-		_, err = models.DownloadFiles(db, &media)
+		_, err = repository.DownloadFiles(db, &media)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -80,7 +81,7 @@ func DownloadMediaOneImageHandler(ctx *gin.Context) {
 		return
 	}
 
-	fileUrl, err := utils.UploadFile(ctx, file)
+	fileUrl, err := service.UploadFile(ctx, file)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -112,7 +113,7 @@ func GetAllMediaByBlogIdHandler(ctx *gin.Context) {
 	}
 
 	// Отримуємо всі медіафайли для даного блога
-	media, err := models.GetAllMediaByBlogId(db, blogId)
+	media, err := repository.GetAllMediaByBlogId(db, blogId)
 	if err != nil {
 		log.Println(err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -156,7 +157,7 @@ func DeleteMediaHandler(ctx *gin.Context) {
 		return
 	}
 	// Отримуємо список медіа за Blog ID
-	mediaList, err := models.GetAllMediaByBlogId(db, mediaId)
+	mediaList, err := repository.GetAllMediaByBlogId(db, mediaId)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Media not found"})
 		return
@@ -177,7 +178,7 @@ func DeleteMediaHandler(ctx *gin.Context) {
 	}
 
 	// Видаляємо файл
-	err = models.DeleteFiles(db, mediaToDelete.ID)
+	err = repository.DeleteFiles(db, mediaToDelete.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -199,7 +200,7 @@ func DeleteImageFromUrl(ctx *gin.Context) {
 		return
 	}
 
-	err := utils.DeleteImageInBucket(req.ImageUrl)
+	err := service.DeleteImageInBucket(req.ImageUrl)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
