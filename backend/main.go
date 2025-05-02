@@ -1,12 +1,21 @@
 package main
 
 import (
-	"backend/cmd/chat"
-	"backend/cmd/chat/direct"
-	"backend/internal/adminpanel/db/postgres"
-	"backend/internal/adminpanel/routes"
-	"backend/internal/adminpanel/services/reminder"
+	"backend/internal/db/postgres"
 	"backend/internal/middleware"
+	"backend/modules/blog"
+	"backend/modules/calendar"
+	"backend/modules/calendar/service/reminder"
+	"backend/modules/chat/messages"
+	"backend/modules/chat/rooms"
+	"backend/modules/direct"
+	handlers2 "backend/modules/direct/repository"
+	"backend/modules/item"
+	"backend/modules/media"
+	"backend/modules/property"
+	routes2 "backend/modules/reaction/repository"
+	"backend/modules/user"
+	"backend/modules/user/handlers"
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -65,17 +74,17 @@ func main() {
 	})
 
 	//Auth
-	r.POST("/v1/login/access-token", routes.LoginHandler)
+	r.POST("/v1/login/access-token", handlers.LoginHandler)
 
 	// Password recovery
-	r.POST("/v1/password-recovery/:email", routes.RequestPasswordRecover)
-	r.POST("/v1/reset-password/", routes.ResetPassword)
+	r.POST("/v1/password-recovery/:email", handlers.RequestPasswordRecover)
+	r.POST("/v1/reset-password/", handlers.ResetPassword)
 
 	//Users
-	r.POST("/v1/users/signup", routes.CreateUser)
+	//r.POST("/v1/users/signup", routes.CreateUser)
 
 	// Chat routes
-	r.GET("/ws/chat", chat.HandleWebSocket)
+	r.GET("/ws/chat", messages.HandleWebSocket)
 
 	//Direct messages
 	hub := direct.NewHub()
@@ -83,65 +92,36 @@ func main() {
 	r.GET("/ws/direct", direct.ServeWs(hub))
 
 	// Link preview
-	r.GET("/link-preview", routes.FetchLinkPreview)
+	r.GET("/link-preview", routes2.FetchLinkPreview)
 
 	//Protecting routes with JWT middleware
 	r.Use(middleware.AuthMiddleware())
 
 	// User routes
-	r.GET("/v1/users/me", routes.ReadUserMe)
-	r.GET("/v1/users/", routes.ReadAllUsers)
-	r.POST("/v1/users/", routes.CreateUser)
-	r.PATCH("/v1/users/me", routes.UpdateCurrentUser)
-	r.PATCH("/v1/users/me/password/", routes.UpdatePasswordCurrentUser)
-	r.DELETE("/v1/users/:id", routes.DeleteUser)
-
-	// Calendar
-	r.GET("/v1/calendar/events", routes.GetAllEventsHandler)
-	r.POST("/v1/calendar/events", routes.CreateEventHandler)
-	r.PUT("/v1/calendar/events/:id", routes.UpdateCalendarEventHandler)
-	r.DELETE("/v1/calendar/events/:id", routes.DeleteEvent)
+	version := r.Group("/v1")
+	user.RegisterRoutes(version)
 
 	// Blogs routes
-	r.POST("/v1/blog/", routes.CreateBlogHandler)
-	r.GET("/v1/blog/", routes.GetAllBlogsHandler)
-	r.GET("/v1/blog/:id", routes.GetBlogByIdHandler)
-	r.PUT("/v1/blog/:id", routes.UpdateBlogByIdHandler)
-	r.DELETE("/v1/blog/:id", routes.DeleteBlogByIdHandler)
+	blog.RegisterRoutes(version)
 
 	// Items routes
-	r.POST("/v1/items/", routes.CreateItemHandler)
-	r.GET("/v1/items/", routes.GetAllItemsHandler)
-	r.GET("/v1/items/:id", routes.GetItemByID)
-	r.GET("/v1/items/languages", routes.GetAvailableLanguages)
-	r.GET("/v1/items/categories", routes.GetAvailableCategories)
-	r.PATCH("/v1/items/:id", routes.UpdateItemByIdHandler)
-	r.DELETE("/v1/items/:id", routes.DeleteItemByIdHandler)
-
-	// Download files
-	r.POST("/v1/media/:postId/images", routes.DownloadMediaHandler)
-	r.POST("/v1/media/images", routes.DownloadMediaOneImageHandler)
-	r.GET("/v1/media/images/:postId", routes.GetAllMediaByBlogIdHandler)
-	r.DELETE("/v1/media/images/:postId", routes.DeleteMediaHandler)
-	r.DELETE("/v1/media/images/url", routes.DeleteImageFromUrl)
+	item.RegisterRoutes(version)
 
 	// Properties routes
-	r.POST("/v1/properties/", routes.CreatePropertiesHandler)
-	//r.GET("/v1/properties/", routes.GetAllPropertiesHandler)
-	r.GET("/v1/properties/:id", routes.GetPropertyByIDHandler)
-	r.PUT("/v1/properties/:id", routes.UpdatePropertyHandler)
-	r.DELETE("/v1/properties/:id", routes.DeletePropertyHandler)
+	property.RegisterRoutes(version)
+
+	// Calendar
+	calendar.RegisterRoutes(version)
+
+	// Download files
+	media.RegisterRoutes(version)
 
 	// Chat room routes
-	r.POST("/v1/rooms/", routes.CreateRoomHandler)
-	r.GET("/v1/rooms/", routes.GetAllRoomsHandler)
-	r.GET("/v1/rooms/:id", routes.GetRoomByIdHandler)
-	r.PUT("/v1/rooms/:id", routes.UpdateRoomByIdHandler)
-	r.DELETE("/v1/rooms/:id", routes.DeleteRoomByIdHandler)
+	rooms.RegisterRoutes(version)
 
 	// Direct messages routes
-	r.GET("/v1/direct/users", direct.GetChatUsersHandler)
-	r.GET("/v1/direct/:user_id/messages", direct.GetMessagesHandler)
+	r.GET("/v1/direct/users", handlers2.GetChatUsersHandler)
+	r.GET("/v1/direct/:user_id/messages", handlers2.GetMessagesHandler)
 
 	// Run the server
 	if err := r.Run(port); err != nil {

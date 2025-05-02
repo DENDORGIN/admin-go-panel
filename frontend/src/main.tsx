@@ -27,6 +27,7 @@ console.log("OpenAPI.BASE:", getApiUrl())
 
 const queryClient = new QueryClient()
 
+// @ts-ignore
 const router = createRouter({ routeTree })
 declare module "@tanstack/react-router" {
   interface Register {

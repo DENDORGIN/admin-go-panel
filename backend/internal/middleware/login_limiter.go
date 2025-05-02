@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"backend/internal/adminpanel/db/postgres"
-	"backend/internal/adminpanel/entities"
+	"backend/internal/db/postgres"
+	entities2 "backend/internal/entities"
 	"bytes"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
@@ -32,7 +32,7 @@ func LoginLimiterMiddleware() gin.HandlerFunc {
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(rawData))
 
 		// Парсимо JSON вручну
-		var body entities.LoginRequest
+		var body entities2.LoginRequest
 		if err := json.Unmarshal(rawData, &body); err != nil || body.Email == "" {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Email is not specified or the request body is incorrect"})
 			return
@@ -41,7 +41,7 @@ func LoginLimiterMiddleware() gin.HandlerFunc {
 		ip := c.ClientIP()
 		email := body.Email
 
-		var attempt entities.LoginAttempt
+		var attempt entities2.LoginAttempt
 		result := db.Where("email = ? AND ip = ?", email, ip).First(&attempt)
 		if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "DB error"})
@@ -64,7 +64,7 @@ func LoginLimiterMiddleware() gin.HandlerFunc {
 
 		// Якщо статус OK — скидаємо спроби
 		if c.Writer.Status() == http.StatusOK {
-			db.Where("email = ? AND ip = ?", email, ip).Delete(&entities.LoginAttempt{})
+			db.Where("email = ? AND ip = ?", email, ip).Delete(&entities2.LoginAttempt{})
 			return
 		}
 
