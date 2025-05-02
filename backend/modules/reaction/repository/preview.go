@@ -1,4 +1,4 @@
-package routes
+package repository
 
 import (
 	"github.com/PuerkitoBio/goquery"

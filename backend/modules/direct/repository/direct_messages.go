@@ -1,8 +1,8 @@
-package direct
+package repository
 
 import (
-	"backend/internal/entities"
 	utils2 "backend/internal/services/utils"
+	"backend/modules/direct/models"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -44,7 +44,7 @@ func GetMessagesHandler(ctx *gin.Context) {
 	}
 
 	// Знайти або створити розмову
-	var conv entities.Conversations
+	var conv models.Conversations
 	err = db.Where(
 		"(user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)",
 		userID, otherID, otherID, userID,
@@ -56,7 +56,7 @@ func GetMessagesHandler(ctx *gin.Context) {
 	}
 
 	// Отримати всі повідомлення
-	var messages []entities.DirectMessage
+	var messages []models.DirectMessage
 	err = db.
 		Preload("Sender").
 		Where("conversation_id = ?", conv.ID).

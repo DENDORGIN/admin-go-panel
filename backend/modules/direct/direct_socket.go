@@ -2,6 +2,7 @@ package direct
 
 import (
 	utils2 "backend/internal/services/utils"
+	"backend/modules/direct/repository"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -52,7 +53,7 @@ func ServeWs(hub *Hub) gin.HandlerFunc {
 		go client.Write()
 
 		go func() {
-			allChats, err := LoadAllConversations(db, user.ID)
+			allChats, err := repository.LoadAllConversations(db, user.ID)
 			if err != nil {
 				return
 			}

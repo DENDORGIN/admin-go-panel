@@ -3,16 +3,17 @@ package main
 import (
 	"backend/internal/db/postgres"
 	"backend/internal/middleware"
-	routes2 "backend/internal/routes"
 	"backend/modules/blog"
 	"backend/modules/calendar"
 	"backend/modules/calendar/service/reminder"
 	"backend/modules/chat/messages"
 	"backend/modules/chat/rooms"
 	"backend/modules/direct"
+	handlers2 "backend/modules/direct/repository"
 	"backend/modules/item"
 	"backend/modules/media"
 	"backend/modules/property"
+	routes2 "backend/modules/reaction/repository"
 	"backend/modules/user"
 	"backend/modules/user/handlers"
 	"fmt"
@@ -119,8 +120,8 @@ func main() {
 	rooms.RegisterRoutes(version)
 
 	// Direct messages routes
-	r.GET("/v1/direct/users", direct.GetChatUsersHandler)
-	r.GET("/v1/direct/:user_id/messages", direct.GetMessagesHandler)
+	r.GET("/v1/direct/users", handlers2.GetChatUsersHandler)
+	r.GET("/v1/direct/:user_id/messages", handlers2.GetMessagesHandler)
 
 	// Run the server
 	if err := r.Run(port); err != nil {

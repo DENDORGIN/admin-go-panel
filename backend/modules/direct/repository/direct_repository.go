@@ -1,14 +1,14 @@
-package direct
+package repository
 
 import (
-	"backend/internal/entities"
-	"backend/modules/user/models"
+	"backend/modules/direct/models"
+	userModels "backend/modules/user/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-func GetDirectChatUsers(db *gorm.DB, userID uuid.UUID) ([]models.UserResponse, error) {
-	var conversations []entities.Conversations
+func GetDirectChatUsers(db *gorm.DB, userID uuid.UUID) ([]userModels.UserResponse, error) {
+	var conversations []models.Conversations
 
 	err := db.
 		Where("user1_id = ? OR user2_id = ?", userID, userID).
@@ -33,7 +33,7 @@ func GetDirectChatUsers(db *gorm.DB, userID uuid.UUID) ([]models.UserResponse, e
 		}
 	}
 
-	var users []models.User
+	var users []userModels.User
 	if len(userIDs) > 0 {
 		err = db.Where("id IN ?", userIDs).Find(&users).Error
 		if err != nil {
@@ -41,9 +41,9 @@ func GetDirectChatUsers(db *gorm.DB, userID uuid.UUID) ([]models.UserResponse, e
 		}
 	}
 
-	var responses []models.UserResponse
+	var responses []userModels.UserResponse
 	for _, user := range users {
-		responses = append(responses, models.UserResponse{
+		responses = append(responses, userModels.UserResponse{
 			ID:          user.ID,
 			FullName:    user.FullName,
 			Email:       user.Email,
@@ -57,7 +57,7 @@ func GetDirectChatUsers(db *gorm.DB, userID uuid.UUID) ([]models.UserResponse, e
 }
 
 func LoadAllConversations(db *gorm.DB, userID uuid.UUID) (map[uuid.UUID][]MessageResponse, error) {
-	var conversations []entities.Conversations
+	var conversations []models.Conversations
 
 	err := db.
 		Where("user1_id = ? OR user2_id = ?", userID, userID).

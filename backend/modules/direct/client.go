@@ -1,7 +1,7 @@
 package direct
 
 import (
-	"backend/internal/entities"
+	"backend/modules/direct/models"
 	"encoding/json"
 	"errors"
 	"github.com/google/uuid"
@@ -82,8 +82,8 @@ func (c *Client) Write() {
 	}
 }
 
-func SaveMessage(db *gorm.DB, fromID, toID uuid.UUID, text string) (*entities.DirectMessage, error) {
-	var conversation entities.Conversations
+func SaveMessage(db *gorm.DB, fromID, toID uuid.UUID, text string) (*models.DirectMessage, error) {
+	var conversation models.Conversations
 
 	err := db.Where(
 		"(user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)",
@@ -91,14 +91,14 @@ func SaveMessage(db *gorm.DB, fromID, toID uuid.UUID, text string) (*entities.Di
 	).First(&conversation).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		conversation = entities.Conversations{
+		conversation = models.Conversations{
 			User1ID: fromID,
 			User2ID: toID,
 		}
 		db.Create(&conversation)
 	}
 
-	message := entities.DirectMessage{
+	message := models.DirectMessage{
 		ConversationID: conversation.ID,
 		SenderID:       fromID,
 		Text:           text,
