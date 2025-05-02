@@ -1,7 +1,7 @@
 package direct
 
 import (
-	"backend/internal/adminpanel/entities"
+	"backend/internal/entities"
 	"encoding/json"
 	"errors"
 	"github.com/google/uuid"

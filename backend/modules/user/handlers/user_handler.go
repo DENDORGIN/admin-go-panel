@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"backend/internal/adminpanel/services/utils"
+	utils2 "backend/internal/services/utils"
 	"backend/modules/user/models"
 	"backend/modules/user/repository"
 	"backend/modules/user/service"
@@ -18,7 +18,7 @@ func CreateUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -32,12 +32,12 @@ func CreateUser(ctx *gin.Context) {
 }
 
 func ReadUserMe(ctx *gin.Context) {
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	user, ok := utils.GetCurrentUserFromContext(ctx, db)
+	user, ok := utils2.GetCurrentUserFromContext(ctx, db)
 	if !ok {
 		return
 	}
@@ -65,7 +65,7 @@ func ReadAllUsers(ctx *gin.Context) {
 	if err != nil || skip < 0 {
 		skip = 0
 	}
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -84,12 +84,12 @@ func ReadAllUsers(ctx *gin.Context) {
 }
 
 func UpdateCurrentUser(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -114,7 +114,7 @@ func UpdateCurrentUser(ctx *gin.Context) {
 }
 
 func DeleteUser(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
@@ -126,18 +126,18 @@ func DeleteUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	isSuperUser, err := utils.GetIsSuperUser(db, userID)
+	isSuperUser, err := utils2.GetIsSuperUser(db, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	isTargetSuperUser, err := utils.GetIsSuperUser(db, id)
+	isTargetSuperUser, err := utils2.GetIsSuperUser(db, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

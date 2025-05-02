@@ -1,7 +1,7 @@
 package reminder
 
 import (
-	"backend/internal/adminpanel/services/utils"
+	"backend/internal/services/utils"
 	"backend/modules/calendar/models"
 	"backend/modules/calendar/service"
 	"backend/modules/user/repository"

@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"backend/internal/adminpanel/entities"
+	"backend/internal/entities"
 	"fmt"
 )
 

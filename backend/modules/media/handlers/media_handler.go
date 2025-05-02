@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"backend/internal/adminpanel/services/utils"
+	"backend/internal/services/utils"
 	"backend/modules/media/models"
 	"backend/modules/media/repository"
 	"backend/modules/media/service"

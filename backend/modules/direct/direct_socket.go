@@ -1,7 +1,7 @@
 package direct
 
 import (
-	"backend/internal/adminpanel/services/utils"
+	utils2 "backend/internal/services/utils"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -15,19 +15,19 @@ var upgrader = websocket.Upgrader{
 func ServeWs(hub *Hub) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		token := ctx.Query("token")
-		_, err := utils.VerifyResetToken(token)
+		_, err := utils2.VerifyResetToken(token)
 		if err != nil {
 			ctx.JSON(401, gin.H{"error": "Invalid token"})
 			return
 		}
 
-		db, ok := utils.GetDBFromContext(ctx)
+		db, ok := utils2.GetDBFromContext(ctx)
 		if !ok {
 			ctx.JSON(500, gin.H{"error": "DB not found in context"})
 			return
 		}
 
-		user, err := utils.ParseJWTToken(token)
+		user, err := utils2.ParseJWTToken(token)
 		if err != nil {
 			ctx.JSON(401, gin.H{"error": "Invalid token"})
 			return

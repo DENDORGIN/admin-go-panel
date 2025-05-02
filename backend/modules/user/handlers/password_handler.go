@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"backend/internal/adminpanel/services/utils"
+	utils2 "backend/internal/services/utils"
 	"backend/modules/user/models"
 	"backend/modules/user/repository"
 	"backend/modules/user/service"
@@ -10,12 +10,12 @@ import (
 )
 
 func UpdatePasswordCurrentUser(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -42,7 +42,7 @@ func UpdatePasswordCurrentUser(ctx *gin.Context) {
 func RequestPasswordRecover(ctx *gin.Context) {
 	email := ctx.Param("email")
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -55,14 +55,14 @@ func RequestPasswordRecover(ctx *gin.Context) {
 	}
 
 	// Генерація токена для відновлення пароля
-	resetToken, err := utils.GenerateResetToken(user.Email)
+	resetToken, err := utils2.GenerateResetToken(user.Email)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate reset token"})
 		return
 	}
 
 	// Надсилання листа відновлення пароля
-	if err := utils.SendPasswordResetEmail(user.Email, resetToken); err != nil {
+	if err := utils2.SendPasswordResetEmail(user.Email, resetToken); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send reset email"})
 		return
 	}
@@ -72,7 +72,7 @@ func RequestPasswordRecover(ctx *gin.Context) {
 
 func ResetPassword(ctx *gin.Context) {
 	var req models.ResetPasswordRequest
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -89,7 +89,7 @@ func ResetPassword(ctx *gin.Context) {
 	}
 
 	// Перевірка токена
-	claims, err := utils.VerifyResetToken(req.Token)
+	claims, err := utils2.VerifyResetToken(req.Token)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return

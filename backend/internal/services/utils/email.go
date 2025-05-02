@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"backend/internal/adminpanel/entities"
+	"backend/internal/entities"
 	"crypto/tls"
 	"fmt"
 	"github.com/joho/godotenv"

@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"backend/internal/db/postgres"
 	"net/http"
 	"strings"
 
-	"backend/internal/adminpanel/db/postgres"
 	"github.com/gin-gonic/gin"
 )
 

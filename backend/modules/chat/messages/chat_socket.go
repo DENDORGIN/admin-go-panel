@@ -1,10 +1,11 @@
-package chat
+package messages
 
 import (
-	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/models"
-	"backend/internal/adminpanel/services/utils"
-	"backend/modules/chat/rooms"
+	utils2 "backend/internal/services/utils"
+	messageDTO "backend/modules/chat/messages/models"
+	messageRepository "backend/modules/chat/messages/repository"
+	reactionDTO "backend/modules/reaction/models"
+	"backend/modules/reaction/repository"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
@@ -44,7 +45,7 @@ func HandleWebSocket(ctx *gin.Context) {
 	token := ctx.Query("token")
 	roomIDStr := ctx.Query("room_id")
 
-	user, err := utils.ParseJWTToken(token)
+	user, err := utils2.ParseJWTToken(token)
 	if err != nil {
 		log.Println("❌ Невалідний токен:", err)
 		ctx.AbortWithStatus(http.StatusUnauthorized)
@@ -58,7 +59,7 @@ func HandleWebSocket(ctx *gin.Context) {
 		return
 	}
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		log.Println("❌ DB context відсутній")
 		ctx.AbortWithStatus(http.StatusInternalServerError)
@@ -89,7 +90,7 @@ func HandleWebSocket(ctx *gin.Context) {
 	mutex.Unlock()
 
 	// 📜 Надсилаємо історію
-	if history, err := rooms.GetMessagesPaginated(db, roomID, 30, nil); err == nil {
+	if history, err := messageRepository.GetMessagesPaginated(db, roomID, 30, nil); err == nil {
 		if historyData, err := json.Marshal(history); err == nil {
 			err := conn.WriteMessage(websocket.TextMessage, historyData)
 			if err != nil {
@@ -125,7 +126,7 @@ func HandleWebSocket(ctx *gin.Context) {
 			}
 
 			// Після оновлення медіа
-			updatedMessages, err := rooms.GetMessagesPaginated(db, roomID, 30, nil)
+			updatedMessages, err := messageRepository.GetMessagesPaginated(db, roomID, 30, nil)
 			if err != nil {
 				log.Println("❌ GetAllMessages error:", err)
 				continue
@@ -146,7 +147,7 @@ func HandleWebSocket(ctx *gin.Context) {
 			limit := int(raw["limit"].(float64))
 			beforeID, _ := uuid.Parse(raw["before"].(string))
 
-			msgs, err := rooms.GetMessagesPaginated(db, roomID, limit, &beforeID)
+			msgs, err := messageRepository.GetMessagesPaginated(db, roomID, limit, &beforeID)
 			if err != nil {
 				log.Println("❌ Error loading messages:", err)
 				continue
@@ -173,7 +174,7 @@ func HandleWebSocket(ctx *gin.Context) {
 				continue
 			}
 
-			reactions, err := models.ToggleReaction(db, models.ReactionPayload{
+			reactions, err := repository.ToggleReaction(db, reactionDTO.ReactionPayload{
 				UserID:    user.ID,
 				MessageID: messageID,
 				Emoji:     emoji,
@@ -206,7 +207,7 @@ func HandleWebSocket(ctx *gin.Context) {
 				continue
 			}
 
-			edited, err := rooms.EditMessageById(db, messageID, user.ID, &rooms.EditMessage{Message: newMessageText})
+			edited, err := messageRepository.EditMessageById(db, messageID, user.ID, &messageDTO.EditMessage{Message: newMessageText})
 			if err != nil {
 				log.Println("❌ Помилка при редагуванні повідомлення:", err)
 				continue
@@ -234,7 +235,7 @@ func HandleWebSocket(ctx *gin.Context) {
 				continue
 			}
 
-			err = rooms.DeleteMessageById(db, messageID, user.ID)
+			err = messageRepository.DeleteMessageById(db, messageID, user.ID)
 			if err != nil {
 				log.Println("❌ Помилка при видаленні повідомлення:", err)
 				continue
@@ -272,7 +273,7 @@ func HandleWebSocket(ctx *gin.Context) {
 			continue
 		}
 
-		message := entities.Messages{
+		message := messageDTO.Messages{
 			ID:        payload.ID,
 			UserId:    user.ID,
 			RoomId:    roomID,

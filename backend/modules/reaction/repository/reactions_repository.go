@@ -1,19 +1,12 @@
-package models
+package repository
 
 import (
-	"backend/internal/adminpanel/entities"
-	"github.com/google/uuid"
+	"backend/modules/reaction/models"
 	"gorm.io/gorm"
 )
 
-type ReactionPayload struct {
-	UserID    uuid.UUID `json:"user_id"`
-	MessageID uuid.UUID `json:"message_id"`
-	Emoji     string    `json:"emoji"`
-}
-
-func ToggleReaction(db *gorm.DB, payload ReactionPayload) ([]entities.Reaction, error) {
-	var existing entities.Reaction
+func ToggleReaction(db *gorm.DB, payload models.ReactionPayload) ([]models.Reaction, error) {
+	var existing models.Reaction
 
 	// Шукаємо будь-яку реакцію цього користувача на це повідомлення
 	err := db.Where("user_id = ? AND message_id = ?", payload.UserID, payload.MessageID).
@@ -34,7 +27,7 @@ func ToggleReaction(db *gorm.DB, payload ReactionPayload) ([]entities.Reaction, 
 		}
 	} else if err == gorm.ErrRecordNotFound {
 		// Немає — додаємо
-		newReaction := entities.Reaction{
+		newReaction := models.Reaction{
 			UserId:    payload.UserID,
 			MessageID: payload.MessageID,
 			Emoji:     payload.Emoji,
@@ -47,7 +40,7 @@ func ToggleReaction(db *gorm.DB, payload ReactionPayload) ([]entities.Reaction, 
 	}
 
 	// Повертаємо всі реакції на це повідомлення
-	var updated []entities.Reaction
+	var updated []models.Reaction
 	if err := db.Where("message_id = ?", payload.MessageID).Find(&updated).Error; err != nil {
 		return nil, err
 	}

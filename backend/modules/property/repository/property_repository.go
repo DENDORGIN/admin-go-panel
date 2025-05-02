@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"backend/internal/adminpanel/repository"
+	"backend/internal/repository"
 	"backend/modules/property/models"
 	"errors"
 	"github.com/google/uuid"

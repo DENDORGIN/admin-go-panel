@@ -1,13 +1,14 @@
 package main
 
 import (
-	"backend/internal/adminpanel/db/postgres"
-	"backend/internal/adminpanel/routes"
+	"backend/internal/db/postgres"
 	"backend/internal/middleware"
+	routes2 "backend/internal/routes"
 	"backend/modules/blog"
 	"backend/modules/calendar"
 	"backend/modules/calendar/service/reminder"
-	"backend/modules/chat"
+	"backend/modules/chat/messages"
+	"backend/modules/chat/rooms"
 	"backend/modules/direct"
 	"backend/modules/item"
 	"backend/modules/media"
@@ -82,7 +83,7 @@ func main() {
 	//r.POST("/v1/users/signup", routes.CreateUser)
 
 	// Chat routes
-	r.GET("/ws/chat", chat.HandleWebSocket)
+	r.GET("/ws/chat", messages.HandleWebSocket)
 
 	//Direct messages
 	hub := direct.NewHub()
@@ -90,7 +91,7 @@ func main() {
 	r.GET("/ws/direct", direct.ServeWs(hub))
 
 	// Link preview
-	r.GET("/link-preview", routes.FetchLinkPreview)
+	r.GET("/link-preview", routes2.FetchLinkPreview)
 
 	//Protecting routes with JWT middleware
 	r.Use(middleware.AuthMiddleware())
@@ -115,11 +116,7 @@ func main() {
 	media.RegisterRoutes(version)
 
 	// Chat room routes
-	r.POST("/v1/rooms/", routes.CreateRoomHandler)
-	r.GET("/v1/rooms/", routes.GetAllRoomsHandler)
-	r.GET("/v1/rooms/:id", routes.GetRoomByIdHandler)
-	r.PUT("/v1/rooms/:id", routes.UpdateRoomByIdHandler)
-	r.DELETE("/v1/rooms/:id", routes.DeleteRoomByIdHandler)
+	rooms.RegisterRoutes(version)
 
 	// Direct messages routes
 	r.GET("/v1/direct/users", direct.GetChatUsersHandler)

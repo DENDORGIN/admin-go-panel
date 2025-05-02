@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"backend/internal/adminpanel/services/utils"
+	utils2 "backend/internal/services/utils"
 	"backend/modules/calendar/models"
 	"backend/modules/calendar/repository"
 	"github.com/gin-gonic/gin"
@@ -11,12 +11,12 @@ import (
 
 func CreateEventHandler(ctx *gin.Context) {
 
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -39,7 +39,7 @@ func CreateEventHandler(ctx *gin.Context) {
 }
 
 func UpdateCalendarEventHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -49,7 +49,7 @@ func UpdateCalendarEventHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Event ID is required"})
 		return
 	}
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -85,11 +85,11 @@ func UpdateCalendarEventHandler(ctx *gin.Context) {
 }
 
 func GetAllEventsHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -104,7 +104,7 @@ func GetAllEventsHandler(ctx *gin.Context) {
 }
 
 func DeleteCalendarEventHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -114,7 +114,7 @@ func DeleteCalendarEventHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Event ID is required"})
 		return
 	}
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}

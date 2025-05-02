@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"backend/internal/adminpanel/services/utils"
+	"backend/internal/services/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"

@@ -1,7 +1,7 @@
 package postgres
 
 import (
-	"backend/internal/adminpanel/entities"
+	"backend/internal/entities"
 	"backend/modules/user/models"
 	"log"
 )

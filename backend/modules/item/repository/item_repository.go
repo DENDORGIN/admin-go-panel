@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/repository"
+	"backend/internal/entities"
+	"backend/internal/repository"
 	"backend/modules/item/models"
 	mediaModel "backend/modules/media/models"
 	"backend/modules/media/service"

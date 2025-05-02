@@ -1,8 +1,8 @@
 package postgres
 
 import (
-	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/services/utils"
+	"backend/internal/entities"
+	"backend/internal/services/utils"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

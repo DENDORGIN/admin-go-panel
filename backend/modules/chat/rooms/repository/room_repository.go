@@ -1,8 +1,9 @@
-package models
+package repository
 
 import (
-	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/repository"
+	"backend/internal/repository"
+	"backend/modules/chat/messages/models"
+	models2 "backend/modules/chat/rooms/models"
 	mediaModel "backend/modules/media/models"
 	"backend/modules/media/service"
 	"errors"
@@ -10,29 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type RoomPublic struct {
-	ID          uuid.UUID
-	NameRoom    string    `json:"name_room"`
-	Description string    `json:"description"`
-	Image       string    `json:"image"`
-	Status      bool      `json:"status"`
-	IsChannel   bool      `json:"is_channel"`
-	OwnerId     uuid.UUID `json:"owner_id"`
-}
-
-type RoomUpdate struct {
-	NameRoom    string `json:"name_room"`
-	Description string `json:"description"`
-	Image       string `json:"image"`
-	Status      bool   `json:"status"`
-}
-
-type RoomGetAll struct {
-	Data  []*RoomPublic
-	Count int
-}
-
-func CreateRoom(db *gorm.DB, room *entities.ChatRooms) (*RoomPublic, error) {
+func CreateRoom(db *gorm.DB, room *models2.ChatRooms) (*models2.RoomPublic, error) {
 	if room.NameRoom == "" {
 		return nil, errors.New("the product title cannot be empty")
 	}
@@ -44,7 +23,7 @@ func CreateRoom(db *gorm.DB, room *entities.ChatRooms) (*RoomPublic, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &RoomPublic{
+	return &models2.RoomPublic{
 		ID:          room.ID,
 		NameRoom:    room.NameRoom,
 		Description: room.Description,
@@ -55,19 +34,19 @@ func CreateRoom(db *gorm.DB, room *entities.ChatRooms) (*RoomPublic, error) {
 	}, nil
 }
 
-func GetAllRooms(db *gorm.DB) (*RoomGetAll, error) { //userId uuid.UUID
-	var rooms []*entities.ChatRooms
-	response := &RoomGetAll{}
+func GetAllRooms(db *gorm.DB) (*models2.RoomGetAll, error) { //userId uuid.UUID
+	var rooms []*models2.ChatRooms
+	response := &models2.RoomGetAll{}
 
 	// Отримуємо всі кімнати автора
-	//err := postgres.DB.Where("owner_id = ?", userId).Find(&rooms).Error
+	//err := postgres.DB.Where("owner_id = ?", userId).Find(&messages).Error
 	err := db.Find(&rooms).Error
 	if err != nil {
 		return nil, err
 	}
 
 	for _, room := range rooms {
-		response.Data = append(response.Data, &RoomPublic{
+		response.Data = append(response.Data, &models2.RoomPublic{
 			ID:          room.ID,
 			NameRoom:    room.NameRoom,
 			Description: room.Description,
@@ -82,15 +61,15 @@ func GetAllRooms(db *gorm.DB) (*RoomGetAll, error) { //userId uuid.UUID
 	return response, nil
 }
 
-func GetRoomById(db *gorm.DB, roomId uuid.UUID) (*RoomPublic, error) {
-	var room entities.ChatRooms
+func GetRoomById(db *gorm.DB, roomId uuid.UUID) (*models2.RoomPublic, error) {
+	var room models2.ChatRooms
 
 	err := repository.GetByID(db, roomId, &room)
 	if err != nil {
 		return nil, err
 	}
 
-	return &RoomPublic{
+	return &models2.RoomPublic{
 		ID:          room.ID,
 		NameRoom:    room.NameRoom,
 		Description: room.Description,
@@ -101,8 +80,8 @@ func GetRoomById(db *gorm.DB, roomId uuid.UUID) (*RoomPublic, error) {
 	}, nil
 }
 
-func UpdateRoomById(db *gorm.DB, roomId uuid.UUID, updateRoom *RoomUpdate) (*RoomPublic, error) {
-	var room entities.ChatRooms
+func UpdateRoomById(db *gorm.DB, roomId uuid.UUID, updateRoom *models2.RoomUpdate) (*models2.RoomPublic, error) {
+	var room models2.ChatRooms
 
 	// Знаходимо room за ID
 	err := repository.GetByID(db, roomId, &room)
@@ -129,7 +108,7 @@ func UpdateRoomById(db *gorm.DB, roomId uuid.UUID, updateRoom *RoomUpdate) (*Roo
 	}
 
 	// Повертаємо оновлені дані блогу
-	return &RoomPublic{
+	return &models2.RoomPublic{
 		ID:          room.ID,
 		NameRoom:    room.NameRoom,
 		Description: room.Description,
@@ -141,8 +120,8 @@ func UpdateRoomById(db *gorm.DB, roomId uuid.UUID, updateRoom *RoomUpdate) (*Roo
 }
 
 func DeleteRoomById(db *gorm.DB, roomId uuid.UUID) error {
-	var room entities.ChatRooms
-	var messages []entities.Messages
+	var room models2.ChatRooms
+	var messages []models.Messages
 
 	// Знаходимо room за ID
 	roomGet, err := GetRoomById(db, roomId)

@@ -1,9 +1,9 @@
-package routes
+package handlers
 
 import (
-	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/models"
-	"backend/internal/adminpanel/services/utils"
+	utils2 "backend/internal/services/utils"
+	models2 "backend/modules/chat/rooms/models"
+	"backend/modules/chat/rooms/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
@@ -11,17 +11,17 @@ import (
 
 func CreateRoomHandler(ctx *gin.Context) {
 
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	var room entities.ChatRooms
+	var room models2.ChatRooms
 	if err := ctx.ShouldBindJSON(&room); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -29,7 +29,7 @@ func CreateRoomHandler(ctx *gin.Context) {
 
 	room.OwnerId = userID
 
-	newBlog, err := models.CreateRoom(db, &room)
+	newBlog, err := repository.CreateRoom(db, &room)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -39,17 +39,17 @@ func CreateRoomHandler(ctx *gin.Context) {
 }
 
 func GetAllRoomsHandler(ctx *gin.Context) {
-	_, ok := utils.GetUserIDFromContext(ctx)
+	_, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	room, err := models.GetAllRooms(db)
+	room, err := repository.GetAllRooms(db)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -65,12 +65,12 @@ func GetRoomByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
 		return
 	}
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	room, err := models.GetRoomById(db, id)
+	room, err := repository.GetRoomById(db, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -80,12 +80,12 @@ func GetRoomByIdHandler(ctx *gin.Context) {
 }
 
 func UpdateRoomByIdHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -96,13 +96,13 @@ func UpdateRoomByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	var update models.RoomUpdate
+	var update models2.RoomUpdate
 	if err = ctx.ShouldBindJSON(&update); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	room, err := models.UpdateRoomById(db, id, &update)
+	room, err := repository.UpdateRoomById(db, id, &update)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -118,12 +118,12 @@ func UpdateRoomByIdHandler(ctx *gin.Context) {
 }
 
 func DeleteRoomByIdHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -134,12 +134,12 @@ func DeleteRoomByIdHandler(ctx *gin.Context) {
 		return
 	}
 
-	room, err := models.GetRoomById(db, roomId)
+	room, err := repository.GetRoomById(db, roomId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	isSuperUser, err := utils.GetIsSuperUser(db, userID)
+	isSuperUser, err := utils2.GetIsSuperUser(db, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -149,7 +149,7 @@ func DeleteRoomByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied"})
 		return
 	}
-	err = models.DeleteRoomById(db, roomId)
+	err = repository.DeleteRoomById(db, roomId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

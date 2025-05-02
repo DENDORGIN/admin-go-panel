@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/services/utils"
+	"backend/internal/entities"
+	utils2 "backend/internal/services/utils"
 	"backend/modules/item/models"
 	"backend/modules/item/repository"
 	"github.com/gin-gonic/gin"
@@ -13,12 +13,12 @@ import (
 
 func CreateItemHandler(ctx *gin.Context) {
 
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -47,12 +47,12 @@ func GetItemByID(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
 		return
 	}
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	user, ok := utils.GetCurrentUserFromContext(ctx, db)
+	user, ok := utils2.GetCurrentUserFromContext(ctx, db)
 	if !ok {
 		return
 	}
@@ -73,7 +73,7 @@ func GetItemByID(ctx *gin.Context) {
 }
 
 func GetAvailableLanguages(ctx *gin.Context) {
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -89,7 +89,7 @@ func GetAvailableLanguages(ctx *gin.Context) {
 }
 
 func GetAvailableCategories(ctx *gin.Context) {
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -111,12 +111,12 @@ func UpdateItemByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
 		return
 	}
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	user, ok := utils.GetCurrentUserFromContext(ctx, db)
+	user, ok := utils2.GetCurrentUserFromContext(ctx, db)
 	if !ok {
 		return
 	}
@@ -144,18 +144,18 @@ func UpdateItemByIdHandler(ctx *gin.Context) {
 
 func GetAllItemsHandler(ctx *gin.Context) {
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	user, ok := utils.GetCurrentUserFromContext(ctx, db)
+	user, ok := utils2.GetCurrentUserFromContext(ctx, db)
 	if !ok {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	isSuperUser, _ := utils.GetIsSuperUser(db, user.ID)
+	isSuperUser, _ := utils2.GetIsSuperUser(db, user.ID)
 
 	language := ctx.DefaultQuery("language", "pl")
 	skip, _ := strconv.Atoi(ctx.DefaultQuery("skip", "0"))
@@ -178,12 +178,12 @@ func GetAllItemsHandler(ctx *gin.Context) {
 
 func DeleteItemByIdHandler(ctx *gin.Context) {
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	user, ok := utils.GetCurrentUserFromContext(ctx, db)
+	user, ok := utils2.GetCurrentUserFromContext(ctx, db)
 	if !ok {
 		return
 	}

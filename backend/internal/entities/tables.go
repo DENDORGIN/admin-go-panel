@@ -47,58 +47,6 @@ func (attempt *LoginAttempt) BeforeCreate(*gorm.DB) error {
 	return nil
 }
 
-//
-
-type Messages struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	UserId    uuid.UUID `gorm:"type:uuid;" json:"user_id"`
-	RoomId    uuid.UUID `gorm:"type:uuid;" json:"room_id"`
-	Message   string    `gorm:"type:string" json:"message"`
-	CreatedAt time.Time `gorm:"type:time" json:"created_at"`
-	UpdatedAt time.Time
-	EditedAt  *time.Time  `gorm:"type:timestamp"`
-	User      models.User `gorm:"foreignKey:UserId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
-}
-
-func (message *Messages) BeforeCreate(*gorm.DB) error {
-	if message.ID == uuid.Nil {
-		message.ID = uuid.New()
-	}
-	return nil
-}
-
-type Reaction struct {
-	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	UserId    uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
-	MessageID uuid.UUID `gorm:"type:uuid;not null" json:"message_id"`
-	Emoji     string    `gorm:"type:text;not null" json:"emoji"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-func (emoji *Reaction) BeforeCreate(*gorm.DB) error {
-	if emoji.ID == uuid.Nil {
-		emoji.ID = uuid.New()
-	}
-	return nil
-}
-
-type ChatRooms struct {
-	ID          uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
-	NameRoom    string     `gorm:"not null" json:"name_room"`
-	Description string     `gorm:"type:string" json:"description"`
-	Image       string     `gorm:"not null" json:"image"`
-	Status      bool       `gorm:"default:false" json:"status"`
-	IsChannel   bool       `gorm:"default:false" json:"is_channel"`
-	OwnerId     uuid.UUID  `gorm:"type:uuid;" json:"owner_id"`
-	CreatedAt   time.Time  `gorm:"type:time" json:"created_at"`
-	Messages    []Messages `gorm:"foreignKey:RoomId;constraint:OnDelete:CASCADE" json:"messages"`
-}
-
-func (chatRoom *ChatRooms) BeforeCreate(*gorm.DB) error {
-	chatRoom.ID = uuid.New()
-	return nil
-}
-
 type DirectMessage struct {
 	ID             uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
 	ConversationID uuid.UUID `gorm:"not null"`

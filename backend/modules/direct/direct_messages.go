@@ -1,8 +1,8 @@
 package direct
 
 import (
-	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/services/utils"
+	"backend/internal/entities"
+	utils2 "backend/internal/services/utils"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -27,12 +27,12 @@ type SimpleUserInfo struct {
 }
 
 func GetMessagesHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -87,12 +87,12 @@ func GetMessagesHandler(ctx *gin.Context) {
 }
 
 func GetChatUsersHandler(ctx *gin.Context) {
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "DB context missing"})
 		return
 	}
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}

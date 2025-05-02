@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"backend/internal/adminpanel/repository"
+	"backend/internal/repository"
 	"backend/modules/user/models"
 	"backend/modules/user/utils"
 	"errors"

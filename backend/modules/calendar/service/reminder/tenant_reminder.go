@@ -1,13 +1,13 @@
 package reminder
 
 import (
-	"backend/internal/adminpanel/db/postgres"
-	"backend/internal/adminpanel/entities"
+	postgres2 "backend/internal/db/postgres"
+	"backend/internal/entities"
 	"log"
 )
 
 func StartAllTenantReminderJobs() {
-	adminDB := postgres.GetDB()
+	adminDB := postgres2.GetDB()
 
 	var tenants []entities.Tenant
 	if err := adminDB.Find(&tenants).Error; err != nil {
@@ -18,7 +18,7 @@ func StartAllTenantReminderJobs() {
 	for _, tenant := range tenants {
 		t := tenant
 		go func(t entities.Tenant) {
-			db, err := postgres.Manager.GetConnectionByDomain(t.Domain)
+			db, err := postgres2.Manager.GetConnectionByDomain(t.Domain)
 			if err != nil {
 				log.Printf("❌ DB error for tenant %s: %v", t.Domain, err)
 				return

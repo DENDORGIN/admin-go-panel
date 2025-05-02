@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/services/utils"
+	"backend/internal/entities"
+	utils3 "backend/internal/services/utils"
 	"backend/modules/user/models"
 	"backend/modules/user/repository"
 	utils2 "backend/modules/user/utils"
@@ -20,7 +20,7 @@ func LoginHandler(ctx *gin.Context) {
 		return
 	}
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils3.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -49,7 +49,7 @@ func LoginHandler(ctx *gin.Context) {
 
 	tenantData := tenant.(entities.Tenant)
 
-	token, err := utils.GenerateJWTToken(user.Email, user.ID, tenantData.Domain, tenantData.ID)
+	token, err := utils3.GenerateJWTToken(user.Email, user.ID, tenantData.Domain, tenantData.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
 		return

@@ -1,7 +1,7 @@
 package utils_test
 
 import (
-	"backend/internal/adminpanel/services/utils"
+	"backend/internal/services/utils"
 	"fmt"
 	"github.com/google/uuid"
 	"testing"

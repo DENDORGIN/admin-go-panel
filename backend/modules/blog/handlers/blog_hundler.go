@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"backend/internal/adminpanel/services/utils"
+	utils2 "backend/internal/services/utils"
 	"backend/modules/blog/models"
 	"backend/modules/blog/repository"
 	"github.com/gin-gonic/gin"
@@ -11,12 +11,12 @@ import (
 
 func CreateBlogHandler(ctx *gin.Context) {
 
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -40,17 +40,17 @@ func CreateBlogHandler(ctx *gin.Context) {
 
 func GetAllBlogsHandler(ctx *gin.Context) {
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	user, ok := utils.GetCurrentUserFromContext(ctx, db)
+	user, ok := utils2.GetCurrentUserFromContext(ctx, db)
 	if !ok {
 		return
 	}
 
-	isSuperUser, _ := utils.GetIsSuperUser(db, user.ID)
+	isSuperUser, _ := utils2.GetIsSuperUser(db, user.ID)
 
 	blogs, err := repository.GetAllBlogs(db, user.ID, isSuperUser)
 	if err != nil {
@@ -62,7 +62,7 @@ func GetAllBlogsHandler(ctx *gin.Context) {
 }
 
 func GetBlogByIdHandler(ctx *gin.Context) {
-	userID, ok := utils.GetUserIDFromContext(ctx)
+	userID, ok := utils2.GetUserIDFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -72,7 +72,7 @@ func GetBlogByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
 		return
 	}
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
@@ -98,12 +98,12 @@ func UpdateBlogByIdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid blog ID"})
 		return
 	}
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
 
-	user, ok := utils.GetCurrentUserFromContext(ctx, db)
+	user, ok := utils2.GetCurrentUserFromContext(ctx, db)
 	if !ok {
 		return
 	}
@@ -131,11 +131,11 @@ func UpdateBlogByIdHandler(ctx *gin.Context) {
 
 func DeleteBlogByIdHandler(ctx *gin.Context) {
 
-	db, ok := utils.GetDBFromContext(ctx)
+	db, ok := utils2.GetDBFromContext(ctx)
 	if !ok {
 		return
 	}
-	user, ok := utils.GetCurrentUserFromContext(ctx, db)
+	user, ok := utils2.GetCurrentUserFromContext(ctx, db)
 	if !ok {
 		return
 	}

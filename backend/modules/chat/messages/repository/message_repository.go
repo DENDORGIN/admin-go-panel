@@ -1,11 +1,13 @@
-package rooms
+package repository
 
 import (
-	"backend/internal/adminpanel/entities"
-	"backend/internal/adminpanel/repository"
+	"backend/internal/repository"
+	models2 "backend/modules/chat/messages/models"
 	mediaModel "backend/modules/media/models"
 	"backend/modules/media/service"
-	"backend/modules/user/models"
+	"backend/modules/reaction/models"
+	reactionDTO "backend/modules/reaction/models"
+	userModel "backend/modules/user/models"
 	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -13,35 +15,14 @@ import (
 	"time"
 )
 
-type Message struct {
-	ID         string        `json:"id"`
-	UserID     string        `json:"user_id"`
-	FullName   string        `json:"full_name"`
-	Avatar     string        `json:"avatar"`
-	RoomID     string        `json:"room_id"`
-	Message    string        `json:"message"`
-	ContentUrl []string      `json:"content_url"`
-	CreatedAt  string        `json:"created_at"`
-	EditedAt   *string       `json:"edited_at,omitempty"`
-	Reactions  []ReactionDTO `json:"reactions,omitempty"`
-}
-
-type ReactionDTO struct {
-	UserID string `json:"user_id"`
-	Emoji  string `json:"emoji"`
-}
-type EditMessage struct {
-	Message string `json:"message"`
-}
-
-func GetMessagesPaginated(db *gorm.DB, roomId uuid.UUID, limit int, before *uuid.UUID) ([]Message, error) {
-	var messages []entities.Messages
-	var response []Message
+func GetMessagesPaginated(db *gorm.DB, roomId uuid.UUID, limit int, before *uuid.UUID) ([]models2.Message, error) {
+	var messages []models2.Messages
+	var response []models2.Message
 
 	query := db.Where("room_id = ?", roomId).Order("created_at DESC").Limit(limit)
 
 	if before != nil {
-		var beforeMsg entities.Messages
+		var beforeMsg models2.Messages
 		if err := db.Select("created_at").First(&beforeMsg, "id = ?", *before).Error; err == nil {
 			query = query.Where("created_at < ?", beforeMsg.CreatedAt)
 		}
@@ -90,14 +71,14 @@ func GetMessagesPaginated(db *gorm.DB, roomId uuid.UUID, limit int, before *uuid
 		}
 	}
 
-	var reactions []entities.Reaction
+	var reactions []models.Reaction
 	if err := db.Where("message_id IN ?", messageIDs).Find(&reactions).Error; err != nil {
 		return nil, err
 	}
 
-	reactionMap := make(map[uuid.UUID][]ReactionDTO)
+	reactionMap := make(map[uuid.UUID][]reactionDTO.ReactionDTO)
 	for _, r := range reactions {
-		reactionMap[r.MessageID] = append(reactionMap[r.MessageID], ReactionDTO{
+		reactionMap[r.MessageID] = append(reactionMap[r.MessageID], reactionDTO.ReactionDTO{
 			UserID: r.UserId.String(),
 			Emoji:  r.Emoji,
 		})
@@ -123,7 +104,7 @@ func GetMessagesPaginated(db *gorm.DB, roomId uuid.UUID, limit int, before *uuid
 			formatted := msg.EditedAt.Format("2006-01-02 15:04:05")
 			editedAt = &formatted
 		}
-		response = append(response, Message{
+		response = append(response, models2.Message{
 			ID:         msg.ID.String(),
 			UserID:     msg.UserId.String(),
 			FullName:   userData.FullName,
@@ -140,9 +121,9 @@ func GetMessagesPaginated(db *gorm.DB, roomId uuid.UUID, limit int, before *uuid
 	return response, nil
 }
 
-func GetMessageById(db *gorm.DB, messageID uuid.UUID) (*Message, error) {
-	var message entities.Messages
-	var user models.User
+func GetMessageById(db *gorm.DB, messageID uuid.UUID) (*models2.Message, error) {
+	var message models2.Messages
+	var user userModel.User
 	var media []mediaModel.Media
 
 	err := repository.GetByID(db, messageID, &message)
@@ -169,7 +150,7 @@ func GetMessageById(db *gorm.DB, messageID uuid.UUID) (*Message, error) {
 		editedAt = &formatted
 	}
 
-	return &Message{
+	return &models2.Message{
 		ID:         message.ID.String(),
 		UserID:     message.UserId.String(),
 		FullName:   user.FullName,
@@ -183,8 +164,8 @@ func GetMessageById(db *gorm.DB, messageID uuid.UUID) (*Message, error) {
 
 }
 
-func EditMessageById(db *gorm.DB, messageID, userID uuid.UUID, editMessage *EditMessage) (*Message, error) {
-	var message entities.Messages
+func EditMessageById(db *gorm.DB, messageID, userID uuid.UUID, editMessage *models2.EditMessage) (*models2.Message, error) {
+	var message models2.Messages
 
 	err := repository.GetByID(db, messageID, &message)
 	if err != nil {
@@ -208,7 +189,7 @@ func EditMessageById(db *gorm.DB, messageID, userID uuid.UUID, editMessage *Edit
 }
 
 func DeleteMessageById(db *gorm.DB, messageID, userID uuid.UUID) error {
-	var message entities.Messages
+	var message models2.Messages
 	var mediaList []mediaModel.Media
 
 	err := repository.GetByID(db, messageID, &message)
