@@ -16,7 +16,6 @@ import MessageBubble from "../../../components/Chat/Messages";
 import InputBar from "../../../components/Chat/InputBar";
 import UserList from "../../../components/Chat/UserList";
 
-import sendMessageIcon from "@/assets/images/send-message.svg";
 import { MediaService } from "../../../client";
 
 import Lightbox from "yet-another-react-lightbox";
@@ -425,7 +424,6 @@ function ChatRoom() {
                     onSend={sendMessage}
                     onFileSelect={handleFileSelect}
                     disabled={isInteractionDisabled}
-                    iconSrc={sendMessageIcon}
                 />
 
                 {editingMessageId && (

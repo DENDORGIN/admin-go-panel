@@ -9,11 +9,10 @@ import (
 	"backend/modules/chat/messages"
 	"backend/modules/chat/rooms"
 	"backend/modules/direct"
-	handlers2 "backend/modules/direct/repository"
 	"backend/modules/item"
 	"backend/modules/media"
 	"backend/modules/property"
-	routes2 "backend/modules/reaction/repository"
+	reacrionsRepository "backend/modules/reaction/repository"
 	"backend/modules/user"
 	"backend/modules/user/handlers"
 	"fmt"
@@ -87,12 +86,9 @@ func main() {
 	r.GET("/ws/chat", messages.HandleWebSocket)
 
 	//Direct messages
-	hub := direct.NewHub()
-	go hub.Run()
-	r.GET("/ws/direct", direct.ServeWs(hub))
 
 	// Link preview
-	r.GET("/link-preview", routes2.FetchLinkPreview)
+	r.GET("/link-preview", reacrionsRepository.FetchLinkPreview)
 
 	//Protecting routes with JWT middleware
 	r.Use(middleware.AuthMiddleware())
@@ -120,8 +116,7 @@ func main() {
 	rooms.RegisterRoutes(version)
 
 	// Direct messages routes
-	r.GET("/v1/direct/users", handlers2.GetChatUsersHandler)
-	r.GET("/v1/direct/:user_id/messages", handlers2.GetMessagesHandler)
+	direct.RegisterRoutes(version)
 
 	// Run the server
 	if err := r.Run(port); err != nil {

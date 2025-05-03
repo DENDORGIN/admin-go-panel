@@ -3,6 +3,7 @@ package postgres
 import (
 	"backend/internal/entities"
 	"backend/modules/user/models"
+	"fmt"
 	"log"
 )
 
@@ -23,5 +24,6 @@ func InitAdminDB() {
 	if err != nil {
 		log.Fatalf("Failed to migrate: %v", err)
 	}
+	fmt.Println("Successfully migrated the database")
 
 }

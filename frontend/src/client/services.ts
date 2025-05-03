@@ -880,7 +880,32 @@ export class RoomService {
   }
 }
 
+export class DirectService {
+    public static readUsers(): CancelablePromise<UserPublic[]> {
+        return __request(OpenAPI, {
+        method: "GET",
+        url: "/v1/direct/users",
+        })
+    }
 
+    public static readMessages(userId: string): CancelablePromise<Message[]> {
+        return __request(OpenAPI, {
+        method: "GET",
+        url: `/v1/direct/${userId}/messages`,
+        })
+    }
+
+    public static createMessage(data: JSON): CancelablePromise<Message> {
+        return __request(OpenAPI, {
+        method: "POST",
+        url: "/v1/direct/messages",
+        body: data,
+        headers: {
+            "Content-Type": "application/json",
+        },
+        })
+    }
+}
 
 
 export class PreviewService {
