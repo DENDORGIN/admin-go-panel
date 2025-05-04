@@ -14,6 +14,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		//directGroup.GET("users/:user_id/messages", repository.GetMessagesHandler)
 		directGroup.POST("/chats", handlers.GetOrCreateDirectChat)
 		directGroup.GET("/chats/:chatId/messages", handlers.GetDirectMessages)
+		directGroup.GET("/chats/:chatId/messages/:messageId", handlers.GetDirectMessageById)
 		directGroup.GET("/ws/chats/:chatId", handlers.DirectChatWebSocket)
 	}
 }

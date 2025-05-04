@@ -3,6 +3,7 @@ package handlers
 import (
 	utils "backend/internal/services/utils"
 	"backend/modules/direct/models"
+	"backend/modules/direct/repository"
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -103,4 +104,22 @@ func GetDirectMessages(ctx *gin.Context) {
 		"page":     page,
 		"limit":    limit,
 	})
+}
+
+func GetDirectMessageById(ctx *gin.Context) {
+	messageID, err := uuid.Parse(ctx.Param("messageId"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid message ID"})
+		return
+	}
+	db, ok := utils.GetDBFromContext(ctx)
+	if !ok {
+		log.Println("❌ DB context відсутній")
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	message, err := repository.GetMessageById(db, messageID)
+
+	ctx.JSON(http.StatusOK, message)
 }
