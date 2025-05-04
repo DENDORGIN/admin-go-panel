@@ -20,5 +20,5 @@ type DirectMessage struct {
 	Message   string    `gorm:"type:text"`
 	Reaction  string    `gorm:"type:text"`
 	CreatedAt time.Time
-	EditedAt  time.Time
+	EditedAt  *time.Time
 }

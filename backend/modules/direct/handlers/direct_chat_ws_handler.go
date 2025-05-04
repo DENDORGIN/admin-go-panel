@@ -5,6 +5,7 @@ import (
 	"backend/modules/chat/messages/repository"
 	direct "backend/modules/direct/client"
 	"backend/modules/direct/models"
+	directRepoository "backend/modules/direct/repository"
 	"backend/modules/direct/utils"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
@@ -105,9 +106,64 @@ func processDirectEvent(msg map[string]interface{}, userID, chatID uuid.UUID, co
 		direct.Manager.Broadcast(chatID, out, nil)
 
 	case "edit_message":
-		// TODO: реалізувати
+		messageID, err := uuid.Parse(getString(msg, "id"))
+		if err != nil {
+			log.Println("❌ Invalid message ID")
+			return
+		}
+
+		newText := getString(msg, "message")
+		edited, err := directRepoository.EditMessageByID(db, messageID, userID, &models.EditMessage{Message: newText})
+		if err != nil {
+			log.Println("❌ Edit failed:", err)
+			return
+		}
+
+		payload := map[string]interface{}{
+			"type":    "message_edited",
+			"message": edited,
+		}
+		direct.Manager.Broadcast(chatID, payload, nil)
+
 	case "delete_message":
-		// TODO: реалізувати
+		messageID, err := uuid.Parse(getString(msg, "id"))
+		if err != nil {
+			log.Println("❌ Invalid message ID")
+			return
+		}
+
+		err = directRepoository.DeleteMessageByID(db, messageID, userID)
+		if err != nil {
+			log.Println("❌ Delete failed:", err)
+			return
+		}
+
+		payload := map[string]interface{}{
+			"type": "message_deleted",
+			"id":   messageID,
+		}
+		direct.Manager.Broadcast(chatID, payload, nil)
+
+	case "add_reaction":
+		messageID, err := uuid.Parse(getString(msg, "message_id"))
+		if err != nil {
+			log.Println("❌ Invalid message_id")
+			return
+		}
+		emoji := getString(msg, "reaction")
+
+		updated, err := directRepoository.AddEmojiToMessage(db, messageID, &models.Reaction{Reaction: emoji})
+		if err != nil {
+			log.Println("❌ Reaction update error:", err)
+			return
+		}
+
+		payload := map[string]interface{}{
+			"type":    "message_reaction_updated",
+			"message": updated,
+		}
+		direct.Manager.Broadcast(chatID, payload, nil)
+
 	case "load_more_messages":
 		beforeID, _ := uuid.Parse(msg["before"].(string))
 		limit := int(msg["limit"].(float64))

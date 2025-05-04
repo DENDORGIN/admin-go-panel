@@ -15,6 +15,11 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		directGroup.POST("/chats", handlers.GetOrCreateDirectChat)
 		directGroup.GET("/chats/:chatId/messages", handlers.GetDirectMessages)
 		directGroup.GET("/chats/:chatId/messages/:messageId", handlers.GetDirectMessageById)
+		directGroup.PATCH("/chats/:chatId/messages/:messageId", handlers.EditDirectMessage)
+		directGroup.PATCH("/chats/:chatId/messages/:messageId/reaction", handlers.AddEmojiToMessage)
+
+		directGroup.DELETE("/chats/:chatId/messages/:messageId", handlers.DeleteDirectMessage)
+
 		directGroup.GET("/ws/chats/:chatId", handlers.DirectChatWebSocket)
 	}
 }

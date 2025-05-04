@@ -16,3 +16,11 @@ type DirectMessagePayload struct {
 	EditedAt   *time.Time `json:"edited_at,omitempty"`
 	CreatedAt  time.Time  `json:"created_at"`
 }
+
+type EditMessage struct {
+	Message string `json:"message"`
+}
+
+type Reaction struct {
+	Reaction string `json:"reaction"`
+}
