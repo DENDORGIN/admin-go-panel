@@ -61,6 +61,12 @@ const UserInformation = () => {
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0) return;
 
+    // Додатковий захист
+    if (!currentUser?.isSuperUser) {
+      showToast("Permission denied", "Only superusers can update avatar", "error");
+      return;
+    }
+
     const selectedFile = event.target.files[0];
     const newFile: FileDetail = {
       name: selectedFile.name,
@@ -78,7 +84,13 @@ const UserInformation = () => {
   }
 
   const handleFileButtonClick = () => {
+    if (!currentUser?.isSuperUser) {
+      showToast("Permission denied", "Only superusers can update avatar", "error");
+      return;
+    }
+
     if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // скидаємо попередній вибір
       fileInputRef.current.click();
     }
   };
@@ -98,19 +110,31 @@ const UserInformation = () => {
 
   const avatarMutation = useMutation({
     mutationFn: async (file: File) => {
-      const url = await uploadImage(file); // Завантаження картинки
-      await UsersService.updateUserMe({ requestBody: { avatar: url } }); // Оновлення
+      if (!currentUser?.isSuperUser) {
+        throw new Error("Permission denied");
+      }
+
+      const url = await uploadImage(file);
+      await UsersService.updateUserMe({ requestBody: { avatar: url } });
       return url;
     },
     onSuccess: () => {
       showToast("Success!", "Avatar updated", "success");
-      queryClient.invalidateQueries(); // Перезавантажити user
+      queryClient.invalidateQueries();
     },
-    onError: (err: ApiError) => {
-      handleError(err, showToast);
-    },
-  });
+    onError: (err: ApiError | Error) => {
+      if (err instanceof Error && err.message === "Permission denied") {
+        showToast("Permission denied", "Only superusers can update avatar", "error");
+        return;
+      }
 
+      if ('status' in err) {
+        handleError(err as ApiError, showToast);
+      } else {
+        showToast("Error", err.message || "Unknown error", "error");
+      }
+    }
+  });
   const mutation = useMutation({
     mutationFn: (data: UserUpdateMe) =>
         UsersService.updateUserMe({ requestBody: data }),
@@ -128,16 +152,10 @@ const UserInformation = () => {
 
   const onSubmit: SubmitHandler<UserUpdateMe> = async (data) => {
     try {
-      let avatarUrl = data.avatar;
-
-      if (file) {
-        avatarUrl = await uploadImage(file.file); // Завантажуємо файл і отримуємо url
-      }
-
       const payload: UserUpdateMe = {
         fullName: data.fullName,
         email: data.email,
-        avatar: avatarUrl,
+        // avatar: не змінюємо тут!
       };
 
       await mutation.mutateAsync(payload);
@@ -149,126 +167,130 @@ const UserInformation = () => {
   };
 
 
+
   const onCancel = () => {
     reset()
     toggleEditMode()
   }
 
   return (
-    <>
-      <Container maxW="full">
-        <Heading size="sm" py={4}>
-          User Information
-        </Heading>
-        <Box
-          w={{ sm: "full", md: "50%" }}
-          as="form"
-          onSubmit={handleSubmit(onSubmit)}
-        >
-          <FormControl mt={4}>
+      <>
+        <Container maxW="full">
+          <Heading size="sm" py={4}>
+            User Information
+          </Heading>
+          <Box
+              w={{ sm: "full", md: "50%" }}
+              as="form"
+              onSubmit={handleSubmit(onSubmit)}
+          >
+            <FormControl mt={4}>
 
-            <Input
-                ref={fileInputRef}
-                id="avatar"
-                type="file"
-                accept="image/*"
-                onChange={onFileChange}
-                hidden
-                disabled={isSubmitting}
-            />
-
-            <Box
-                w="100px"
-                h="100px"
-                borderRadius="full"
-                overflow="hidden"
-                cursor="pointer"
-                border="2px solid"
-                borderColor="gray.200"
-                _hover={{ opacity: 0.8 }}
-                onClick={handleFileButtonClick}
-            >
-              <img
-                  src={
-                      file?.preview ||
-                      getValues("avatar") ||
-                      currentUser?.avatar ||
-                      "https://via.placeholder.com/100x100?text=Avatar"
-                  }
-                  alt="Avatar"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </Box>
-          </FormControl>
-
-          <FormControl mt={4}>
-            <FormLabel color={color} htmlFor="name">
-              Full name
-            </FormLabel>
-            {editMode ? (
               <Input
-                id="name"
-                {...register("fullName", { maxLength: 30 })}
-                type="text"
-                size="md"
-                w="auto"
+                  ref={fileInputRef}
+                  id="avatar"
+                  type="file"
+                  accept="image/*"
+                  onChange={onFileChange}
+                  hidden
+                  disabled={isSubmitting}
               />
-            ) : (
-              <Text
-                size="md"
-                py={2}
-                color={!currentUser?.fullName ? "ui.dim" : "inherit"}
-                isTruncated
-                maxWidth="250px"
+
+              <Box
+                  w="100px"
+                  h="100px"
+                  borderRadius="full"
+                  overflow="hidden"
+                  cursor={currentUser?.isSuperUser ? "pointer" : "not-allowed"}
+                  border="2px solid"
+                  borderColor="gray.200"
+                  _hover={{ opacity: currentUser?.isSuperUser ? 0.8 : 1 }}
+                  onClick={handleFileButtonClick}
               >
-                {currentUser?.fullName || "N/A"}
-              </Text>
-            )}
-          </FormControl>
-          <FormControl mt={4} isInvalid={!!errors.email}>
-            <FormLabel color={color} htmlFor="email">
-              Email
-            </FormLabel>
-            {editMode ? (
-              <Input
-                id="email"
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: emailPattern,
-                })}
-                type="email"
-                size="md"
-                w="auto"
-              />
-            ) : (
-              <Text size="md" py={2} isTruncated maxWidth="250px">
-                {currentUser?.email}
-              </Text>
-            )}
-            {errors.email && (
-              <FormErrorMessage>{errors.email.message}</FormErrorMessage>
-            )}
-          </FormControl>
+                <img
+                    src={
+                        file?.preview ||
+                        getValues("avatar") ||
+                        currentUser?.avatar ||
+                        "https://via.placeholder.com/100x100?text=Avatar"
+                    }
+                    alt="Avatar"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              </Box>
 
-          <Flex mt={4} gap={3}>
-            <Button
-              variant="primary"
-              onClick={toggleEditMode}
-              type={editMode ? "button" : "submit"}
-              isLoading={editMode ? isSubmitting : false}
-              isDisabled={editMode ? !isDirty || !getValues("email") : false}
-            >
-              {editMode ? "Save" : "Edit"}
-            </Button>
-            {editMode && (
-              <Button onClick={onCancel} isDisabled={isSubmitting}>
-                Cancel
-              </Button>
-            )}
-          </Flex>
-        </Box>
-      </Container>
-    </>
+            </FormControl>
+
+            <FormControl mt={4}>
+              <FormLabel color={color} htmlFor="name">
+                Full name
+              </FormLabel>
+              {editMode ? (
+                  <Input
+                      id="name"
+                      {...register("fullName", { maxLength: 30 })}
+                      type="text"
+                      size="md"
+                      w="auto"
+                  />
+              ) : (
+                  <Text
+                      size="md"
+                      py={2}
+                      color={!currentUser?.fullName ? "ui.dim" : "inherit"}
+                      isTruncated
+                      maxWidth="250px"
+                  >
+                    {currentUser?.fullName || "N/A"}
+                  </Text>
+              )}
+            </FormControl>
+            <FormControl mt={4} isInvalid={!!errors.email}>
+              <FormLabel color={color} htmlFor="email">
+                Email
+              </FormLabel>
+              {editMode ? (
+                  <Input
+                      id="email"
+                      {...register("email", {
+                        required: "Email is required",
+                        pattern: emailPattern,
+                      })}
+                      type="email"
+                      size="md"
+                      w="auto"
+                  />
+              ) : (
+                  <Text size="md" py={2} isTruncated maxWidth="250px">
+                    {currentUser?.email}
+                  </Text>
+              )}
+              {errors.email && (
+                  <FormErrorMessage>{errors.email.message}</FormErrorMessage>
+              )}
+            </FormControl>
+
+            <Flex mt={4} gap={3}>
+              {currentUser?.isSuperUser && (
+                  <Button
+                      variant="primary"
+                      onClick={toggleEditMode}
+                      type={editMode ? "button" : "submit"}
+                      isLoading={editMode ? isSubmitting : false}
+                      isDisabled={editMode ? !isDirty || !getValues("email") : false}
+                  >
+                    {editMode ? "Save" : "Edit"}
+                  </Button>
+              )}
+              {editMode && (
+                  <Button onClick={onCancel} isDisabled={isSubmitting}>
+                    Cancel
+                  </Button>
+              )}
+            </Flex>
+          </Box>
+        </Container>
+      </>
   )
 }
 
