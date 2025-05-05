@@ -8,14 +8,17 @@ import {
   FiHome,
   FiSettings,
   FiUsers,
+  FiMessageCircle,
+  FiMessageSquare
 } from "react-icons/fi"
 
 import type { UserPublic } from "../../client"
-import {ChatIcon} from "@chakra-ui/icons";
+// import {ChatIcon} from "@chakra-ui/icons";
 
 const items = [
   { icon: FiHome, title: "Dashboard", path: "/" },
-  { icon: ChatIcon, title: "Chat", path: "/rooms" },
+  { icon: FiMessageSquare, title: "Chat", path: "/rooms" },
+  {icon: FiMessageCircle, title: "Direct", path: "/direct" },
   { icon: FiBriefcase, title: "Items", path: "/items" },
   { icon: FiBookOpen, title: "Blog", path: "/blog" },
   { icon: FiCalendar, title: "Calendar", path: "/calendar" },

@@ -16,6 +16,7 @@ import data from '@emoji-mart/data';
 
 import { Popover, PopoverTrigger, PopoverContent, IconButton } from "@chakra-ui/react";
 import { FaSmile } from "react-icons/fa";
+import sendMessageIcon from "@/assets/images/send-message.svg";
 
 
 interface InputBarProps {
@@ -25,7 +26,6 @@ interface InputBarProps {
     onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
     disabled?: boolean;
     fileInputId?: string;
-    iconSrc: string;
 }
 
 const InputBar = forwardRef<HTMLTextAreaElement, InputBarProps>(({
@@ -35,7 +35,6 @@ const InputBar = forwardRef<HTMLTextAreaElement, InputBarProps>(({
                                                                      onFileSelect,
                                                                      disabled = false,
                                                                      fileInputId = "file-upload",
-                                                                     iconSrc,
                                                                  }, ref) => {
     const internalRef = useRef<HTMLTextAreaElement | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -154,7 +153,7 @@ const InputBar = forwardRef<HTMLTextAreaElement, InputBarProps>(({
 
                 <Button
                     onClick={onSend}
-                    leftIcon={<Image src={iconSrc} boxSize="25px" />}
+                    leftIcon={<Image src={sendMessageIcon} boxSize="25px" />}
                     variant="ghost"
                     isDisabled={disabled}
                     _hover={{ transform: "scale(1.1)" }}

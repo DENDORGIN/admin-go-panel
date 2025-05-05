@@ -1,103 +1,156 @@
 package repository
 
 import (
+	"backend/internal/repository"
 	"backend/modules/direct/models"
-	userModels "backend/modules/user/models"
+	mediaModel "backend/modules/media/models"
+	"backend/modules/media/service"
+	userModel "backend/modules/user/models"
+	"fmt"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"log"
+	"time"
 )
 
-func GetDirectChatUsers(db *gorm.DB, userID uuid.UUID) ([]userModels.UserResponse, error) {
-	var conversations []models.Conversations
-
-	err := db.
-		Where("user1_id = ? OR user2_id = ?", userID, userID).
-		Find(&conversations).Error
-	if err != nil {
-		return nil, err
+func GetMessageById(db *gorm.DB, messageID uuid.UUID) (*models.DirectMessagePayload, error) {
+	var message models.DirectMessage
+	if err := repository.GetByID(db, messageID, &message); err != nil {
+		return nil, fmt.Errorf("message not found: %w", err)
 	}
 
-	userMap := make(map[uuid.UUID]bool)
-	var userIDs []uuid.UUID
-
-	for _, conv := range conversations {
-		var otherID uuid.UUID
-		if conv.User1ID == userID {
-			otherID = conv.User2ID
-		} else {
-			otherID = conv.User1ID
-		}
-		if !userMap[otherID] {
-			userMap[otherID] = true
-			userIDs = append(userIDs, otherID)
-		}
+	// Підтягуємо користувача
+	var sender userModel.User
+	if err := repository.GetByID(db, message.SenderID, &sender); err != nil {
+		log.Printf("⚠️ user not found for message %s: %v", messageID, err)
 	}
 
-	var users []userModels.User
-	if len(userIDs) > 0 {
-		err = db.Where("id IN ?", userIDs).Find(&users).Error
-		if err != nil {
-			return nil, err
-		}
+	// Підтягуємо медіа
+	var mediaList []mediaModel.Media
+	if err := repository.GetAllMediaByID(db, messageID, &mediaList); err != nil {
+		log.Printf("⚠️ media not found for message %s: %v", messageID, err)
 	}
 
-	var responses []userModels.UserResponse
-	for _, user := range users {
-		responses = append(responses, userModels.UserResponse{
-			ID:          user.ID,
-			FullName:    user.FullName,
-			Email:       user.Email,
-			Avatar:      user.Avatar,
-			IsActive:    user.IsActive,
-			IsSuperUser: user.IsSuperUser,
-		})
+	// Групуємо медіа по ContentID
+	mediaMap := make(map[uuid.UUID][]string)
+	for _, m := range mediaList {
+		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
 	}
 
-	return responses, nil
+	// Формуємо payload
+	return &models.DirectMessagePayload{
+		ID:         message.ID,
+		ChatID:     message.ChatID,
+		UserID:     message.SenderID,
+		Message:    message.Message,
+		ContentURL: getOrEmpty(mediaMap, message.ID),
+		Reaction:   message.Reaction,
+		CreatedAt:  message.CreatedAt,
+		EditedAt:   message.EditedAt,
+	}, nil
 }
 
-func LoadAllConversations(db *gorm.DB, userID uuid.UUID) (map[uuid.UUID][]MessageResponse, error) {
-	var conversations []models.Conversations
+func getOrEmpty(m map[uuid.UUID][]string, key uuid.UUID) []string {
+	if val, ok := m[key]; ok {
+		return val
+	}
+	return []string{} // повертаємо порожній slice замість nil
+}
 
-	err := db.
-		Where("user1_id = ? OR user2_id = ?", userID, userID).
-		Preload("DirectMessage", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at ASC").Preload("Sender")
-		}).
-		Find(&conversations).Error
+func EditMessageByID(db *gorm.DB, messageID, userID uuid.UUID, newMessage *models.EditMessage) (*models.DirectMessagePayload, error) {
+	var message models.DirectMessage
 
+	// Отримуємо повідомлення
+	if err := repository.GetByID(db, messageID, &message); err != nil {
+		return nil, fmt.Errorf("message not found: %w", err)
+	}
+
+	// Перевіряємо, чи користувач — автор
+	if message.SenderID != userID {
+		return nil, fmt.Errorf("access denied: user is not the author")
+	}
+
+	// Оновлюємо текст і EditedAt
+	if newMessage.Message != "" {
+		message.Message = newMessage.Message
+		now := time.Now()
+		message.EditedAt = &now
+	}
+
+	// Зберігаємо оновлення
+	if err := db.Save(&message).Error; err != nil {
+		return nil, fmt.Errorf("failed to update message: %w", err)
+	}
+
+	// Повертаємо повну структуру
+	payload, err := GetMessageById(db, messageID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch updated message: %w", err)
 	}
 
-	result := make(map[uuid.UUID][]MessageResponse)
+	return payload, nil
+}
 
-	for _, conv := range conversations {
-		var otherUserID uuid.UUID
-		if conv.User1ID == userID {
-			otherUserID = conv.User2ID
-		} else {
-			otherUserID = conv.User1ID
-		}
+func AddEmojiToMessage(db *gorm.DB, messageID uuid.UUID, reaction *models.Reaction) (*models.DirectMessagePayload, error) {
+	var message models.DirectMessage
 
-		var messages []MessageResponse
-		for _, msg := range conv.DirectMessage {
-			messages = append(messages, MessageResponse{
-				ID:        msg.ID,
-				Text:      msg.Text,
-				CreatedAt: msg.CreatedAt,
-				From: SimpleUserInfo{
-					ID:          msg.Sender.ID,
-					FullName:    msg.Sender.FullName,
-					Avatar:      msg.Sender.Avatar,
-					IsActive:    msg.Sender.IsActive,
-					IsSuperUser: msg.Sender.IsSuperUser,
-				},
-			})
-		}
-
-		result[otherUserID] = messages
+	// Отримуємо повідомлення
+	if err := repository.GetByID(db, messageID, &message); err != nil {
+		return nil, fmt.Errorf("message not found: %w", err)
 	}
 
-	return result, nil
+	// Оновлюємо текст і EditedAt
+	if reaction.Reaction != "" {
+		message.Reaction = reaction.Reaction
+	}
+
+	// Зберігаємо оновлення
+	if err := db.Save(&message).Error; err != nil {
+		return nil, fmt.Errorf("failed to update Emoji: %w", err)
+	}
+
+	// Повертаємо повну структуру
+	payload, err := GetMessageById(db, messageID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch updated message: %w", err)
+	}
+
+	return payload, nil
+}
+
+func DeleteMessageByID(db *gorm.DB, messageID, userID uuid.UUID) error {
+	var message models.DirectMessage
+	var mediaList []mediaModel.Media
+
+	if err := repository.GetByID(db, messageID, &message); err != nil {
+		return fmt.Errorf("message not found: %w", err)
+	}
+
+	if message.SenderID != userID {
+		return fmt.Errorf("access denied: user is not the author")
+	}
+
+	err := repository.DeleteByID(db, messageID, &message)
+	if err != nil {
+		return err
+	}
+
+	err = repository.GetAllMediaByID(db, messageID, &mediaList)
+	if err != nil {
+		return err
+	}
+	for _, media := range mediaList {
+		err = service.DeleteImageInBucket(media.Url)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Видаляємо медіа з бази
+	err = repository.DeleteContentByID(db, messageID, &mediaModel.Media{})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

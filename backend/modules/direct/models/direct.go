@@ -1,25 +1,24 @@
 package models
 
 import (
-	"backend/modules/user/models"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 	"time"
 )
 
-type DirectMessage struct {
-	ID             uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	ConversationID uuid.UUID `gorm:"not null"`
-	SenderID       uuid.UUID `gorm:"type:uuid;not null"`
-	Text           string    `gorm:"type:text;not null"`
-	Read           bool      `gorm:"default:false"`
-	CreatedAt      time.Time
-
-	Sender       models.User   `gorm:"foreignKey:SenderID"`
-	Conversation Conversations `gorm:"foreignKey:ConversationID"`
+type DirectChat struct {
+	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	UserAID   uuid.UUID `gorm:"type:uuid;not null;index"`
+	UserBID   uuid.UUID `gorm:"type:uuid;not null;index"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
-func (dm *DirectMessage) BeforeCreate(*gorm.DB) error {
-	dm.ID = uuid.New()
-	return nil
+type DirectMessage struct {
+	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	ChatID    uuid.UUID `gorm:"type:uuid;not null;index"`
+	SenderID  uuid.UUID `gorm:"type:uuid;not null;index"`
+	Message   string    `gorm:"type:text"`
+	Reaction  string    `gorm:"type:text"`
+	CreatedAt time.Time
+	EditedAt  *time.Time
 }

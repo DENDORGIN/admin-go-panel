@@ -140,7 +140,7 @@ const MessageBubble: React.FC<MessageProps> = React.memo(({ msg, isMe, user, isL
             {!isMe && (
                 <Tooltip label={msg.full_name} hasArrow placement="top">
                     <Avatar
-                        src={msg.avatar || "https://via.placeholder.com/50"}
+                        src={msg.avatar || "https://images.unsplash.com/flagged/photo-1572491259205-506c425b45c3"}
                         cursor="pointer"
                         transition="all 0.2s ease-in-out"
                         _hover={{ transform: "scale(1.1)", boxShadow: "md" }}
