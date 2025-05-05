@@ -31,6 +31,7 @@ func CreateUser(db *gorm.DB, user *models.User) (*models.UserResponse, error) {
 		Email:       user.Email,
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
+		IsAdmin:     user.IsAdmin,
 	}, err
 }
 
@@ -57,6 +58,7 @@ func GetUserById(db *gorm.DB, id uuid.UUID) (*models.UserResponse, error) {
 		Email:       user.Email,
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
+		IsAdmin:     user.IsAdmin,
 	}
 	return userResponse, nil
 }
@@ -114,6 +116,7 @@ func UpdateUserById(db *gorm.DB, id uuid.UUID, updateUser *models.UpdateUser) (*
 		Avatar:      user.Avatar,
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
+		IsAdmin:     user.IsAdmin,
 	}, nil
 }
 
