@@ -12,9 +12,6 @@ type UserResponse struct {
 	Email       string    `json:"email"`
 	IsActive    bool      `json:"isActive"`
 	IsSuperUser bool      `json:"isSuperUser"`
-
-	//Calendar []entities.Calendar `gorm:"foreignKey:UserID" json:"calendars"`
-	//Blog     []blog.Blog     `gorm:"foreignKey:OwnerID" json:"blogs"`
 }
 
 type AllUsers struct {

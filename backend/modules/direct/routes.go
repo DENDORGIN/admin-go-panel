@@ -10,8 +10,7 @@ func RegisterRoutes(r *gin.RouterGroup) {
 
 	directGroup := r.Group("/direct")
 	{
-		//directGroup.GET("users", repository.GetChatUsersHandler)
-		//directGroup.GET("users/:user_id/messages", repository.GetMessagesHandler)
+		directGroup.GET("/users", handlers.GetDirectChatUsers)
 		directGroup.POST("/chats", handlers.GetOrCreateDirectChat)
 		directGroup.GET("/chats/:chatId/messages", handlers.GetDirectMessages)
 		directGroup.GET("/chats/:chatId/messages/:messageId", handlers.GetDirectMessageById)
