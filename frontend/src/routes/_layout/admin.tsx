@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_layout/admin")({
   validateSearch: (search) => usersSearchSchema.parse(search),
 })
 
-const PER_PAGE = 5
+const PER_PAGE = 10
 
 function getUsersQueryOptions({ page }: { page: number }) {
   return {
@@ -115,7 +115,13 @@ function UsersTable() {
                   <Td isTruncated maxWidth="150px">
                     {user.email}
                   </Td>
-                  <Td>{user.isSuperUser ? "Superuser" : "User"}</Td>
+                  <Td>
+                    {user.isSuperUser
+                        ? "Superuser"
+                        : user.isAdmin
+                            ? "Admin"
+                            : "User"}
+                  </Td>
                   <Td>
                     <Flex gap={2}>
                       <Box

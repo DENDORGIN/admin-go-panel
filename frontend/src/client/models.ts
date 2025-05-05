@@ -153,6 +153,7 @@ export type UserCreate = {
   email: string
   isActive?: boolean
   isSuperUser?: boolean
+  isAdmin?: boolean
   fullName?: string | null
   avatar?: string | null
   password: string
@@ -162,6 +163,7 @@ export type UserPublic = {
   email: string
   isActive?: boolean
   isSuperUser?: boolean
+  isAdmin?: boolean
   fullName?: string | null
   avatar?: string | null
   ID: string
@@ -177,6 +179,7 @@ export type UserUpdate = {
   email?: string | null
   isActive?: boolean
   isSuperUser?: boolean
+  isAdmin?: boolean
   fullName?: string | null
   avatar?: string | null
   password?: string | null
