@@ -23,6 +23,7 @@ const items = [
   { icon: FiBookOpen, title: "Blog", path: "/blog" },
   { icon: FiCalendar, title: "Calendar", path: "/calendar" },
   { icon: FiSettings, title: "User Settings", path: "/settings" },
+
 ]
 
 interface SidebarItemsProps {
