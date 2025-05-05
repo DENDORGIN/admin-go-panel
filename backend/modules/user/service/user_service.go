@@ -72,6 +72,7 @@ func TransformUsers(users []*models.User) []*models.UserResponse {
 			Email:       user.Email,
 			IsActive:    user.IsActive,
 			IsSuperUser: user.IsSuperUser,
+			IsAdmin:     user.IsAdmin,
 		}
 		userResponses = append(userResponses, userResponse)
 	}
