@@ -48,6 +48,7 @@ func ReadUserMe(ctx *gin.Context) {
 		Email:       user.Email,
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
+		IsAdmin:     user.IsAdmin,
 	}
 	ctx.JSON(http.StatusOK, response)
 }
