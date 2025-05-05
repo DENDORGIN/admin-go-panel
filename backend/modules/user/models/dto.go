@@ -12,6 +12,7 @@ type UserResponse struct {
 	Email       string    `json:"email"`
 	IsActive    bool      `json:"isActive"`
 	IsSuperUser bool      `json:"isSuperUser"`
+	IsAdmin     bool      `json:"isAdmin"`
 }
 
 type AllUsers struct {

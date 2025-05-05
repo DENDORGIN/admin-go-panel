@@ -13,6 +13,7 @@ type User struct {
 	Email       string    `gorm:"unique;not null" json:"email"`
 	Password    string    `gorm:"not null" json:"password"`
 	IsActive    bool      `gorm:"default:true" json:"isActive"`
+	IsAdmin     bool      `gorm:"default:false" json:"isAdmin"`
 	IsSuperUser bool      `gorm:"default:false" json:"isSuperUser"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
