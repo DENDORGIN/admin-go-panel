@@ -162,6 +162,11 @@ const AddUser = ({ isOpen, onClose }: AddUserProps) => {
                 </Checkbox>
               </FormControl>
               <FormControl>
+                <Checkbox {...register("isAdmin")} colorScheme="teal">
+                  Is admin?
+                </Checkbox>
+              </FormControl>
+              <FormControl>
                 <Checkbox {...register("isActive")} colorScheme="teal">
                   Is active?
                 </Checkbox>
