@@ -25,6 +25,13 @@ func GetByID[T any](db *gorm.DB, id uuid.UUID, model *T) error {
 	return nil
 }
 
+func GetByUserID[T any](db *gorm.DB, id uuid.UUID, model *T) error {
+	err := db.Where("user_id = ?", id).First(model).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func GetAllByField[T any](db *gorm.DB, field string, value any, out *T) error {
 	return db.Where(fmt.Sprintf("%s = ?", field), value).Find(out).Error
 }

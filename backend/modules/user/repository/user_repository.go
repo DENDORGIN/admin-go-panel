@@ -2,6 +2,7 @@ package repository
 
 import (
 	"backend/internal/repository"
+	employees "backend/modules/employees/models"
 	"backend/modules/user/models"
 	"backend/modules/user/utils"
 	"errors"
@@ -10,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateUser(db *gorm.DB, user *models.User) (*models.UserResponse, error) {
+func CreateUser(db *gorm.DB, user *models.User, createdByID uuid.UUID) (*models.UserResponse, error) {
 	if db == nil {
 		return nil, fmt.Errorf("database connection is not initialized")
 	}
@@ -22,7 +23,24 @@ func CreateUser(db *gorm.DB, user *models.User) (*models.UserResponse, error) {
 	if user.Avatar == "" {
 		user.Avatar = "https://f003.backblazeb2.com/file/admin-go-panel/user.png"
 	}
-	if err = db.Create(user).Error; err != nil {
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(user).Error; err != nil {
+			return err
+		}
+
+		employee := employees.Employees{
+			ID:           uuid.New(),
+			UserID:       user.ID,
+			WhuCreatedBy: createdByID,
+		}
+		if err := tx.Create(&employee).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
 	return &models.UserResponse{
@@ -43,24 +61,42 @@ func GetAllUsers(db *gorm.DB, limit int, skip int) ([]*models.User, error) {
 	return users, nil
 }
 
-func GetUserById(db *gorm.DB, id uuid.UUID) (*models.UserResponse, error) {
+func GetUserById(db *gorm.DB, id uuid.UUID) (*models.UserResponseEmployees, error) {
 	var user models.User
+	var employee employees.Employees
+
 	err := repository.GetByID(db, id, &user)
 	if err != nil {
 		return nil, err
 	}
 
-	// Формуємо структуру UserResponse
-	userResponse := &models.UserResponse{
-		ID:          user.ID,
-		FullName:    user.FullName,
-		Avatar:      user.Avatar,
-		Email:       user.Email,
-		IsActive:    user.IsActive,
-		IsSuperUser: user.IsSuperUser,
-		IsAdmin:     user.IsAdmin,
+	err = repository.GetByUserID(db, id, &employee)
+	if err != nil {
+		return nil, err
 	}
-	return userResponse, nil
+
+	// Формуємо відповідь
+	UserResponseEmployees := &models.UserResponseEmployees{
+		ID:            user.ID,
+		FullName:      user.FullName,
+		Avatar:        user.Avatar,
+		Email:         user.Email,
+		IsActive:      user.IsActive,
+		IsSuperUser:   user.IsSuperUser,
+		IsAdmin:       user.IsAdmin,
+		PhoneNumber1:  employee.PhoneNumber1,
+		PhoneNumber2:  employee.PhoneNumber2,
+		Company:       employee.Company,
+		Position:      employee.Position,
+		ConditionType: employee.ConditionType,
+		Salary:        employee.Salary,
+		Address:       employee.Address,
+		DateStart:     employee.DateStart,
+		DateEnd:       employee.DateEnd,
+		ExtraData:     employee.ExtraData,
+		WhuCreatedBy:  employee.WhuCreatedBy,
+	}
+	return UserResponseEmployees, nil
 }
 
 func GetUserByIdFull(db *gorm.DB, id uuid.UUID) (*models.User, error) {

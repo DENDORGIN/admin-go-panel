@@ -20,6 +20,8 @@ type Property struct {
 }
 
 func (property *Property) BeforeCreate(*gorm.DB) error {
-	property.ID = uuid.New()
+	if property.ID != uuid.Nil {
+		property.ID = uuid.New()
+	}
 	return nil
 }
