@@ -11,7 +11,7 @@
     "generate-client": "openapi-ts --input ./openapi.json --output ./src/client --client axios --exportSchemas true"
   },
   "dependencies": {
-    "@chakra-ui/icons": "2.1.1",
+    "@chakra-ui/icons": "2.2.4",
     "@chakra-ui/react": "^2.8.2",
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
