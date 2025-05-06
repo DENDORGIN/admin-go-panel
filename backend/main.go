@@ -79,6 +79,11 @@ func main() {
 	r.POST("/v1/password-recovery/:email", handlers.RequestPasswordRecover)
 	r.POST("/v1/reset-password/", handlers.ResetPassword)
 
+	r.POST("/v1/init-tenant-migrations", func(c *gin.Context) {
+		postgres.InitDB(c)
+		c.JSON(http.StatusOK, gin.H{"message": "Tenant DB migrated"})
+	})
+
 	//Users
 	//r.POST("/v1/users/signup", routes.CreateUser)
 

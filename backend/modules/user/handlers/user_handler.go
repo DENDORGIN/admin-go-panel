@@ -13,21 +13,35 @@ import (
 )
 
 func CreateUser(ctx *gin.Context) {
-	user := new(models.User)
-	if err := ctx.ShouldBindJSON(user); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	db, ok := utils2.GetDBFromContext(ctx)
-	if !ok {
+	userModel := new(models.User)
+
+	// Парсимо тіло запиту
+	if err := ctx.ShouldBindJSON(userModel); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
 		return
 	}
 
-	newUser, err := repository.CreateUser(db, user)
+	// Отримуємо БД
+	db, ok := utils2.GetDBFromContext(ctx)
+	if !ok {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Database not found in context"})
+		return
+	}
+
+	// Отримуємо користувача, який створює нового
+	currentUser, ok := utils2.GetCurrentUserFromContext(ctx, db)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// Створюємо нового користувача
+	newUser, err := repository.CreateUser(db, userModel, currentUser.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	ctx.JSON(http.StatusCreated, newUser)
 }
 
@@ -51,6 +65,31 @@ func ReadUserMe(ctx *gin.Context) {
 		IsAdmin:     user.IsAdmin,
 	}
 	ctx.JSON(http.StatusOK, response)
+}
+
+func ReadUserById(ctx *gin.Context) {
+	userIDRaw := ctx.Param("id")
+	id, err := uuid.Parse(userIDRaw)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+	db, ok := utils2.GetDBFromContext(ctx)
+	if !ok {
+		return
+	}
+
+	user, err := repository.GetUserById(db, id)
+	if err != nil {
+		if err.Error() == "user not found" {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
 }
 
 func ReadAllUsers(ctx *gin.Context) {
