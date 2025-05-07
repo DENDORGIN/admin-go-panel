@@ -23,6 +23,7 @@ type Employees struct {
 	UpdatedAt     time.Time
 	ExtraData     datatypes.JSON `gorm:"type:jsonb" json:"extra_data"`
 	WhuCreatedBy  uuid.UUID      `gorm:"type:uuid;" json:"whu_created_by"`
+	WhuUpdatedBy  uuid.UUID      `gorm:"type:uuid;" json:"whu_updated_by"`
 }
 
 func (e *Employees) BeforeCreate(*gorm.DB) error {
