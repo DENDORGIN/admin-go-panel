@@ -10,7 +10,6 @@ func RegisterRoutes(r *gin.RouterGroup) {
 	userGroup := r.Group("/employees")
 	{
 		userGroup.GET("/:id", handlers.ReadUserEmployeesById)
-
-		//userGroup.DELETE("/:id", handlers.DeleteUserEmployees)
+		userGroup.PATCH("/:id", handlers.UpdateUserEmployeesByIdHandler)
 	}
 }
