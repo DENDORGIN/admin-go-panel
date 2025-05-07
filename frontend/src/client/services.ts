@@ -21,7 +21,7 @@ import {
   UserRegister,
   UserUpdate,
   UserUpdateMe,
-  UsersPublic, Properties, RoomPublic, RoomsPublic, PreviewDto, UpdatePropertiesType
+  UsersPublic, Properties, RoomPublic, RoomsPublic, PreviewDto, UpdatePropertiesType, UserEmployeePublic
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -371,7 +371,7 @@ export type TDataReadEmployeeById = {
 export class EmployeeService {
   public static readEmployeeById(
       data: TDataReadEmployeeById,
-  ): CancelablePromise<UserPublic> {
+  ): CancelablePromise<UserEmployeePublic> {
     const { userId } = data
     return __request(OpenAPI, {
       method: "GET",
