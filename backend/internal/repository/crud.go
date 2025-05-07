@@ -32,6 +32,15 @@ func GetByUserID[T any](db *gorm.DB, id uuid.UUID, model *T) error {
 	}
 	return nil
 }
+
+func DeleteByUserID[T any](db *gorm.DB, id uuid.UUID, model *T) error {
+	err := db.Where("user_id = ?", id).Delete(model).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil
+	}
+	return err
+}
+
 func GetAllByField[T any](db *gorm.DB, field string, value any, out *T) error {
 	return db.Where(fmt.Sprintf("%s = ?", field), value).Find(out).Error
 }

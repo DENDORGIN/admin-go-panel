@@ -9,6 +9,7 @@ import (
 	"backend/modules/chat/messages"
 	"backend/modules/chat/rooms"
 	"backend/modules/direct"
+	"backend/modules/employees"
 	"backend/modules/item"
 	"backend/modules/media"
 	"backend/modules/property"
@@ -98,9 +99,14 @@ func main() {
 	//Protecting routes with JWT middleware
 	r.Use(middleware.AuthMiddleware())
 
-	// User routes
+	// Version routes
 	version := r.Group("/v1")
+
+	// User routes
 	user.RegisterRoutes(version)
+
+	// Employees routes
+	employees.RegisterRoutes(version)
 
 	// Blogs routes
 	blog.RegisterRoutes(version)

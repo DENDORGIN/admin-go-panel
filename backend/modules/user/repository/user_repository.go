@@ -61,42 +61,25 @@ func GetAllUsers(db *gorm.DB, limit int, skip int) ([]*models.User, error) {
 	return users, nil
 }
 
-func GetUserById(db *gorm.DB, id uuid.UUID) (*models.UserResponseEmployees, error) {
+func GetUserById(db *gorm.DB, id uuid.UUID) (*models.UserResponse, error) {
 	var user models.User
-	var employee employees.Employees
 
 	err := repository.GetByID(db, id, &user)
 	if err != nil {
 		return nil, err
 	}
 
-	err = repository.GetByUserID(db, id, &employee)
-	if err != nil {
-		return nil, err
-	}
-
 	// Формуємо відповідь
-	UserResponseEmployees := &models.UserResponseEmployees{
-		ID:            user.ID,
-		FullName:      user.FullName,
-		Avatar:        user.Avatar,
-		Email:         user.Email,
-		IsActive:      user.IsActive,
-		IsSuperUser:   user.IsSuperUser,
-		IsAdmin:       user.IsAdmin,
-		PhoneNumber1:  employee.PhoneNumber1,
-		PhoneNumber2:  employee.PhoneNumber2,
-		Company:       employee.Company,
-		Position:      employee.Position,
-		ConditionType: employee.ConditionType,
-		Salary:        employee.Salary,
-		Address:       employee.Address,
-		DateStart:     employee.DateStart,
-		DateEnd:       employee.DateEnd,
-		ExtraData:     employee.ExtraData,
-		WhuCreatedBy:  employee.WhuCreatedBy,
+	UserResponse := &models.UserResponse{
+		ID:          user.ID,
+		FullName:    user.FullName,
+		Avatar:      user.Avatar,
+		Email:       user.Email,
+		IsActive:    user.IsActive,
+		IsSuperUser: user.IsSuperUser,
+		IsAdmin:     user.IsAdmin,
 	}
-	return UserResponseEmployees, nil
+	return UserResponse, nil
 }
 
 func GetUserByIdFull(db *gorm.DB, id uuid.UUID) (*models.User, error) {
@@ -162,6 +145,13 @@ func DeleteUserById(db *gorm.DB, id uuid.UUID) error {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("user not found")
+		}
+	}
+
+	err = repository.DeleteByUserID(db, id, &employees.Employees{})
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("employees not found")
 		}
 	}
 	return nil

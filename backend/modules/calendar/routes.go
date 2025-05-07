@@ -11,6 +11,6 @@ func RegisterRoutes(r *gin.RouterGroup) {
 		calendarGroup.POST("/events", handlers.CreateEventHandler)
 		calendarGroup.GET("/events", handlers.GetAllEventsHandler)
 		calendarGroup.PATCH("/events/:id", handlers.UpdateCalendarEventHandler)
-		calendarGroup.DELETE("/:id", handlers.DeleteCalendarEventHandler)
+		calendarGroup.DELETE("/events/:id", handlers.DeleteCalendarEventHandler)
 	}
 }
