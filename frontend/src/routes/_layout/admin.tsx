@@ -108,7 +108,7 @@ function UsersTable() {
                           _hover={{ bg: hoverBg }}
                           onClick={() =>
                               navigate({
-                                to: "/_layout/user/$userId",
+                                to: "/user/$userId",
                                 params: { userId: user.ID },
                               })
                           }

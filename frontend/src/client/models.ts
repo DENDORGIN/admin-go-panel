@@ -196,6 +196,30 @@ export type UsersPublic = {
   count: number
 }
 
+export type UserEmployeePublic = {
+  ID: string
+  fullName?: string | null
+  avatar?: string | null
+  email: string
+  isActive?: boolean
+  isSuperUser?: boolean
+  isAdmin?: boolean
+  created_at: string
+  updated_at: string
+  phone_number_1: string | null
+  phone_number_2: string | null
+  company:string | null
+  position:string | null
+  condition_type:string | null
+  salary:string | null
+  address:string | null
+  date_start:string | null
+  date_end:string | null
+  extra_data: JSON
+  whu_created_by: string
+  whu_updated_by: string | null
+}
+
 export type ValidationError = {
   loc: Array<string | number>
   msg: string
@@ -287,4 +311,5 @@ export interface MessageType {
   isLoading?: boolean;
   reactions?: Reaction[];
 }
+
 
