@@ -29,6 +29,7 @@ type UserResponseEmployees struct {
 	DateEnd       *time.Time     `json:"date_end"`
 	ExtraData     datatypes.JSON `json:"extra_data"`
 	WhuCreatedBy  uuid.UUID      `json:"whu_created_by"`
+	WhuUpdatedBy  *uuid.UUID     `json:"whu_updated_by"`
 }
 
 type UpdateUserEmployees struct {

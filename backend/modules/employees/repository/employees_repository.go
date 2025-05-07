@@ -44,11 +44,12 @@ func GetUserEmployeesById(db *gorm.DB, id uuid.UUID) (*employees.UserResponseEmp
 		DateEnd:       employee.DateEnd,
 		ExtraData:     employee.ExtraData,
 		WhuCreatedBy:  employee.WhuCreatedBy,
+		WhuUpdatedBy:  employee.WhuUpdatedBy,
 	}
 	return UserResponseEmployees, nil
 }
 
-func UpdateUserEmployeesById(db *gorm.DB, id uuid.UUID, updateEmployee *employees.UpdateUserEmployees) (*employees.UserResponseEmployees, error) {
+func UpdateUserEmployeesById(db *gorm.DB, id, superUserId uuid.UUID, updateEmployee *employees.UpdateUserEmployees) (*employees.UserResponseEmployees, error) {
 	var user users.User
 	var emp employees.Employees
 
@@ -106,6 +107,8 @@ func UpdateUserEmployeesById(db *gorm.DB, id uuid.UUID, updateEmployee *employee
 		emp.ExtraData = *updateEmployee.ExtraData
 	}
 
+	emp.WhuUpdatedBy = &superUserId
+
 	if err := db.Save(&emp).Error; err != nil {
 		return nil, err
 	}
@@ -132,5 +135,6 @@ func UpdateUserEmployeesById(db *gorm.DB, id uuid.UUID, updateEmployee *employee
 		DateEnd:       emp.DateEnd,
 		ExtraData:     emp.ExtraData,
 		WhuCreatedBy:  emp.WhuCreatedBy,
+		WhuUpdatedBy:  emp.WhuUpdatedBy,
 	}, nil
 }
