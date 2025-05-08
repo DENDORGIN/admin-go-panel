@@ -2,6 +2,7 @@ package messages
 
 import (
 	utils2 "backend/internal/services/utils"
+	"backend/modules/chat/messages/buffer"
 	messageDTO "backend/modules/chat/messages/models"
 	messageRepository "backend/modules/chat/messages/repository"
 	reactionDTO "backend/modules/reaction/models"
@@ -65,6 +66,10 @@ func HandleWebSocket(ctx *gin.Context) {
 		ctx.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
+
+	tenantID := user.TenantID
+	// 🔁 Отримати або створити буфер для цього тенанта
+	writer := buffer.GetOrCreateWriter(tenantID, db)
 
 	// ✅ Тепер апгрейдимо WebSocket
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
@@ -273,14 +278,14 @@ func HandleWebSocket(ctx *gin.Context) {
 			continue
 		}
 
-		message := messageDTO.Messages{
+		// 🔁 Замість db.Create(&message)
+		writer.Add(messageDTO.Messages{
 			ID:        payload.ID,
 			UserId:    user.ID,
 			RoomId:    roomID,
 			Message:   payload.Message,
 			CreatedAt: time.Now(),
-		}
-		db.Create(&message)
+		})
 
 		broadcastMessage(roomID, msg)
 	}
