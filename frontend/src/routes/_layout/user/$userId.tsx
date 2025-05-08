@@ -61,7 +61,7 @@ function UserDetails() {
               <Td colSpan={2}>
                 <ImageGallery
                     images={Array.isArray(user.avatar) ? user.avatar : user.avatar ? [user.avatar] : []}
-                    title={user.fullName}
+                    title={user.fullName ?? "_"}
                     numberOfImages={1}
                 />
               </Td>
