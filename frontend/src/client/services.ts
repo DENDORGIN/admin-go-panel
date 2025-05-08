@@ -21,7 +21,7 @@ import {
   UserRegister,
   UserUpdate,
   UserUpdateMe,
-  UsersPublic, Properties, RoomPublic, RoomsPublic, PreviewDto, UpdatePropertiesType
+  UsersPublic, Properties, RoomPublic, RoomsPublic, PreviewDto, UpdatePropertiesType, UserEmployeePublic
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -364,7 +364,27 @@ export class UsersService {
     })
   }
 }
+export type TDataReadEmployeeById = {
+  userId: string
+}
 
+export class EmployeeService {
+  public static readEmployeeById(
+      data: TDataReadEmployeeById,
+  ): CancelablePromise<UserEmployeePublic> {
+    const { userId } = data
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/v1/employees/{user_id}",
+      path: {
+        user_id: userId,
+      },
+      errors: {
+        422: "Validation Error",
+      },
+    })
+  }
+}
 export type TDataTestEmail = {
   emailTo: string
 }
