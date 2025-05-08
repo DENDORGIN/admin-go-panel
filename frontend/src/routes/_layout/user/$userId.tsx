@@ -4,17 +4,21 @@ import {
   Link,
   Spinner,
   Text,
-  Td,
-  Table,
-  Tr,
-  Tbody
+  Box,
+  Divider,
+  Stack,
+  // IconButton,
+  Input,
+  FormControl,
+  // useToast,
 } from "@chakra-ui/react"
-import { ArrowBackIcon } from "@chakra-ui/icons"
+import { ArrowBackIcon, } from "@chakra-ui/icons" //EditIcon
 import { createFileRoute } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query"
 import { EmployeeService } from "../../../client"
 import { useNavigate } from "@tanstack/react-router"
-import ImageGallery from "../../../components/Modals/ModalImageGallery.tsx";
+import { useState, useRef } from "react"
+import { useForm } from "react-hook-form"
 
 export const Route = createFileRoute("/_layout/user/$userId")({
   component: UserDetails,
@@ -23,22 +27,50 @@ export const Route = createFileRoute("/_layout/user/$userId")({
 function UserDetails() {
   const { userId } = Route.useParams()
   const navigate = useNavigate()
+  // const toast = useToast()
+  const fileInputRef = useRef(null)
+  const { getValues, setValue } = useForm()
+  const [file, setFile] = useState<{ file: File, preview: string } | null>(null)
+  const [isSubmitting] = useState(false) //<----, setIsSubmitting
 
-  const { data: user, isLoading, error } = useQuery({
+  // const [ setIsEditingName] = useState(false) //<----, setIsEditingName
+  // const [ setIsEditingEmail] = useState(false) //<----, setIsEditingEmail
+  // const [ setIsEditingCompany] = useState(false) //<----, setIsEditingCompany
+  // const [ setIsEditingPosition] = useState(false) //<----, setIsEditingPosition
+
+  const { data: user, isLoading, error,} = useQuery({  // <--- refetch
     queryKey: ["user", userId],
     queryFn: () => EmployeeService.readEmployeeById({ userId }),
     enabled: !!userId
   })
 
-  if (isLoading)
+  function onFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const selectedFile = event.target.files?.[0]
+    if (selectedFile) {
+      const preview = URL.createObjectURL(selectedFile)
+      setFile({ file: selectedFile, preview })
+      setValue("avatar", preview)
+      // TODO: додати логіку збереження на сервер
+    }
+  }
+
+  function handleFileButtonClick() {
+    if (user?.isSuperUser && fileInputRef.current) {
+      (fileInputRef.current as HTMLInputElement).click()
+    }
+  }
+
+  if (isLoading) {
     return (
         <Flex justify="center" align="center" h="50vh">
           <Spinner size="xl" />
         </Flex>
     )
+  }
 
-  if (!user || error)
+  if (!user || error) {
     return <Text textAlign="center">Користувача не знайдено або сталася помилка.</Text>
+  }
 
   return (
       <Container maxW="4xl" py={8}>
@@ -55,53 +87,152 @@ function UserDetails() {
           Back to the user list
         </Link>
 
-        <Table variant="simple" mt={6}>
-          <Tbody>
-            <Tr>
-              <Td colSpan={2}>
-                <ImageGallery
-                    images={Array.isArray(user.avatar) ? user.avatar : user.avatar ? [user.avatar] : []}
-                    title={user.fullName ?? "_"}
-                    numberOfImages={1}
+        <Stack spacing={6}>
+          {/* Аватар */}
+          <Box>
+            <Section title="Avatar">
+              <FormControl mt={4}>
+                <Input
+                    ref={fileInputRef}
+                    id="avatar"
+                    type="file"
+                    accept="image/*"
+                    onChange={onFileChange}
+                    hidden
+                    disabled={isSubmitting}
                 />
-              </Td>
-            </Tr>
-            <Tr>
-              <Td fontWeight="bold">Email</Td><Td>{user.email}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Активний</Td><Td>{user.isActive ? "Так" : "Ні"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Адміністратор</Td><Td>{user.isAdmin ? "Так" : "Ні"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Суперкористувач</Td><Td>{user.isSuperUser ? "Так" : "Ні"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Телефон 1</Td><Td>{user.phone_number_1 || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Телефон 2</Td><Td>{user.phone_number_2 || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Компанія</Td><Td>{user.company || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Посада</Td><Td>{user.position || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Тип угоди</Td><Td>{user.condition_type || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Зарплата</Td><Td>{user.salary || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Адреса</Td><Td>{user.address || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Дата початку</Td><Td>{user.date_start || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Дата завершення</Td><Td>{user.date_end || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Створено</Td><Td>{new Date(user.created_at).toLocaleString()}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Оновлено</Td><Td>{new Date(user.updated_at).toLocaleString()}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Хто створив</Td><Td>{user.whu_created_by}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Хто оновив</Td><Td>{user.whu_updated_by || "—"}</Td></Tr>
-          </Tbody>
-        </Table>
+
+                <Box
+                    w="100px"
+                    h="100px"
+                    borderRadius="full"
+                    overflow="hidden"
+                    cursor={user?.isSuperUser ? "pointer" : "not-allowed"}
+                    border="2px solid"
+                    borderColor="gray.200"
+                    _hover={{ opacity: user?.isSuperUser ? 0.8 : 1 }}
+                    onClick={handleFileButtonClick}
+                >
+                  <img
+                      src={
+                          file?.preview ||
+                          getValues("avatar") ||
+                          user?.avatar ||
+                          "https://via.placeholder.com/100x100?text=Avatar"
+                      }
+                      alt="Avatar"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                </Box>
+              </FormControl>
+            </Section>
+          </Box>
+
+          {/* Основна інформація */}
+          {/*<Section title="Main Info">*/}
+          {/*  <Info*/}
+          {/*      label="Full Name"*/}
+          {/*      value={user.fullName}*/}
+          {/*      action={<IconButton icon={<EditIcon />} size="sm" onClick={() => setIsEditingName(true)} />}*/}
+          {/*  />*/}
+          {/*  <Info*/}
+          {/*      label="Email"*/}
+          {/*      value={user.email}*/}
+          {/*      action={<IconButton icon={<EditIcon />} size="sm" onClick={() => setIsEditingEmail(true)} />}*/}
+          {/*  />*/}
+          {/*  <Info label="Active" value={user.isActive ? "Так" : "Ні"} />*/}
+          {/*  <Info label="Admin" value={user.isAdmin ? "Так" : "Ні"} />*/}
+          {/*  <Info label="Super User" value={user.isSuperUser ? "Так" : "Ні"} />*/}
+          {/*</Section>*/}
+
+          {/*/!* Контакти *!/*/}
+          {/*<Section title="Contacts">*/}
+          {/*  <Info label="Phone 1" value={user.phone_number_1} />*/}
+          {/*  <Info label="Phone 2" value={user.phone_number_2} />*/}
+          {/*  <Info label="Address" value={user.address} />*/}
+          {/*</Section>*/}
+
+          {/*/!* Робоча інформація *!/*/}
+          {/*<Section title="Company Info">*/}
+          {/*  <Info*/}
+          {/*      label="Company"*/}
+          {/*      value={user.company}*/}
+          {/*      action={<IconButton icon={<EditIcon />} size="sm" onClick={() => setIsEditingCompany(true)} />}*/}
+          {/*  />*/}
+          {/*  <Info*/}
+          {/*      label="Position"*/}
+          {/*      value={user.position}*/}
+          {/*      action={<IconButton icon={<EditIcon />} size="sm" onClick={() => setIsEditingPosition(true)} />}*/}
+          {/*  />*/}
+          {/*  <Info label="Contract Type" value={user.condition_type} />*/}
+          {/*  <Info label="Salary" value={user.salary} />*/}
+          {/*</Section>*/}
+
+          {/*/!* Дати *!/*/}
+          {/*<Section title="Dates">*/}
+          {/*  <Info label="Start Date" value={user.date_start} />*/}
+          {/*  <Info label="End Date" value={user.date_end} />*/}
+          {/*  <Info label="Created At" value={new Date(user.created_at).toLocaleString()} />*/}
+          {/*  <Info label="Updated At" value={new Date(user.updated_at).toLocaleString()} />*/}
+          {/*</Section>*/}
+
+          {/*/!* Автори *!/*/}
+          {/*<Section title="Audit">*/}
+          {/*  <Info label="Created By" value={user.whu_created_by} />*/}
+          {/*  <Info label="Updated By" value={user.whu_updated_by} />*/}
+          {/*</Section>*/}
+        </Stack>
       </Container>
   )
 }
+
+function Section({
+                   children
+                 }: {
+  title: string,
+  children: React.ReactNode
+}) {
+  return (
+      <Box>
+        <Box position="relative" mb={2}>
+          <Divider />
+          <Box
+              position="absolute"
+              top="50%"
+              left="20px"
+              transform="translateY(-50%)"
+              px={2}
+              fontWeight="bold"
+          >
+          </Box>
+        </Box>
+        <Stack spacing={3}>
+          {children}
+        </Stack>
+      </Box>
+  )
+}
+
+// function Info({
+//                 label,
+//                 value,
+//                 action
+//               }: {
+//   label: string,
+//   value: string | null | undefined,
+//   action?: React.ReactNode
+// }) {
+//   return (
+//       <Flex justify="space-between" align="center">
+//         <Box flex="1">
+//           <Text fontWeight="bold">{label}:</Text>
+//           <Text>{value ?? "—"}</Text>
+//         </Box>
+//         {action && (
+//             <Box ml={4}>
+//               {action}
+//             </Box>
+//         )}
+//       </Flex>
+//   )
+// }
