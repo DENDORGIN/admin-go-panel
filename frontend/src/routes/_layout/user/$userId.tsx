@@ -7,18 +7,25 @@ import {
   Box,
   Divider,
   Stack,
-  // IconButton,
   Input,
   FormControl,
-  // useToast,
 } from "@chakra-ui/react"
-import { ArrowBackIcon, } from "@chakra-ui/icons" //EditIcon
+import { ArrowBackIcon } from "@chakra-ui/icons"
 import { createFileRoute } from "@tanstack/react-router"
-import { useQuery } from "@tanstack/react-query"
-import { EmployeeService } from "../../../client"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  type ApiError,
+  EmployeeService,
+  type UserPublic,
+  UsersService,
+  type UserUpdateMe
+} from "../../../client"
 import { useNavigate } from "@tanstack/react-router"
 import { useState, useRef } from "react"
 import { useForm } from "react-hook-form"
+import useAuth from "../../../hooks/useAuth.ts"
+import useCustomToast from "../../../hooks/useCustomToast.ts"
+import { handleError } from "../../../utils.ts"
 
 export const Route = createFileRoute("/_layout/user/$userId")({
   component: UserDetails,
@@ -27,36 +34,82 @@ export const Route = createFileRoute("/_layout/user/$userId")({
 function UserDetails() {
   const { userId } = Route.useParams()
   const navigate = useNavigate()
-  // const toast = useToast()
-  const fileInputRef = useRef(null)
-  const { getValues, setValue } = useForm()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<{ file: File, preview: string } | null>(null)
-  const [isSubmitting] = useState(false) //<----, setIsSubmitting
+  const showToast = useCustomToast()
+  const { user: currentUser } = useAuth()
+  const queryClient = useQueryClient()
 
-  // const [ setIsEditingName] = useState(false) //<----, setIsEditingName
-  // const [ setIsEditingEmail] = useState(false) //<----, setIsEditingEmail
-  // const [ setIsEditingCompany] = useState(false) //<----, setIsEditingCompany
-  // const [ setIsEditingPosition] = useState(false) //<----, setIsEditingPosition
-
-  const { data: user, isLoading, error,} = useQuery({  // <--- refetch
+  const { data: user, isLoading, error } = useQuery({
     queryKey: ["user", userId],
     queryFn: () => EmployeeService.readEmployeeById({ userId }),
     enabled: !!userId
   })
 
-  function onFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const selectedFile = event.target.files?.[0]
-    if (selectedFile) {
-      const preview = URL.createObjectURL(selectedFile)
-      setFile({ file: selectedFile, preview })
-      setValue("avatar", preview)
-      // TODO: додати логіку збереження на сервер
+  const {
+    getValues,
+    formState: { isSubmitting },
+  } = useForm<UserPublic>({
+    mode: "onBlur",
+    criteriaMode: "all",
+    defaultValues: {
+      fullName: currentUser?.fullName,
+      email: currentUser?.email,
+      avatar: currentUser?.avatar
+    },
+  })
+
+  const avatarMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!currentUser?.isSuperUser) {
+        throw new Error("Permission denied")
+      }
+
+      const url = await uploadImage(file)
+      await UsersService.updateUserMe({ requestBody: { avatar: url } })
+      return url
+    },
+    onSuccess: () => {
+      showToast("Success!", "Avatar updated", "success")
+      queryClient.invalidateQueries()
+    },
+    onError: (err: ApiError | Error) => {
+      if (err instanceof Error && err.message === "Permission denied") {
+        showToast("Permission denied", "Only superusers can update avatar", "error")
+        return
+      }
+
+      if ('status' in err) {
+        handleError(err as ApiError, showToast)
+      } else {
+        showToast("Error", err.message || "Unknown error", "error")
+      }
     }
+  })
+
+  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) return
+
+    if (!currentUser?.isSuperUser) {
+      showToast("Permission denied", "Only superusers can update avatar", "error")
+      return
+    }
+
+    const selectedFile = event.target.files[0]
+    const newFile = {
+      name: selectedFile.name,
+      size: `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
+      file: selectedFile,
+      preview: URL.createObjectURL(selectedFile),
+    }
+
+    setFile(newFile)
+    avatarMutation.mutate(selectedFile)
   }
 
   function handleFileButtonClick() {
     if (user?.isSuperUser && fileInputRef.current) {
-      (fileInputRef.current as HTMLInputElement).click()
+      fileInputRef.current.click()
     }
   }
 
@@ -88,7 +141,6 @@ function UserDetails() {
         </Link>
 
         <Stack spacing={6}>
-          {/* Аватар */}
           <Box>
             <Section title="Avatar">
               <FormControl mt={4}>
@@ -127,66 +179,13 @@ function UserDetails() {
               </FormControl>
             </Section>
           </Box>
-
-          {/* Основна інформація */}
-          {/*<Section title="Main Info">*/}
-          {/*  <Info*/}
-          {/*      label="Full Name"*/}
-          {/*      value={user.fullName}*/}
-          {/*      action={<IconButton icon={<EditIcon />} size="sm" onClick={() => setIsEditingName(true)} />}*/}
-          {/*  />*/}
-          {/*  <Info*/}
-          {/*      label="Email"*/}
-          {/*      value={user.email}*/}
-          {/*      action={<IconButton icon={<EditIcon />} size="sm" onClick={() => setIsEditingEmail(true)} />}*/}
-          {/*  />*/}
-          {/*  <Info label="Active" value={user.isActive ? "Так" : "Ні"} />*/}
-          {/*  <Info label="Admin" value={user.isAdmin ? "Так" : "Ні"} />*/}
-          {/*  <Info label="Super User" value={user.isSuperUser ? "Так" : "Ні"} />*/}
-          {/*</Section>*/}
-
-          {/*/!* Контакти *!/*/}
-          {/*<Section title="Contacts">*/}
-          {/*  <Info label="Phone 1" value={user.phone_number_1} />*/}
-          {/*  <Info label="Phone 2" value={user.phone_number_2} />*/}
-          {/*  <Info label="Address" value={user.address} />*/}
-          {/*</Section>*/}
-
-          {/*/!* Робоча інформація *!/*/}
-          {/*<Section title="Company Info">*/}
-          {/*  <Info*/}
-          {/*      label="Company"*/}
-          {/*      value={user.company}*/}
-          {/*      action={<IconButton icon={<EditIcon />} size="sm" onClick={() => setIsEditingCompany(true)} />}*/}
-          {/*  />*/}
-          {/*  <Info*/}
-          {/*      label="Position"*/}
-          {/*      value={user.position}*/}
-          {/*      action={<IconButton icon={<EditIcon />} size="sm" onClick={() => setIsEditingPosition(true)} />}*/}
-          {/*  />*/}
-          {/*  <Info label="Contract Type" value={user.condition_type} />*/}
-          {/*  <Info label="Salary" value={user.salary} />*/}
-          {/*</Section>*/}
-
-          {/*/!* Дати *!/*/}
-          {/*<Section title="Dates">*/}
-          {/*  <Info label="Start Date" value={user.date_start} />*/}
-          {/*  <Info label="End Date" value={user.date_end} />*/}
-          {/*  <Info label="Created At" value={new Date(user.created_at).toLocaleString()} />*/}
-          {/*  <Info label="Updated At" value={new Date(user.updated_at).toLocaleString()} />*/}
-          {/*</Section>*/}
-
-          {/*/!* Автори *!/*/}
-          {/*<Section title="Audit">*/}
-          {/*  <Info label="Created By" value={user.whu_created_by} />*/}
-          {/*  <Info label="Updated By" value={user.whu_updated_by} />*/}
-          {/*</Section>*/}
         </Stack>
       </Container>
   )
 }
 
 function Section({
+                   title,
                    children
                  }: {
   title: string,
@@ -195,16 +194,8 @@ function Section({
   return (
       <Box>
         <Box position="relative" mb={2}>
+          <Text fontWeight="bold" fontSize="lg" mb={1}>{title}</Text>
           <Divider />
-          <Box
-              position="absolute"
-              top="50%"
-              left="20px"
-              transform="translateY(-50%)"
-              px={2}
-              fontWeight="bold"
-          >
-          </Box>
         </Box>
         <Stack spacing={3}>
           {children}
@@ -213,26 +204,7 @@ function Section({
   )
 }
 
-// function Info({
-//                 label,
-//                 value,
-//                 action
-//               }: {
-//   label: string,
-//   value: string | null | undefined,
-//   action?: React.ReactNode
-// }) {
-//   return (
-//       <Flex justify="space-between" align="center">
-//         <Box flex="1">
-//           <Text fontWeight="bold">{label}:</Text>
-//           <Text>{value ?? "—"}</Text>
-//         </Box>
-//         {action && (
-//             <Box ml={4}>
-//               {action}
-//             </Box>
-//         )}
-//       </Flex>
-//   )
-// }
+async function uploadImage(file: File): Promise<string> {
+  // TODO: Реалізуй логіку завантаження зображення на сервер або B2
+  return Promise.resolve("https://fake-uploaded-url.com/avatar.jpg")
+}
