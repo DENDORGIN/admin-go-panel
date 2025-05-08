@@ -15,6 +15,9 @@ import { OpenAPI } from "./client"
 import theme from "./theme"
 import { getApiUrl } from "./utils/urls"
 
+import "./i18n"
+
+
 
 OpenAPI.BASE = getApiUrl()
 

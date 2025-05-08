@@ -1,0 +1,65 @@
+{
+  "dashboard": {
+    "greeting": "Witam, {{name}} 👋🏼",
+    "welcome": "Witamy z powrotem, dobrze cię widzieć!"
+  },
+  "appearance": {
+    "title": "Wygląd",
+    "light": "Motyw świetlny",
+    "dark": "Motyw ciemny",
+    "default": "Domyślnie"
+  },
+  "userMenu": {
+    "profile": "Mój profil",
+    "logout": "Wyjście"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "chat": "Czat",
+    "direct": "Direct",
+    "items": "Items",
+    "blog": "Blog",
+    "calendar": "Kalendarz",
+    "settings": "Ustawienia",
+    "admin": "Admin"
+  },
+
+  "rooms": {
+    "heading": "Czaty",
+    "add": "Dodaj czat",
+    "view": "Wyświetl czat",
+    "update": "Edytuj czat",
+    "delete": "Usuń czat",
+    "deleteConfirmTitle": "Usuń czat",
+    "deleteConfirmBody": "Na pewno? Tego działania nie można cofnąć.",
+    "deleteSuccess": "Czat usunięty.",
+    "deleteError": "Coś poszło nie tak. Spróbuj ponownie.",
+    "unauthorized": "Nie masz uprawnień do wykonania tej akcji.",
+    "noRooms": "Czaty nie są dostępne.",
+    "active": "Aktywny",
+    "inactive": "Nieaktywny",
+    "channel": "Channel.",
+    "reviews": " recenzje"
+  },
+
+  "items": {
+    "heading": "Zarządzanie przedmiotami",
+    "loadingLanguages": "Ładowanie języków...",
+    "noLanguages": "Brak dostępnych języków do wyświetlenia.",
+    "searchPlaceholder": "Szukaj...",
+    "allCategories": "Wszystkie kategorie",
+    "position": "Pozycja",
+    "title": "Tytuł",
+    "images": "Obrazy",
+    "category": "Kategoria",
+    "price": "Cena",
+    "quantity": "Quantity",
+    "status": "Status",
+    "actions": "Działania",
+    "noCategory": "Brak kategorii",
+    "active": "Aktywny",
+    "inactive": "Nieaktywny",
+    "na": "N/A"
+  }
+}
+

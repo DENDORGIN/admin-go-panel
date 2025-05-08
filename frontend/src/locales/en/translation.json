@@ -1,0 +1,63 @@
+{
+  "dashboard": {
+    "greeting": "Hi, {{name}} 👋🏼",
+    "welcome": "Welcome back, nice to see you again!"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "light": "Light Mode",
+    "dark": "Dark Mode",
+    "default": "Default"
+  },
+  "userMenu": {
+    "profile": "My profile",
+    "logout": "Log out"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "chat": "Chat",
+    "direct": "Direct",
+    "items": "Items",
+    "blog": "Blog",
+    "calendar": "Calendar",
+    "settings": "User Settings",
+    "admin": "Admin"
+  },
+  "rooms": {
+    "heading": "Chat Rooms",
+    "add": "Add room",
+    "view": "View Room",
+    "update": "Edit Room",
+    "delete": "Delete room",
+    "deleteConfirmTitle": "Delete Room",
+    "deleteConfirmBody": "Are you sure? This action cannot be undone.",
+    "deleteSuccess": "Room deleted.",
+    "deleteError": "Something went wrong. Please try again.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "noRooms": "No rooms available.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "channel": "Channel",
+    "reviews": "reviews"
+  },
+  "items": {
+    "heading": "Items Management",
+    "loadingLanguages": "Loading languages...",
+    "noLanguages": "No languages available to display.",
+    "searchPlaceholder": "Search...",
+    "allCategories": "All categories",
+    "position": "Position",
+    "title": "Title",
+    "images": "Images",
+    "category": "Category",
+    "price": "Price",
+    "quantity": "Quantity",
+    "status": "Status",
+    "actions": "Actions",
+    "noCategory": "No Category",
+    "active": "Active",
+    "inactive": "Inactive",
+    "na": "N/A"
+  }
+
+}
