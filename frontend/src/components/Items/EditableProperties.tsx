@@ -15,6 +15,7 @@ import { type ApiError, PropertyService} from "../../client"
 import { handleError } from "../../utils";
 import useCustomToast from "../../hooks/useCustomToast";
 import {EditIcon} from "@chakra-ui/icons";
+import { useTranslation } from "react-i18next"
 
 type EditablePropertiesProps = {
     propertyId: string
@@ -30,6 +31,7 @@ type EditablePropertiesProps = {
 
 const EditableProperties = ({ propertyId, property, onSuccess, onError, bgColor }: EditablePropertiesProps) => {
     const [isEditing, setIsEditing] = useState(false)
+    const { t } = useTranslation()
 
     const getEditableProps = (props: Record<string, string>) => {
         return Object.fromEntries(
@@ -51,7 +53,7 @@ const EditableProperties = ({ propertyId, property, onSuccess, onError, bgColor 
             queryClient.invalidateQueries({ queryKey: ["property", propertyId] })
             setIsEditing(false)
             onSuccess?.()
-            showToast("Success!", "Update property", "success")
+            showToast("Success!", t("properties.success"), "success")
         },
         onError: (err) => {
             if (
@@ -63,7 +65,7 @@ const EditableProperties = ({ propertyId, property, onSuccess, onError, bgColor 
                 handleError(err as ApiError, showToast)
                 onError?.(err as ApiError)
             } else {
-                showToast("Error", "Somthing wrong", "error")
+                showToast("Error", t("properties.error"), "error")
             }
         }
     })
@@ -87,16 +89,16 @@ const EditableProperties = ({ propertyId, property, onSuccess, onError, bgColor 
                 <Box flex="1" position="relative">
                     <Divider />
                     <AbsoluteCenter bg={bgColor} fontWeight="bold" px="4">
-                        Property
+                        {t("properties.title")}
                     </AbsoluteCenter>
                 </Box>
                 {isEditing ? (
                     <Flex gap={2}>
                         <Button size="sm" variant="primary" onClick={handleSave} isLoading={mutation.isPending}>
-                            Save
+                            {t("properties.save")}
                         </Button>
                         <Button size="sm" variant="outline" onClick={handleCancel}>
-                            Cancel
+                            {t("properties.cancel")}
                         </Button>
                     </Flex>
                 ) : (
@@ -105,7 +107,7 @@ const EditableProperties = ({ propertyId, property, onSuccess, onError, bgColor 
                         size="sm"
                         color="orange.500"
                         ml={4}
-                        aria-label="Edit property"
+                        aria-label={t("properties.edit")}
                         onClick={() => setIsEditing(true)}
                     />
                 )}
@@ -116,7 +118,7 @@ const EditableProperties = ({ propertyId, property, onSuccess, onError, bgColor 
                     {Object.entries(editedProps).map(([key, value]) => (
                         <Tr key={key}>
                             <Td fontWeight="semibold" w="40%">
-                                {key}
+                                {t(`properties.keys.${key}`, { defaultValue: key })}
                             </Td>
                             <Td>
                                 {isEditing ? (

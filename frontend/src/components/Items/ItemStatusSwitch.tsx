@@ -29,7 +29,7 @@ const ItemStatusSwitch = ({ item, onUpdated }: Props) => {
 
     return (
         <Box>
-            <Text fontWeight="bold" mb={1}>Status:</Text>
+            <Text fontWeight="bold" mb={1}>{t("product.status")}:</Text>
             <Flex align="center" gap={2}>
                 <Box
                     w="15px"

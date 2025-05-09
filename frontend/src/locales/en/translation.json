@@ -77,10 +77,29 @@
     "url": "Link",
     "noUrl": "No link",
     "position": "Position",
+    "status": "Status",
     "active": "Active",
     "inactive": "Inactive",
     "updated": "Status updated"
-
+  },
+  "properties": {
+    "title": "Property",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "success": "Property updated",
+    "error": "Something went wrong",
+    "keys": {
+      "height": "Height",
+      "width": "Width",
+      "weight": "Weight",
+      "color": "Color",
+      "material": "Material",
+      "brand": "Brand",
+      "size": "Size",
+      "motif": "Motif",
+      "style": "Stile"
+    }
   },
   "admin": {
     "heading": "Users Management",
@@ -131,6 +150,11 @@
     "placeholder": "Password",
     "success": "Password updated successfully.",
     "save": "Save"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "page": "Page",
+    "next": "Next"
   }
 
 }

@@ -79,9 +79,30 @@
     "url": "Link",
     "noUrl": "Brak linku",
     "position": "Pozycja",
+    "status": "Status",
     "active": "Aktywny",
     "inactive": "Nieaktywny",
     "updated": "Status zaktualizowany"
+  },
+  "properties": {
+    "title": "Zarządzanie właściwościami",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "edit": "Edytuj",
+    "success": "Właściwości zaktualizowane",
+    "error": "Coś poszło nie tak",
+    "keys": {
+      "height": "Wysokość",
+      "width": "Szerokość",
+      "depth": "Głębokość",
+      "weight": "Waga",
+      "size": "Rozmiar",
+      "color": "Kolor",
+      "material": "Materiał",
+      "brand": "Marka",
+      "model": "Model",
+      "style": "Stile"
+    }
   },
   "admin": {
     "heading": "Zarządzanie użytkownikami",
@@ -132,6 +153,11 @@
     "placeholder": "Hasło",
     "success": "Hasło zaktualizowane pomyślnie.",
     "save": "Zapisz"
+  },
+  "pagination": {
+    "previous": "Poprzednia",
+    "page": "Strona",
+    "next": "Następna"
   }
 }
 
