@@ -104,6 +104,19 @@
       "style": "Stile"
     }
   },
+  "blog": {
+    "heading": "Zarządzanie blogiem",
+    "position": "Pozycja",
+    "title": "Tytuł",
+    "content": "Treść",
+    "images": "Obrazy",
+    "status": "Status",
+    "actions": "Działania",
+    "active": "Aktywny",
+    "inactive": "Nieaktywny",
+    "noPosts": "Brak dostępnych postów.",
+    "buttonAdd": "Blog"
+  },
   "admin": {
     "heading": "Zarządzanie użytkownikami",
     "fullName": "Imię i nazwisko",

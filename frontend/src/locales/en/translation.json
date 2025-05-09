@@ -101,6 +101,19 @@
       "style": "Stile"
     }
   },
+  "blog": {
+    "heading": "Blog Management",
+    "position": "Position",
+    "title": "Title",
+    "content": "Content",
+    "images": "Images",
+    "status": "Status",
+    "actions": "Actions",
+    "active": "Active",
+    "inactive": "Inactive",
+    "noPosts": "No posts available.",
+    "buttonAdd": "Blog"
+  },
   "admin": {
     "heading": "Users Management",
     "fullName": "Full Name",
