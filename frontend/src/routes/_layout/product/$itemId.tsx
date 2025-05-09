@@ -35,6 +35,8 @@ import EditUrlModal from "../../../components/Items/Modals/EditUrlModal.tsx"
 import ItemStatusSwitch from "../../../components/Items/ItemStatusSwitch"
 import EditMetaModal from "../../../components/Items/Modals/EditMetaModal"
 
+import { useTranslation } from "react-i18next"
+
 
 
 export const Route = createFileRoute("/_layout/product/$itemId")({
@@ -52,6 +54,7 @@ const SafeHtmlComponent: React.FC<SafeHtmlComponentProps> = ({ htmlContent }) =>
 
 function ItemDetails() {
     const { itemId } = Route.useParams()
+    const { t } = useTranslation()
     const navigate = useNavigate()
 
     const [isEditingImages, setIsEditingImages] = useState(false)
@@ -101,7 +104,7 @@ function ItemDetails() {
         )
 
     if (!item || error)
-        return <Text textAlign="center">Товар не знайдено або сталася помилка.</Text>
+        return <Text textAlign="center">{t("product.notFound")}</Text>
 
     const imageArray = Array.isArray(item.images)
         ? item.images
@@ -122,14 +125,14 @@ function ItemDetails() {
                 px={10}
             >
                 <ArrowBackIcon mr={2} />
-                Back to the product list
+                {t("product.backToList")}
             </Link>
 
             <Flex justify="space-between" align="center" mb={1}>
                 <Box flex="1" position="relative">
                     <Divider />
                     <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
-                        Title
+                        {t("product.title")}
                     </AbsoluteCenter>
                 </Box>
                 <IconButton
@@ -153,8 +156,8 @@ function ItemDetails() {
 
             <Flex justify="space-between" align="center" mb={1}>
                 <Text color="gray.500">
-                    Category: {item.category || "Not Category"} | Language:{" "}
-                    {item.language?.toUpperCase()}
+                    {t("product.category")}: {item.category || t("product.noCategory")} |{" "}
+                    {t("product.language")}: {item.language?.toUpperCase()}
                 </Text>
                 <IconButton
                     icon={<EditIcon />}
@@ -181,7 +184,7 @@ function ItemDetails() {
                         <Box flex="1" position="relative">
                             <Divider />
                             <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
-                                Content
+                                {t("product.content")}
                             </AbsoluteCenter>
                         </Box>
 
@@ -207,7 +210,7 @@ function ItemDetails() {
                         variant="link"
                         colorScheme="blue"
                     >
-                        Show {showFullContent ? "Less" : "More"}
+                        {t(showFullContent ? "product.showLess" : "product.showMore")}
                     </Button>
                 </Box>
 
@@ -223,7 +226,7 @@ function ItemDetails() {
                         <Box flex="1" position="relative">
                             <Divider />
                             <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
-                                Images
+                                {t("product.images")}
                             </AbsoluteCenter>
                         </Box>
                         <IconButton
@@ -269,7 +272,7 @@ function ItemDetails() {
                         <Box flex="1" position="relative">
                             <Divider />
                             <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
-                                Cost
+                                {t("product.cost")}
                             </AbsoluteCenter>
                         </Box>
                         <IconButton
@@ -298,7 +301,7 @@ function ItemDetails() {
                         <Box flex="1" position="relative">
                             <Divider />
                             <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
-                                Quantity
+                                {t("product.quantity")}
                             </AbsoluteCenter>
                         </Box>
                         <IconButton
@@ -336,7 +339,7 @@ function ItemDetails() {
                         <Box flex="1" position="relative">
                             <Divider />
                             <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
-                                URL
+                                {t("product.url")}
                             </AbsoluteCenter>
                         </Box>
                         <IconButton
@@ -354,11 +357,11 @@ function ItemDetails() {
                             color="blue.500"
                             textDecoration="underline"
                         >
-                            {item.item_url ? formatUrl(item.item_url) : "No URL"}
+                            {item.item_url ? formatUrl(item.item_url) : t("product.noUrl")}
                             <ExternalLinkIcon mx='4px' />
                         </Link>
                     ) : (
-                        "Not URL"
+                        t("product.noUrl")
                     )}
                 </Box>
 
@@ -374,7 +377,7 @@ function ItemDetails() {
                         <Box flex="1" position="relative">
                             <Divider />
                             <AbsoluteCenter bg={contentBg} fontWeight="bold" px="4">
-                                Position
+                                {t("product.position")}
                             </AbsoluteCenter>
                         </Box>
                         <IconButton

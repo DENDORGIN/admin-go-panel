@@ -11,60 +11,54 @@ import {
   FiMessageCircle,
   FiMessageSquare
 } from "react-icons/fi"
+import { useTranslation } from "react-i18next"
 
 import type { UserPublic } from "../../client"
-// import {ChatIcon} from "@chakra-ui/icons";
 
-const items = [
-  { icon: FiHome, title: "Dashboard", path: "/" },
-  { icon: FiMessageSquare, title: "Chat", path: "/rooms" },
-  {icon: FiMessageCircle, title: "Direct", path: "/direct" },
-  { icon: FiBriefcase, title: "Items", path: "/items" },
-  { icon: FiBookOpen, title: "Blog", path: "/blog" },
-  { icon: FiCalendar, title: "Calendar", path: "/calendar" },
-  { icon: FiSettings, title: "User Settings", path: "/settings" },
-
-]
-
-interface SidebarItemsProps {
-  onClose?: () => void
-}
-
-const SidebarItems = ({ onClose }: SidebarItemsProps) => {
+const SidebarItems = ({ onClose }: { onClose?: () => void }) => {
   const queryClient = useQueryClient()
   const textColor = useColorModeValue("ui.main", "ui.light")
   const bgActive = useColorModeValue("#F8E6E0", "#4A5568")
   const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
+  const { t } = useTranslation()
+
+  const items = [
+    { icon: FiHome, titleKey: "dashboard", path: "/" },
+    { icon: FiMessageSquare, titleKey: "chat", path: "/rooms" },
+    { icon: FiMessageCircle, titleKey: "direct", path: "/direct" },
+    { icon: FiBriefcase, titleKey: "items", path: "/items" },
+    { icon: FiBookOpen, titleKey: "blog", path: "/blog" },
+    { icon: FiCalendar, titleKey: "calendar", path: "/calendar" },
+    { icon: FiSettings, titleKey: "settings", path: "/settings" },
+  ]
 
   const finalItems = currentUser?.isSuperUser
-    ? [...items, { icon: FiUsers, title: "Admin", path: "/admin" }]
-    : items
-
-  const listItems = finalItems.map(({ icon, title, path }) => (
-    <Flex
-      as={Link}
-      to={path}
-      w="100%"
-      p={2}
-      key={title}
-      activeProps={{
-        style: {
-          background: bgActive,
-          borderRadius: "12px",
-        },
-      }}
-      color={textColor}
-      onClick={onClose}
-    >
-      <Icon as={icon} alignSelf="center" />
-      <Text ml={2}>{title}</Text>
-    </Flex>
-  ))
+      ? [...items, { icon: FiUsers, titleKey: "admin", path: "/admin" }]
+      : items
 
   return (
-    <>
-      <Box>{listItems}</Box>
-    </>
+      <Box>
+        {finalItems.map(({ icon, titleKey, path }) => (
+            <Flex
+                as={Link}
+                to={path}
+                w="100%"
+                p={2}
+                key={titleKey}
+                activeProps={{
+                  style: {
+                    background: bgActive,
+                    borderRadius: "12px",
+                  },
+                }}
+                color={textColor}
+                onClick={onClose}
+            >
+              <Icon as={icon} alignSelf="center" />
+              <Text ml={2}>{t(`sidebar.${titleKey}`)}</Text>
+            </Flex>
+        ))}
+      </Box>
   )
 }
 

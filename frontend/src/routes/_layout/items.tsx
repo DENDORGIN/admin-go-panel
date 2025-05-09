@@ -30,6 +30,8 @@ import AddItem, { type AddItemProps } from "../../components/Items/AddItem"
 import ImageGallery from "../../components/Modals/ModalImageGallery.tsx"
 import SearchInput from "../../components/Common/SearchInput"
 import { UseAvailableLanguages } from "../../hooks/useAvailableLanguages.ts"
+import { useTranslation } from "react-i18next"
+
 
 const itemsSearchSchema = z.object({
   page: z.number().catch(1),
@@ -67,6 +69,7 @@ function getItemsQueryOptions({ page, language }: ItemsQueryOptions) {
 function ItemsTable({ language }: ItemsTableProps) {
   const queryClient = useQueryClient()
   const hoverBg = useColorModeValue("gray.50", "gray.700")
+  const { t } = useTranslation()
 
   const { page } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
@@ -125,7 +128,7 @@ function ItemsTable({ language }: ItemsTableProps) {
       <Flex justify="flex-end" mb={4} gap={4} flexWrap="wrap">
         <SearchInput value={searchQuery} onChange={setSearchQuery} />
         <Select
-            placeholder="All categories"
+            placeholder={t("items.allCategories")}
             w={{ base: "100%", sm: "200px" }}
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -143,14 +146,14 @@ function ItemsTable({ language }: ItemsTableProps) {
         <Table size={{ base: "sm", md: "md" }} fontSize="sm">
           <Thead>
             <Tr>
-              <Th>Position</Th>
-              <Th>Title</Th>
-              <Th>Images</Th>
-              <Th>Category</Th>
-              <Th>Price</Th>
-              <Th>Quantity</Th>
-              <Th>Status</Th>
-              <Th>Actions</Th>
+              <Th>{t("items.position")}</Th>
+              <Th>{t("items.title")}</Th>
+              <Th>{t("items.images")}</Th>
+              <Th>{t("items.category")}</Th>
+              <Th>{t("items.price")}</Th>
+              <Th>{t("items.quantity")}</Th>
+              <Th>{t("items.status")}</Th>
+              <Th>{t("items.actions")}</Th>
             </Tr>
           </Thead>
           {isPending ? (
@@ -202,12 +205,12 @@ function ItemsTable({ language }: ItemsTableProps) {
                               />
                           ) : (
                               <Badge colorScheme="gray" variant="subtle">
-                                N/A
+                                {t("items.na")}
                               </Badge>
                           )}
                         </Td>
 
-                        <Td>{item.category || "No Category"}</Td>
+                        <Td>{item.category || t("items.noCategory")}</Td>
                         <Td>{item.price}</Td>
                         <Td>{item.quantity}</Td>
 
@@ -219,7 +222,7 @@ function ItemsTable({ language }: ItemsTableProps) {
                                 borderRadius="full"
                                 bg={item.status ? "green.500" : "red.500"}
                             />
-                            {item.status ? "Active" : "Inactive"}
+                            {item.status ? t("items.active") : t("items.inactive")}
                           </Flex>
                         </Td>
 
@@ -251,6 +254,7 @@ function Items() {
   const { data: fetchedLanguages = [], isLoading } = UseAvailableLanguages()
   const [languages, setLanguages] = useState<string[]>([])
   const [activeTabIndex, setActiveTabIndex] = useState(0)
+  const { t } = useTranslation()
 
   useEffect(() => {
     setLanguages(fetchedLanguages)
@@ -283,11 +287,11 @@ function Items() {
   return (
       <Container maxW="full" overflow="hidden">
         <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={10} mb={4}>
-          Items Management
+          {t("items.heading")}
         </Heading>
 
         <Navbar
-            type={"Item"}
+            type={t("items.buttonItem")}
             addModalAs={(props: AddItemProps) => (
                 <AddItem
                     {...props}
@@ -302,9 +306,9 @@ function Items() {
         />
 
         {isLoading ? (
-            <Box p={6}>Loading languages...</Box>
+            <Box p={6}>{t("items.loadingLanguages")}</Box>
         ) : languages.length === 0 ? (
-            <Box p={6}>No languages available to display.</Box>
+            <Box p={6}>{t("items.noLanguages")}</Box>
         ) : (
             <Box w="full" overflowX="auto">
               <Tabs

@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query"
 import { ItemsService, type ItemPublic, type ApiError } from "../../client"
 import { handleError } from "../../utils"
 import useCustomToast from "../../hooks/useCustomToast";
+import {useTranslation} from "react-i18next";
 
 interface Props {
     item: ItemPublic
@@ -13,11 +14,12 @@ interface Props {
 
 const ItemStatusSwitch = ({ item, onUpdated }: Props) => {
     const showToast = useCustomToast()
+    const { t } = useTranslation()
 
     const mutation = useMutation({
         mutationFn: (status: boolean) => ItemsService.updateItem(item.ID, { status }),
         onSuccess: () => {
-            showToast("Success", "Status updated", "success")
+            showToast("Success", t("product.updated"), "success")
             onUpdated()
         },
         onError: (err: ApiError) => {
@@ -27,7 +29,7 @@ const ItemStatusSwitch = ({ item, onUpdated }: Props) => {
 
     return (
         <Box>
-            <Text fontWeight="bold" mb={1}>Status:</Text>
+            <Text fontWeight="bold" mb={1}>{t("product.status")}:</Text>
             <Flex align="center" gap={2}>
                 <Box
                     w="15px"
@@ -41,7 +43,7 @@ const ItemStatusSwitch = ({ item, onUpdated }: Props) => {
                     colorScheme="teal"
                     size="md"
                 />
-                <Text>{item.status ? "Active" : "Inactive"}</Text>
+                <Text>{item.status ? t("product.active") : t("product.inactive")}</Text>
             </Flex>
         </Box>
     )

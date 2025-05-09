@@ -35,6 +35,8 @@ import AddRoom from "../../components/Rooms/AddRoom";
 import EditRoom from "../../components/Rooms/EditRoom";
 import useCustomToast from "../../hooks/useCustomToast.ts";
 import useAuth from "../../hooks/useAuth.ts";
+import { useTranslation } from "react-i18next";
+
 
 
 // 🔹 Типізація кімнат
@@ -71,6 +73,7 @@ function geRoomQueryOptions({ page }: { page: number }) {
 function RoomGrid({ onDeleteRoom, onEditRoom }: { onDeleteRoom: (room: RoomType) => void; onEditRoom: (room: RoomType) => void }) {
     const { page } = Route.useSearch();
     const queryClient = useQueryClient();
+    const { t } = useTranslation();
 
     const { data: rooms, isPending } = useQuery({
         ...geRoomQueryOptions({ page }),
@@ -102,7 +105,7 @@ function RoomGrid({ onDeleteRoom, onEditRoom }: { onDeleteRoom: (room: RoomType)
                     ))
                 ) : (
                     <Text textAlign="center" w="full">
-                        No rooms available.
+                        {t("rooms.noRooms")}
                     </Text>
                 )}
         </SimpleGrid>
@@ -112,6 +115,7 @@ function RoomGrid({ onDeleteRoom, onEditRoom }: { onDeleteRoom: (room: RoomType)
 function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => void; onEdit: () => void }) {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { t } = useTranslation();
 
     const isOwner = room.owner_id === user?.ID
 
@@ -161,11 +165,11 @@ function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => 
             <Box p={3} boxSize="auto">
                 <Flex alignItems="baseline">
                     <Badge borderRadius="full" px="2" colorScheme={room.status ? "green" : "red"}>
-                        {room.status ? "Active" : "Inactive"}
+                        {room.status ? t("rooms.active") : t("rooms.inactive")}
                     </Badge>
                     {room.is_channel && (
                         <Badge variant="outline" borderRadius="full" px="2" colorScheme="orange" ml={3}>
-                            Channel
+                            {t("rooms.channel")}
                         </Badge>
                     )}
                 </Flex>
@@ -187,13 +191,13 @@ function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => 
                             ))}
                     </Flex>
                     <Text mt={1} fontSize="xs" color="gray.600">
-                        42 reviews
+                        42 {t("rooms.reviews")}
                     </Text>
                 </Flex>
 
 
                 <Button mt={4} variant="primary" width="full" fontSize="sm" onClick={handleOpenChat}>
-                    View Room
+                    {t("rooms.view")}
                 </Button>
             </Box>
         </Box>
@@ -208,6 +212,9 @@ function Room() {
     const [selectedRoom, setSelectedRoom] = useState<RoomType | null>(null);
     const queryClient = useQueryClient();
     const showToast = useCustomToast();
+    const { t } = useTranslation();
+
+
 
     const deleteMutation = useMutation({
         mutationFn: async (roomId: string) => {
@@ -215,16 +222,16 @@ function Room() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["rooms"] });
-            showToast("Success!", "Room is deleted.", "success");
+            showToast("Success!", t("rooms.deleteSuccess"), "success");
             onClose();
         },
         onError: (error: any) => {
             console.error("Error deleting room:", error);
 
             if (error?.status === 401) {
-                showToast("Unauthorized", "You are not authorized to perform this action.", "error");
+                showToast(t("rooms.unauthorized"), t("rooms.unauthorized"), "error");
             } else {
-                showToast("Error", error.message || "Something went wrong. Please try again.", "error");
+                showToast("Error", error.message || t("rooms.deleteError"), "error");
             }
         },
     });
@@ -248,7 +255,7 @@ function Room() {
     return (
         <Container maxW="full">
             <Heading size="lg" textAlign="center" pt={12}>
-                Chat Rooms
+                {t("rooms.heading")}
             </Heading>
             <RoomGrid onDeleteRoom={handleDeleteRoom} onEditRoom={handleEditRoom} />
 
@@ -267,7 +274,7 @@ function Room() {
                 cursor="pointer"
                 onClick={() => setIsAddRoomOpen(true)}
             >
-                + Add Room
+                + {t("rooms.add")}
             </Button>
             <AddRoom isOpen={isAddRoomOpen} onClose={() => setIsAddRoomOpen(false)} />
 
@@ -275,19 +282,19 @@ function Room() {
                 <AlertDialogOverlay>
                     <AlertDialogContent>
                         <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                            Delete Room
+                            {t("rooms.deleteConfirmTitle")}
                         </AlertDialogHeader>
 
                         <AlertDialogBody>
-                            Are you sure? You can't undo this action afterwards.
+                            {t("rooms.deleteConfirmBody")}
                         </AlertDialogBody>
 
                         <AlertDialogFooter>
                             <Button ref={cancelRef} onClick={onClose}>
-                                Cancel
+                                {t("common.cancel", "Cancel")}
                             </Button>
                             <Button colorScheme="red" onClick={confirmDelete} ml={3}>
-                                Delete
+                                {t("rooms.delete")}
                             </Button>
                         </AlertDialogFooter>
                     </AlertDialogContent>

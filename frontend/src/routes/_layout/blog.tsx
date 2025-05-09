@@ -16,6 +16,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect } from "react"
 import { z } from "zod"
+import { useTranslation } from "react-i18next"
 
 import { BlogService } from "../../client"
 import AddPost from "../../components/Blog/AddPost"
@@ -46,6 +47,7 @@ function gePostQueryOptions({ page }: { page: number }) {
 }
 
 function PostTable() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { page } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
@@ -79,13 +81,12 @@ function PostTable() {
         <Table size={{ base: "sm", md: "md" }}>
           <Thead>
             <Tr>
-              <Th>Position</Th>
-              {/*<Th>ID</Th>*/}
-              <Th>Title</Th>
-              <Th>Content</Th>
-              <Th>Images</Th>
-              <Th>Status</Th>
-              <Th>Actions</Th>
+              <Th>{t("blog.position")}</Th>
+              <Th>{t("blog.title")}</Th>
+              <Th>{t("blog.content")}</Th>
+              <Th>{t("blog.images")}</Th>
+              <Th>{t("blog.status")}</Th>
+              <Th>{t("blog.actions")}</Th>
             </Tr>
           </Thead>
           {isPending ? (
@@ -117,7 +118,7 @@ function PostTable() {
                           <Td>
                             <Flex gap={2}>
                               <Box width="12px" height="12px" borderRadius="full" bg={post.status ? "green.500" : "red.500"} />
-                              {post.status ? "Active" : "Inactive"}
+                              {post.status ? t("blog.active") : t("blog.inactive")}
                             </Flex>
                           </Td>
                           <Td>
@@ -128,7 +129,7 @@ function PostTable() {
                 ) : (
                     <Tr>
                       <Td colSpan={7} textAlign="center">
-                        No posts available.
+                        {t("blog.noPosts")}
                       </Td>
                     </Tr>
                 )}
@@ -147,13 +148,14 @@ function PostTable() {
 }
 
 function Post() {
+    const { t } = useTranslation()
   return (
     <Container maxW="full">
       <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={12}>
-        Blog Management
+        {t("blog.heading")}
       </Heading>
 
-      <Navbar type={"Post"} addModalAs={AddPost} />
+      <Navbar type={t("blog.buttonAdd")} addModalAs={AddPost} />
       <PostTable />
     </Container>
   )
