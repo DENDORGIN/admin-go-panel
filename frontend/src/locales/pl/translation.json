@@ -60,6 +60,27 @@
     "active": "Aktywny",
     "inactive": "Nieaktywny",
     "na": "N/A"
+  },
+  "product": {
+    "backToList": "Powrót do listy produktów",
+    "notFound": "Produkt nie został znaleziony lub wystąpił błąd.",
+    "title": "Tytuł",
+    "category": "Kategoria",
+    "noCategory": "Brak kategorii",
+    "language": "Język",
+    "meta": "Meta",
+    "content": "Opis",
+    "showMore": "Pokaż więcej",
+    "showLess": "Ukryj",
+    "images": "Obrazy",
+    "cost": "Koszt",
+    "quantity": "Ilość",
+    "url": "Link",
+    "noUrl": "Brak linku",
+    "position": "Pozycja",
+    "active": "Aktywny",
+    "inactive": "Nieaktywny",
+    "updated": "Status zaktualizowany"
   }
 }
 

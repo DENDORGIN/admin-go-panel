@@ -58,6 +58,27 @@
     "active": "Active",
     "inactive": "Inactive",
     "na": "N/A"
+  },
+  "product": {
+    "backToList": "Back to Product List",
+    "notFound": "The product was not found or an error occurred.",
+    "title": "Title",
+    "category": "Category",
+    "noCategory": "No category",
+    "language": "Language",
+    "meta": "Meta",
+    "content": "Description",
+    "showMore": "Show More",
+    "showLess": "Hide",
+    "images": "Images",
+    "cost": "Price",
+    "quantity": "Quantity",
+    "url": "Link",
+    "noUrl": "No link",
+    "position": "Position",
+    "active": "Active",
+    "inactive": "Inactive",
+    "updated": "Status updated"
   }
 
 }
