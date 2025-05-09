@@ -97,9 +97,9 @@ function UserDetails() {
             <Tr>
               <Td fontWeight="bold">Оновлено</Td><Td>{new Date(user.updated_at).toLocaleString()}</Td></Tr>
             <Tr>
-              <Td fontWeight="bold">Хто створив</Td><Td>{user.whu_created_by}</Td></Tr>
+              <Td fontWeight="bold">Хто створив</Td><Td>{user.whu_created_by_acron}</Td></Tr>
             <Tr>
-              <Td fontWeight="bold">Хто оновив</Td><Td>{user.whu_updated_by || "—"}</Td></Tr>
+              <Td fontWeight="bold">Хто оновив</Td><Td>{user.whu_updated_by_acron || "—"}</Td></Tr>
           </Tbody>
         </Table>
       </Container>

@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func CreateUser(db *gorm.DB, user *models.User, createdByID uuid.UUID) (*models.UserResponse, error) {
+func CreateUser(db *gorm.DB, user *models.User, createdByID uuid.UUID, createdByAcron string) (*models.UserResponse, error) {
 	if db == nil {
 		return nil, fmt.Errorf("database connection is not initialized")
 	}
@@ -30,9 +30,10 @@ func CreateUser(db *gorm.DB, user *models.User, createdByID uuid.UUID) (*models.
 		}
 
 		employee := employees.Employees{
-			ID:           uuid.New(),
-			UserID:       user.ID,
-			WhuCreatedBy: createdByID,
+			ID:                uuid.New(),
+			UserID:            user.ID,
+			WhuCreatedByID:    createdByID,
+			WhuCreatedByAcron: createdByAcron,
 		}
 		if err := tx.Create(&employee).Error; err != nil {
 			return err
@@ -50,6 +51,7 @@ func CreateUser(db *gorm.DB, user *models.User, createdByID uuid.UUID) (*models.
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
 		IsAdmin:     user.IsAdmin,
+		Acronym:     user.Acronym,
 	}, err
 }
 
@@ -78,6 +80,7 @@ func GetUserById(db *gorm.DB, id uuid.UUID) (*models.UserResponse, error) {
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
 		IsAdmin:     user.IsAdmin,
+		Acronym:     user.Acronym,
 	}
 	return UserResponse, nil
 }
@@ -136,6 +139,7 @@ func UpdateUserById(db *gorm.DB, id uuid.UUID, updateUser *models.UpdateUser) (*
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
 		IsAdmin:     user.IsAdmin,
+		Acronym:     user.Acronym,
 	}, nil
 }
 

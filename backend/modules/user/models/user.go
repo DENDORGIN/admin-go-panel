@@ -15,6 +15,7 @@ type User struct {
 	IsActive    bool      `gorm:"default:true" json:"isActive"`
 	IsAdmin     bool      `gorm:"default:false" json:"isAdmin"`
 	IsSuperUser bool      `gorm:"default:false" json:"isSuperUser"`
+	Acronym     string    `gorm:"unique;default:null" json:"acronym"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

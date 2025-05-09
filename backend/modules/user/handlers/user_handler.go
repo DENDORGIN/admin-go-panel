@@ -36,7 +36,7 @@ func CreateUser(ctx *gin.Context) {
 	}
 
 	// Створюємо нового користувача
-	newUser, err := repository.CreateUser(db, userModel, currentUser.ID)
+	newUser, err := repository.CreateUser(db, userModel, currentUser.ID, currentUser.Acronym)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -63,6 +63,7 @@ func ReadUserMe(ctx *gin.Context) {
 		IsActive:    user.IsActive,
 		IsSuperUser: user.IsSuperUser,
 		IsAdmin:     user.IsAdmin,
+		Acronym:     user.Acronym,
 	}
 	ctx.JSON(http.StatusOK, response)
 }

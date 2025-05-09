@@ -13,6 +13,7 @@ type UserResponse struct {
 	IsActive    bool      `json:"isActive"`
 	IsSuperUser bool      `json:"isSuperUser"`
 	IsAdmin     bool      `json:"isAdmin"`
+	Acronym     string    `json:"acronym"`
 }
 
 type AllUsers struct {
