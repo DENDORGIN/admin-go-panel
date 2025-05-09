@@ -24,6 +24,7 @@ import {
 import useAuth from "../../hooks/useAuth"
 import useCustomToast from "../../hooks/useCustomToast"
 import { emailPattern, handleError } from "../../utils"
+import { useTranslation } from "react-i18next"
 
 interface FileDetail {
   name: string;
@@ -33,6 +34,7 @@ interface FileDetail {
 }
 
 const UserInformation = () => {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const color = useColorModeValue("inherit", "ui.light")
   const showToast = useCustomToast()
@@ -63,7 +65,7 @@ const UserInformation = () => {
 
     // Додатковий захист
     if (!currentUser?.isSuperUser) {
-      showToast("Permission denied", "Only superusers can update avatar", "error");
+      showToast(t("userInfo.permissionDenied"), t("userInfo.superuserOnly"), "error")
       return;
     }
 
@@ -85,7 +87,7 @@ const UserInformation = () => {
 
   const handleFileButtonClick = () => {
     if (!currentUser?.isSuperUser) {
-      showToast("Permission denied", "Only superusers can update avatar", "error");
+      showToast(t("userInfo.permissionDenied"), t("userInfo.superuserOnly"), "error")
       return;
     }
 
@@ -119,12 +121,12 @@ const UserInformation = () => {
       return url;
     },
     onSuccess: () => {
-      showToast("Success!", "Avatar updated", "success");
+      showToast("Success!", t("userInfo.avatarSuccess"), "success")
       queryClient.invalidateQueries();
     },
     onError: (err: ApiError | Error) => {
       if (err instanceof Error && err.message === "Permission denied") {
-        showToast("Permission denied", "Only superusers can update avatar", "error");
+        showToast(t("userInfo.permissionDenied"), t("userInfo.superuserOnly"), "error")
         return;
       }
 
@@ -139,7 +141,7 @@ const UserInformation = () => {
     mutationFn: (data: UserUpdateMe) =>
         UsersService.updateUserMe({ requestBody: data }),
     onSuccess: () => {
-      showToast("Success!", "User updated successfully.", "success");
+      showToast("Success!", t("userInfo.userUpdateSuccess"), "success")
     },
     onError: (err: ApiError) => {
       handleError(err, showToast);
@@ -162,7 +164,7 @@ const UserInformation = () => {
       setEditMode(false);
       setFile(null);
     } catch (err) {
-      showToast("Error", "Failed to update user", "error");
+      showToast("Error", t("userInfo.userUpdateError"), "error")
     }
   };
 
@@ -177,7 +179,7 @@ const UserInformation = () => {
       <>
         <Container maxW="full">
           <Heading size="sm" py={4}>
-            User Information
+            {t("userInfo.heading")}
           </Heading>
           <Box
               w={{ sm: "full", md: "50%" }}
@@ -214,7 +216,7 @@ const UserInformation = () => {
                         currentUser?.avatar ||
                         "https://via.placeholder.com/100x100?text=Avatar"
                     }
-                    alt="Avatar"
+                    alt={t("userInfo.avatarAlt")}
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               </Box>
@@ -223,7 +225,7 @@ const UserInformation = () => {
 
             <FormControl mt={4}>
               <FormLabel color={color} htmlFor="name">
-                Full name
+                {t("userInfo.fullName")}
               </FormLabel>
               {editMode ? (
                   <Input
@@ -241,13 +243,13 @@ const UserInformation = () => {
                       isTruncated
                       maxWidth="250px"
                   >
-                    {currentUser?.fullName || "N/A"}
+                    {currentUser?.fullName || t("userInfo.noName")}
                   </Text>
               )}
             </FormControl>
             <FormControl mt={4} isInvalid={!!errors.email}>
               <FormLabel color={color} htmlFor="email">
-                Email
+                {t("userInfo.email")}
               </FormLabel>
               {editMode ? (
                   <Input
@@ -266,7 +268,7 @@ const UserInformation = () => {
                   </Text>
               )}
               {errors.email && (
-                  <FormErrorMessage>{errors.email.message}</FormErrorMessage>
+                  <FormErrorMessage>{t("userInfo.emailRequired")}</FormErrorMessage>
               )}
             </FormControl>
 
@@ -279,12 +281,12 @@ const UserInformation = () => {
                       isLoading={editMode ? isSubmitting : false}
                       isDisabled={editMode ? !isDirty || !getValues("email") : false}
                   >
-                    {editMode ? "Save" : "Edit"}
+                    {editMode ? t("userInfo.save") : t("userInfo.edit")}
                   </Button>
               )}
               {editMode && (
                   <Button onClick={onCancel} isDisabled={isSubmitting}>
-                    Cancel
+                    {t("userInfo.cancel")}
                   </Button>
               )}
             </Flex>

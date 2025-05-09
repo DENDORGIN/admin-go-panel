@@ -57,7 +57,8 @@
     "noCategory": "Без категорії",
     "active": "Активний",
     "inactive": "Неактивний",
-    "na": "Н/Д"
+    "na": "Н/Д",
+    "buttonItem": "Товар"
   },
   "product": {
     "backToList": "Назад до списку товарів",
@@ -79,6 +80,56 @@
     "active": "Активний",
     "inactive": "Неактивний",
     "updated":"Статус оновлено"
+  },
+  "admin": {
+    "heading": "Керування користувачами",
+    "fullName": "Повне ім'я",
+    "email": "E-мейл",
+    "role": "Роль",
+    "status": "Статус",
+    "actions": "Дії",
+    "na": "N/A",
+    "superUser": "Суперкористувач",
+    "admin": "Адміністратор",
+    "user": "Користувач",
+    "active": "Активний",
+    "inactive": "Неактивний",
+    "buttonUser": "Користувачa",
+    "buttonAdd": "Додати"
+  },
+  "settings": {
+    "heading": "Налаштування користувача",
+    "tabs": {
+      "profile": "Мій профіль",
+      "password": "Пароль",
+      "appearance": "Зовнішній вигляд",
+      "danger": "Небезпечна зона"
+    }
+  },
+  "userInfo": {
+    "heading": "Інформація про користувача",
+    "fullName": "Повне ім’я",
+    "email": "Електронна пошта",
+    "edit": "Редагувати",
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "noName": "Не вказано",
+    "avatarAlt": "Аватар",
+    "permissionDenied": "Доступ заборонено",
+    "superuserOnly": "Тільки для суперкористувачів",
+    "avatarSuccess": "Аватар оновлено",
+    "userUpdateSuccess": "Користувача оновлено",
+    "userUpdateError": "Не вдалося оновити користувача",
+    "emailRequired": "Електронна пошта обов’язкова"
+  },
+  "changePassword": {
+    "heading": "Зміна пароля",
+    "currentPassword": "Поточний пароль",
+    "newPassword": "Новий пароль",
+    "confirmPassword": "Підтвердження пароля",
+    "placeholder": "Пароль",
+    "success": "Пароль успішно оновлено",
+    "save": "Зберегти"
   }
 }
 

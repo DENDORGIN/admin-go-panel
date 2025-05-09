@@ -15,11 +15,12 @@ import Appearance from "../../components/UserSettings/Appearance"
 import ChangePassword from "../../components/UserSettings/ChangePassword"
 /*import DeleteAccount from "../../components/UserSettings/DeleteAccount"*/
 import UserInformation from "../../components/UserSettings/UserInformation"
+import { useTranslation } from "react-i18next";
 
 const tabsConfig = [
-  { title: "My profile", component: UserInformation },
-  { title: "Password", component: ChangePassword },
-  { title: "Appearance", component: Appearance },
+  { titleKey: "settings.tabs.profile", component: UserInformation },
+{ titleKey: "settings.tabs.password", component: ChangePassword },
+{ titleKey: "settings.tabs.appearance", component: Appearance },
  /* { title: "Danger zone", component: DeleteAccount },*/
 ]
 
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/_layout/settings")({
 })
 
 function UserSettings() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
   const finalTabs = currentUser?.isSuperUser
@@ -37,12 +39,12 @@ function UserSettings() {
   return (
     <Container maxW="full">
       <Heading size="lg" textAlign={{ base: "center", md: "left" }} py={12}>
-        User Settings
+        {t("settings.heading")}
       </Heading>
       <Tabs variant="enclosed">
         <TabList>
           {finalTabs.map((tab, index) => (
-            <Tab key={index}>{tab.title}</Tab>
+              <Tab key={index}>{t(tab.titleKey)}</Tab>
           ))}
         </TabList>
         <TabPanels>

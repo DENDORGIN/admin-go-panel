@@ -57,7 +57,8 @@
     "noCategory": "No Category",
     "active": "Active",
     "inactive": "Inactive",
-    "na": "N/A"
+    "na": "N/A",
+    "buttonItem": "Item"
   },
   "product": {
     "backToList": "Back to Product List",
@@ -79,6 +80,57 @@
     "active": "Active",
     "inactive": "Inactive",
     "updated": "Status updated"
+
+  },
+  "admin": {
+    "heading": "Users Management",
+    "fullName": "Full Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "actions": "Actions",
+    "na": "N/A",
+    "superUser": "Superuser",
+    "admin": "Admin",
+    "user": "User",
+    "active": "Active",
+    "inactive": "Inactive",
+    "buttonUser": "User",
+    "buttonAdd": "Add"
+  },
+    "settings": {
+        "heading": "User Settings",
+        "tabs": {
+          "profile": "My profile",
+          "password": "Password",
+          "appearance": "Appearance",
+          "danger": "Danger Zone"
+      }
+    },
+  "userInfo": {
+    "heading": "User Info",
+    "fullName": "Full Name",
+    "email": "Email",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "noName": "N/A",
+    "avatarAlt": "Avatar",
+    "permissionDenied": "Permission Denied",
+    "superuserOnly": "Superuser Only",
+    "avatarSuccess": "Avatar updated",
+    "userUpdateSuccess": "User updated",
+    "userUpdateError": "Could not update user",
+    "emailRequired": "Email is required"
+  },
+  "changePassword": {
+    "heading": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "Set Password",
+    "confirmPassword": "Confirm Password",
+    "placeholder": "Password",
+    "success": "Password updated successfully.",
+    "save": "Save"
   }
 
 }

@@ -15,12 +15,14 @@ import { type SubmitHandler, useForm } from "react-hook-form"
 import { type ApiError, type UpdatePassword, UsersService } from "../../client"
 import useCustomToast from "../../hooks/useCustomToast"
 import { confirmPasswordRules, handleError, passwordRules } from "../../utils"
+import { useTranslation } from "react-i18next"
 
 interface UpdatePasswordForm extends UpdatePassword {
   confirm_password: string
 }
 
 const ChangePassword = () => {
+  const { t } = useTranslation()
   const color = useColorModeValue("inherit", "ui.light")
   const showToast = useCustomToast()
   const {
@@ -38,7 +40,7 @@ const ChangePassword = () => {
     mutationFn: (data: UpdatePassword) =>
       UsersService.updatePasswordMe({ requestBody: data }),
     onSuccess: () => {
-      showToast("Success!", "Password updated successfully.", "success")
+      showToast("Success!", t("changePassword.success"), "success")
       reset()
     },
     onError: (err: ApiError) => {
@@ -54,7 +56,7 @@ const ChangePassword = () => {
     <>
       <Container maxW="full">
         <Heading size="sm" py={4}>
-          Change Password
+          {t("changePassword.heading")}
         </Heading>
         <Box
           w={{ sm: "full", md: "50%" }}
@@ -63,12 +65,12 @@ const ChangePassword = () => {
         >
           <FormControl isRequired isInvalid={!!errors.currentPassword}>
             <FormLabel color={color} htmlFor="currentPassword">
-              Current Password
+              {t("changePassword.currentPassword")}
             </FormLabel>
             <Input
               id="current_password"
               {...register("currentPassword")}
-              placeholder="Password"
+              placeholder={t("changePassword.placeholder")}
               type="password"
               w="auto"
             />
@@ -79,11 +81,11 @@ const ChangePassword = () => {
             )}
           </FormControl>
           <FormControl mt={4} isRequired isInvalid={!!errors.newPassword}>
-            <FormLabel htmlFor="password">Set Password</FormLabel>
+            <FormLabel htmlFor="password">{t("changePassword.newPassword")}</FormLabel>
             <Input
               id="password"
               {...register("newPassword", passwordRules())}
-              placeholder="Password"
+              placeholder={t("changePassword.placeholder")}
               type="password"
               w="auto"
             />
@@ -92,11 +94,11 @@ const ChangePassword = () => {
             )}
           </FormControl>
           <FormControl mt={4} isRequired isInvalid={!!errors.confirm_password}>
-            <FormLabel htmlFor="confirm_password">Confirm Password</FormLabel>
+            <FormLabel htmlFor="confirm_password">{t("changePassword.confirmPassword")}</FormLabel>
             <Input
               id="confirm_password"
               {...register("confirm_password", confirmPasswordRules(getValues))}
-              placeholder="Password"
+              placeholder={t("changePassword.placeholder")}
               type="password"
               w="auto"
             />
@@ -112,7 +114,7 @@ const ChangePassword = () => {
             type="submit"
             isLoading={isSubmitting}
           >
-            Save
+            {t("changePassword.save")}
           </Button>
         </Box>
       </Container>

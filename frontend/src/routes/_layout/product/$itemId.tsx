@@ -357,11 +357,11 @@ function ItemDetails() {
                             color="blue.500"
                             textDecoration="underline"
                         >
-                            {item.item_url ? formatUrl(item.item_url) : "No URL"}
+                            {item.item_url ? formatUrl(item.item_url) : t("product.noUrl")}
                             <ExternalLinkIcon mx='4px' />
                         </Link>
                     ) : (
-                        "Not URL"
+                        t("product.noUrl")
                     )}
                 </Box>
 

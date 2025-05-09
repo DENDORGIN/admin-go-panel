@@ -18,6 +18,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useEffect } from "react"
 import { z } from "zod"
+import { useTranslation } from "react-i18next"
 
 import { type UserPublic, UsersService } from "../../client"
 import AddUser from "../../components/Admin/AddUser"
@@ -50,6 +51,7 @@ function UsersTable() {
   const currentUser = queryClient.getQueryData<UserPublic>(["currentUser"])
   const { page } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
+  const { t } = useTranslation()
 
   const setPage = (page: number) =>
       navigate({
@@ -81,11 +83,11 @@ function UsersTable() {
           <Table size={{ base: "sm", md: "md" }}>
             <Thead>
               <Tr>
-                <Th width="20%">Full name</Th>
-                <Th width="50%">Email</Th>
-                <Th width="10%">Role</Th>
-                <Th width="10%">Status</Th>
-                <Th width="10%">Actions</Th>
+                <Th width="20%">{t("admin.fullName")}</Th>
+                <Th width="50%">{t("admin.email")}</Th>
+                <Th width="10%">{t("admin.role")}</Th>
+                <Th width="10%">{t("admin.status")}</Th>
+                <Th width="10%">{t("admin.actions")}</Th>
               </Tr>
             </Thead>
             {isPending ? (
@@ -118,7 +120,7 @@ function UsersTable() {
                             isTruncated
                             maxWidth="150px"
                         >
-                          {user.fullName || "N/A"}
+                          {user.fullName || t("admin.noName")}
                           {currentUser?.ID === user.ID && (
                               <Badge ml="1" colorScheme="teal">
                                 You
@@ -130,10 +132,10 @@ function UsersTable() {
                         </Td>
                         <Td>
                           {user.isSuperUser
-                              ? "Superuser"
+                              ? t("admin.superUser")
                               : user.isAdmin
-                                  ? "Admin"
-                                  : "User"}
+                                  ? t("admin.admin")
+                                  : t("admin.user")}
                         </Td>
                         <Td>
                           <Flex gap={2}>
@@ -144,7 +146,7 @@ function UsersTable() {
                                 bg={user.isActive ? "ui.success" : "ui.danger"}
                                 alignSelf="center"
                             />
-                            {user.isActive ? "Active" : "Inactive"}
+                            {user.isActive ? t("admin.active") : t("admin.inactive")}
                           </Flex>
                         </Td>
                         <Td onClick={(e) => e.stopPropagation()}>
@@ -171,13 +173,14 @@ function UsersTable() {
 }
 
 function Admin() {
+  const { t } = useTranslation()
   return (
       <Container maxW="full">
         <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={12}>
-          Users Management
+          {t("admin.heading")}
         </Heading>
 
-        <Navbar type={"User"} addModalAs={AddUser} />
+        <Navbar type={t("admin.buttonUser")} addModalAs={AddUser} />
         <UsersTable />
       </Container>
   )

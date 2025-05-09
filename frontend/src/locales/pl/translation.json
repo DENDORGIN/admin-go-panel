@@ -59,7 +59,8 @@
     "noCategory": "Brak kategorii",
     "active": "Aktywny",
     "inactive": "Nieaktywny",
-    "na": "N/A"
+    "na": "N/A",
+    "buttonItem": "Produkt"
   },
   "product": {
     "backToList": "Powrót do listy produktów",
@@ -81,6 +82,56 @@
     "active": "Aktywny",
     "inactive": "Nieaktywny",
     "updated": "Status zaktualizowany"
+  },
+  "admin": {
+    "heading": "Zarządzanie użytkownikami",
+    "fullName": "Imię i nazwisko",
+    "email": "Email",
+    "role": "Rola",
+    "status": "Status",
+    "actions": "Działania",
+    "noName": "N/A",
+    "superUser": "Superużytkownik",
+    "admin": "Administrator",
+    "user": "Użytkownik",
+    "active": "Aktywny",
+    "inactive": "Nieaktywny",
+    "buttonUser": "Użytkownika",
+    "buttonAdd": "Dodaj"
+  },
+    "settings": {
+      "heading": "Ustawienia użytkownika",
+      "tabs": {
+        "profile": "Mój profil",
+        "password": "Hasło",
+        "appearance": "Wygląd",
+        "danger": "Niebezpieczna strefa"
+      }
+    },
+  "userInfo": {
+    "heading": "Mój profil",
+    "fullName": "Imię i nazwisko",
+    "email": "Email",
+    "edit": "Edytuj",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "noName": "Nie podano",
+    "avatarAlt": "Awatar",
+    "permissionDenied": "Dostęp zabroniony",
+    "superuserOnly": "Tylko dla superużytkowników",
+    "avatarSuccess": "Awatar zaktualizowany",
+    "userUpdateSuccess": "Użytkownik zaktualizowany",
+    "userUpdateError": "Nie można zaktualizować użytkownika",
+    "emailRequired": "Email jest wymagany"
+  },
+  "changePassword": {
+    "heading": "Zmiana hasła",
+    "currentPassword": "Aktualne hasło",
+    "newPassword": "Nowe hasło",
+    "confirmPassword": "Potwierdź hasło",
+    "placeholder": "Hasło",
+    "success": "Hasło zaktualizowane pomyślnie.",
+    "save": "Zapisz"
   }
 }
 

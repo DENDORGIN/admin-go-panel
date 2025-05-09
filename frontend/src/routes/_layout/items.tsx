@@ -291,7 +291,7 @@ function Items() {
         </Heading>
 
         <Navbar
-            type={"Item"}
+            type={t("items.buttonItem")}
             addModalAs={(props: AddItemProps) => (
                 <AddItem
                     {...props}
