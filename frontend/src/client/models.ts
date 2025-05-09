@@ -216,8 +216,10 @@ export type UserEmployeePublic = {
   date_start:string | null
   date_end:string | null
   extra_data: JSON
-  whu_created_by: string
-  whu_updated_by: string | null
+  whu_created_by_id: string
+  whu_created_by_acron: string
+  whu_updated_by_id: string | null
+  whu_updated_by_acron: string | null
 }
 
 export type ValidationError = {
