@@ -224,7 +224,7 @@ function UserDetails() {
                   <Flex gap={2}>
                     <Button
                         size="sm"
-                        colorScheme="orange"
+                        variant="primary"
                         onClick={() => updateMutation.mutate(editedUser)}
                         isLoading={updateMutation.isPending}
                     >
