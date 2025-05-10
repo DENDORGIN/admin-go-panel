@@ -25,6 +25,7 @@ type UpdateUser struct {
 	FullName string `json:"fullName,omitempty"`
 	Email    string `json:"email,omitempty"`
 	Avatar   string `json:"avatar"`
+	Acronym  string `json:"acronym,omitempty"`
 }
 
 type UpdatePassword struct {

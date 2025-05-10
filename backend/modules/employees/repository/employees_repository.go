@@ -26,6 +26,7 @@ func GetUserEmployeesById(db *gorm.DB, id uuid.UUID) (*employees.UserResponseEmp
 	UserResponseEmployees := &employees.UserResponseEmployees{
 		ID:                user.ID,
 		FullName:          user.FullName,
+		Acronym:           user.Acronym,
 		Avatar:            user.Avatar,
 		Email:             user.Email,
 		IsActive:          user.IsActive,
@@ -66,6 +67,9 @@ func UpdateUserEmployeesById(db *gorm.DB, id, superUserId uuid.UUID, updateEmplo
 	// Оновлюємо поля User
 	if updateEmployee.FullName != nil {
 		user.FullName = *updateEmployee.FullName
+	}
+	if updateEmployee.Acronym != nil {
+		user.Acronym = *updateEmployee.Acronym
 	}
 	if updateEmployee.Email != nil {
 		user.Email = *updateEmployee.Email

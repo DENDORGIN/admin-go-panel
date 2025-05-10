@@ -120,6 +120,7 @@
   "admin": {
     "heading": "Zarządzanie użytkownikami",
     "fullName": "Imię i nazwisko",
+    "acronym": "Akronim",
     "email": "Email",
     "role": "Rola",
     "status": "Status",

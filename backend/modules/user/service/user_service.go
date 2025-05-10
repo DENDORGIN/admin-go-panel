@@ -68,6 +68,7 @@ func TransformUsers(users []*models.User) []*models.UserResponse {
 		userResponse := &models.UserResponse{
 			ID:          user.ID,
 			FullName:    user.FullName,
+			Acronym:     user.Acronym,
 			Avatar:      user.Avatar,
 			Email:       user.Email,
 			IsActive:    user.IsActive,

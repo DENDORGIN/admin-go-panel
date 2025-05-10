@@ -9,6 +9,7 @@ import (
 type UserResponseEmployees struct {
 	ID          uuid.UUID `json:"ID"`
 	FullName    string    `json:"fullName"`
+	Acronym     string    `json:"acronym"`
 	Avatar      string    `json:"avatar"`
 	Email       string    `json:"email"`
 	IsActive    bool      `json:"isActive"`

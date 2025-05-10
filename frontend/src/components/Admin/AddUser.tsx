@@ -46,6 +46,7 @@ const AddUser = ({ isOpen, onClose }: AddUserProps) => {
     defaultValues: {
       email: "",
       fullName: "",
+      acronym: "",
       password: "",
       avatar: "",
       confirm_password: "",
@@ -103,7 +104,7 @@ const AddUser = ({ isOpen, onClose }: AddUserProps) => {
                 <FormErrorMessage>{errors.email.message}</FormErrorMessage>
               )}
             </FormControl>
-            <FormControl mt={4} isInvalid={!!errors.fullName}>
+            <FormControl mt={4} isRequired isInvalid={!!errors.fullName}>
               <FormLabel htmlFor="name">Full name</FormLabel>
               <Input
                 id="name"
@@ -113,6 +114,22 @@ const AddUser = ({ isOpen, onClose }: AddUserProps) => {
               />
               {errors.fullName && (
                 <FormErrorMessage>{errors.fullName.message}</FormErrorMessage>
+              )}
+            </FormControl>
+            <FormControl mt={4} isRequired isInvalid={!!errors.acronym}>
+              <FormLabel htmlFor="name">Acronym</FormLabel>
+              <Input
+                  id="name"
+                  {...register("acronym")}
+                  placeholder="ACRONYM"
+                  type="text"
+                  textTransform="uppercase"
+                  {...register("acronym", {
+                    setValueAs: (v) => v.toUpperCase() // 🔁 зберігає у верхньому регістрі
+                  })}
+              />
+              {errors.acronym && (
+                  <FormErrorMessage>{errors.acronym.message}</FormErrorMessage>
               )}
             </FormControl>
             <FormControl mt={4} isRequired isInvalid={!!errors.password}>
