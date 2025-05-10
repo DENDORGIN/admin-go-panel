@@ -384,10 +384,31 @@ export class EmployeeService {
       },
     })
   }
+public static updateEmployeeById(
+    data: { id: string; requestBody: { avatar: string } }
+): CancelablePromise<any> {
+  return __request(OpenAPI, {
+    method: "PATCH",
+    url: "/v1/employees/{id}",
+    path: {
+      id: data.id,
+    },
+    body: data.requestBody,
+    mediaType: "application/json",
+    errors: {
+      400: "Bad Request",
+      403: "Forbidden",
+      404: "Not Found",
+      422: "Validation Error",
+    },
+  })
 }
+}
+
 export type TDataTestEmail = {
   emailTo: string
 }
+
 
 export class UtilsService {
   /**

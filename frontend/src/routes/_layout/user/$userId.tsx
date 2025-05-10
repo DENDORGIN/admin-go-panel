@@ -17,7 +17,6 @@ import {
   type ApiError,
   EmployeeService,
   type UserPublic,
-  UsersService,
 } from "../../../client"
 import { useNavigate } from "@tanstack/react-router"
 import { useState, useRef } from "react"
@@ -66,10 +65,16 @@ function UserDetails() {
 
       const url = await uploadImage(file)
 
-      await UsersService.updateUser({
-        userId,
-        requestBody: { avatar: url },
+      await EmployeeService.updateEmployeeById({
+        id: userId,
+        requestBody: {
+          avatar: url,
+
+        },
       })
+      console.log("Sending PATCH", { id: userId, avatar: url })
+
+
 
       return url
     },
