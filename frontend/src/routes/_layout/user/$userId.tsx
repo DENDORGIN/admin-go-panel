@@ -27,12 +27,7 @@ import useCustomToast from "../../../hooks/useCustomToast.ts"
 import { handleError } from "../../../utils.ts"
 import { uploadImage } from "../../../utils/uploadImage.ts"
 
-type EditableUserFields = {
-  fullName?: string
-  email?: string
-  phone_number_1?: string
-  phone_number_2?: string
-}
+type EditableUserFields = Partial<Pick<UserEmployeePublic, "fullName" | "email" | "phone_number_1" | "phone_number_2">>
 
 export const Route = createFileRoute("/_layout/user/$userId")({
   component: UserDetails,
@@ -83,6 +78,7 @@ function UserDetails() {
       handleError(err as ApiError, showToast)
     },
   })
+
 
 
   const handleEditChange = (key: string, value: string) => {
