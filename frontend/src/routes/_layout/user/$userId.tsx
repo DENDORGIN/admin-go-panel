@@ -100,6 +100,26 @@ function UserDetails() {
               <Td fontWeight="bold">Хто створив</Td><Td>{user.whu_created_by_acron}</Td></Tr>
             <Tr>
               <Td fontWeight="bold">Хто оновив</Td><Td>{user.whu_updated_by_acron || "—"}</Td></Tr>
+            <Tr>
+              <Td fontWeight="bold" verticalAlign="top">Додаткова інформація</Td>
+              <Td>
+                {user.extra_data && typeof user.extra_data === "object" ? (
+                    <Table size="sm" variant="unstyled">
+                      <Tbody>
+                        {Object.entries(user.extra_data).map(([key, value]) => (
+                            <Tr key={key}>
+                              <Td fontWeight="semibold" w="40%">{key}</Td>
+                              <Td>{String(value)}</Td>
+                            </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+                ) : (
+                    "—"
+                )}
+              </Td>
+            </Tr>
+
           </Tbody>
         </Table>
       </Container>
