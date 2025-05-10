@@ -4,17 +4,27 @@ import {
   Link,
   Spinner,
   Text,
-  Td,
-  Table,
-  Tr,
-  Tbody
+  Box,
+  Divider,
+  Stack,
+  Input,
+  FormControl,
 } from "@chakra-ui/react"
 import { ArrowBackIcon } from "@chakra-ui/icons"
 import { createFileRoute } from "@tanstack/react-router"
-import { useQuery } from "@tanstack/react-query"
-import { EmployeeService } from "../../../client"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  type ApiError,
+  EmployeeService,
+  type UserPublic,
+} from "../../../client"
 import { useNavigate } from "@tanstack/react-router"
-import ImageGallery from "../../../components/Modals/ModalImageGallery.tsx";
+import { useState, useRef } from "react"
+import { useForm } from "react-hook-form"
+import useAuth from "../../../hooks/useAuth.ts"
+import useCustomToast from "../../../hooks/useCustomToast.ts"
+import { handleError } from "../../../utils.ts"
+import { uploadImage } from "../../../utils/uploadImage.ts"
 
 export const Route = createFileRoute("/_layout/user/$userId")({
   component: UserDetails,
@@ -23,22 +33,106 @@ export const Route = createFileRoute("/_layout/user/$userId")({
 function UserDetails() {
   const { userId } = Route.useParams()
   const navigate = useNavigate()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [file, setFile] = useState<{ file: File; preview: string } | null>(null)
+  const showToast = useCustomToast()
+  const { user: currentUser } = useAuth()
+  const queryClient = useQueryClient()
 
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["user", userId],
     queryFn: () => EmployeeService.readEmployeeById({ userId }),
-    enabled: !!userId
+    enabled: !!userId,
   })
 
-  if (isLoading)
+  const {
+    formState: { isSubmitting },
+  } = useForm<UserPublic>({
+    mode: "onBlur",
+    criteriaMode: "all",
+    defaultValues: {
+      fullName: currentUser?.fullName,
+      email: currentUser?.email,
+      avatar: currentUser?.avatar,
+    },
+  })
+
+  const avatarMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!currentUser?.isSuperUser) {
+        throw new Error("Permission denied")
+      }
+
+      const url = await uploadImage(file)
+
+      await EmployeeService.updateEmployeeById({
+        id: userId,
+        requestBody: {
+          avatar: url,
+
+        },
+      })
+      console.log("Sending PATCH", { id: userId, avatar: url })
+
+
+
+      return url
+    },
+    onSuccess: () => {
+      showToast("Success!", "Avatar updated", "success")
+      queryClient.invalidateQueries({ queryKey: ["user", userId] })
+    },
+    onError: (err: ApiError | Error) => {
+      if (err instanceof Error && err.message === "Permission denied") {
+        showToast("Permission denied", "Only superusers can update avatar", "error")
+        return
+      }
+
+      if ("status" in err) {
+        handleError(err as ApiError, showToast)
+      } else {
+        showToast("Error", err.message || "Unknown error", "error")
+      }
+    },
+  })
+
+  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) return
+
+    if (!currentUser?.isSuperUser) {
+      showToast("Permission denied", "Only superusers can update avatar", "error")
+      return
+    }
+
+    const selectedFile = event.target.files[0]
+    const newFile = {
+      name: selectedFile.name,
+      size: `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
+      file: selectedFile,
+      preview: URL.createObjectURL(selectedFile),
+    }
+
+    setFile(newFile)
+    avatarMutation.mutate(selectedFile)
+  }
+
+  function handleFileButtonClick() {
+    if (currentUser?.isSuperUser && fileInputRef.current) {
+      fileInputRef.current.click()
+    }
+  }
+
+  if (isLoading) {
     return (
         <Flex justify="center" align="center" h="50vh">
           <Spinner size="xl" />
         </Flex>
     )
+  }
 
-  if (!user || error)
+  if (!user || error) {
     return <Text textAlign="center">Користувача не знайдено або сталася помилка.</Text>
+  }
 
   return (
       <Container maxW="4xl" py={8}>
@@ -55,73 +149,65 @@ function UserDetails() {
           Back to the user list
         </Link>
 
-        <Table variant="simple" mt={6}>
-          <Tbody>
-            <Tr>
-              <Td colSpan={2}>
-                <ImageGallery
-                    images={Array.isArray(user.avatar) ? user.avatar : user.avatar ? [user.avatar] : []}
-                    title={user.fullName ?? "_"}
-                    numberOfImages={1}
+        <Stack spacing={6}>
+          <Box>
+            <Section title="Avatar">
+              <FormControl mt={4}>
+                <Input
+                    ref={fileInputRef}
+                    id="avatar"
+                    type="file"
+                    accept="image/*"
+                    onChange={onFileChange}
+                    hidden
+                    disabled={isSubmitting}
                 />
-              </Td>
-            </Tr>
-            <Tr>
-              <Td fontWeight="bold">Email</Td><Td>{user.email}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Активний</Td><Td>{user.isActive ? "Так" : "Ні"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Адміністратор</Td><Td>{user.isAdmin ? "Так" : "Ні"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Суперкористувач</Td><Td>{user.isSuperUser ? "Так" : "Ні"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Телефон 1</Td><Td>{user.phone_number_1 || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Телефон 2</Td><Td>{user.phone_number_2 || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Компанія</Td><Td>{user.company || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Посада</Td><Td>{user.position || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Тип угоди</Td><Td>{user.condition_type || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Зарплата</Td><Td>{user.salary || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Адреса</Td><Td>{user.address || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Дата початку</Td><Td>{user.date_start || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Дата завершення</Td><Td>{user.date_end || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Створено</Td><Td>{new Date(user.created_at).toLocaleString()}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Оновлено</Td><Td>{new Date(user.updated_at).toLocaleString()}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Хто створив</Td><Td>{user.whu_created_by_acron}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold">Хто оновив</Td><Td>{user.whu_updated_by_acron || "—"}</Td></Tr>
-            <Tr>
-              <Td fontWeight="bold" verticalAlign="top">Додаткова інформація</Td>
-              <Td>
-                {user.extra_data && typeof user.extra_data === "object" ? (
-                    <Table size="sm" variant="unstyled">
-                      <Tbody>
-                        {Object.entries(user.extra_data).map(([key, value]) => (
-                            <Tr key={key}>
-                              <Td fontWeight="semibold" w="40%">{key}</Td>
-                              <Td>{String(value)}</Td>
-                            </Tr>
-                        ))}
-                      </Tbody>
-                    </Table>
-                ) : (
-                    "—"
-                )}
-              </Td>
-            </Tr>
 
-          </Tbody>
-        </Table>
+                <Box
+                    w="100px"
+                    h="100px"
+                    borderRadius="full"
+                    overflow="hidden"
+                    cursor={currentUser?.isSuperUser ? "pointer" : "not-allowed"}
+                    border="2px solid"
+                    borderColor="gray.200"
+                    _hover={{ opacity: currentUser?.isSuperUser ? 0.8 : 1 }}
+                    onClick={handleFileButtonClick}
+                >
+                  <img
+                      src={
+                          file?.preview ??
+                          user?.avatar ??
+                          "https://via.placeholder.com/100x100?text=Avatar"
+                      }
+                      alt="Avatar"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                </Box>
+              </FormControl>
+            </Section>
+          </Box>
+        </Stack>
       </Container>
+  )
+}
+
+function Section({
+                   title,
+                   children,
+                 }: {
+  title: string
+  children: React.ReactNode
+}) {
+  return (
+      <Box>
+        <Box position="relative" mb={2}>
+          <Text fontWeight="bold" fontSize="lg" mb={1}>
+            {title}
+          </Text>
+          <Divider />
+        </Box>
+        <Stack spacing={3}>{children}</Stack>
+      </Box>
   )
 }
