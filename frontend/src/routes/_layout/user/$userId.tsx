@@ -27,7 +27,7 @@ import useCustomToast from "../../../hooks/useCustomToast.ts"
 import { handleError } from "../../../utils.ts"
 import { uploadImage } from "../../../utils/uploadImage.ts"
 
-type EditableUserFields = Partial<Pick<UserEmployeePublic, "fullName" | "email" | "phone_number_1" | "phone_number_2">>
+type EditableUserFields = Partial<Pick<UserEmployeePublic, "fullName" | "email" | "phone_number_1" | "phone_number_2" | "address" | "acronym">>
 
 export const Route = createFileRoute("/_layout/user/$userId")({
   component: UserDetails,
@@ -56,9 +56,11 @@ function UserDetails() {
     if (user) {
       setEditedUser({
         fullName: user.fullName ?? "",
+        acronym: user.acronym ?? "",
         email: user.email,
         phone_number_1: user.phone_number_1 ?? "",
         phone_number_2: user.phone_number_2 ?? "",
+        address: user.address ?? "",
       })
     }
   }, [user])
@@ -232,9 +234,11 @@ function UserDetails() {
                         onClick={() => {
                           setEditedUser({
                             fullName: user.fullName ?? "",
+                            acronym: user.acronym ?? "",
                             email: user.email,
                             phone_number_1: user.phone_number_1 ?? "",
                             phone_number_2: user.phone_number_2 ?? "",
+                            address: user.address ?? "",
                           })
                           setIsEditing(false)
                         }}
@@ -248,9 +252,11 @@ function UserDetails() {
             {!isEditing ? (
                 <>
                   <Text><strong>Full name:</strong> {user.fullName ?? "-"}</Text>
+                  <Text><strong>Acronym:</strong> {user.acronym ?? "-"}</Text>
                   <Text><strong>Email:</strong> {user.email}</Text>
                   <Text><strong>Phone 1:</strong> {user.phone_number_1 ?? "-"}</Text>
                   <Text><strong>Phone 2:</strong> {user.phone_number_2 ?? "-"}</Text>
+                  <Text><strong>Address:</strong> {user.address ?? "-"}</Text>
                 </>
             ) : (
                 <Stack spacing={3} mt={4}>
@@ -258,6 +264,11 @@ function UserDetails() {
                       placeholder="Full name"
                       value={editedUser.fullName || ""}
                       onChange={(e) => handleEditChange("fullName", e.target.value)}
+                  />
+                  <Input
+                      placeholder="Acronym"
+                      value={editedUser.acronym || ""}
+                      onChange={(e) => handleEditChange("acronym", e.target.value)}
                   />
                   <Input
                       placeholder="Email"
@@ -273,6 +284,11 @@ function UserDetails() {
                       placeholder="Phone 2"
                       value={editedUser.phone_number_2 || ""}
                       onChange={(e) => handleEditChange("phone_number_2", e.target.value)}
+                  />
+                  <Input
+                      placeholder="Address"
+                      value={editedUser.address || ""}
+                      onChange={(e) => handleEditChange("address", e.target.value)}
                   />
                 </Stack>
             )}
