@@ -30,6 +30,7 @@ import {
 } from "../../client";
 import useCustomToast from "../../hooks/useCustomToast";
 import { handleError } from "../../utils";
+import { useTranslation } from "react-i18next"
 
 interface EditRoomProps {
   room: RoomPublic;
@@ -49,6 +50,7 @@ interface RoomUpdateExtended extends RoomUpdate {
 }
 
 const EditRoom = ({ room, isOpen, onClose }: EditRoomProps) => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const showToast = useCustomToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -105,7 +107,7 @@ const EditRoom = ({ room, isOpen, onClose }: EditRoomProps) => {
       await MediaService.deleteImageInUrl(existingImage);
       setExistingImage("");
       setValue("image", "", { shouldDirty: true });
-      showToast("Success!", "Image deleted successfully.", "success");
+      showToast("Success!", t("editRoom.success"), "success");
     } catch (err) {
       handleError(err as ApiError, showToast);
     }
@@ -142,7 +144,7 @@ const EditRoom = ({ room, isOpen, onClose }: EditRoomProps) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rooms"] });
-      showToast("Success!", "Room updated successfully.", "success");
+      showToast("Success!", t("editRoom.success"), "success");
       onClose();
     },
     onError: (err: ApiError) => {
@@ -159,7 +161,7 @@ const EditRoom = ({ room, isOpen, onClose }: EditRoomProps) => {
       try {
         imageUrl = await uploadImage(file.file);
       } catch (error) {
-        showToast("Error", "Failed to upload image", "error");
+        showToast("Error", t("editRoom.imageUploadError"), "error");
         return;
       }
     }
@@ -178,24 +180,24 @@ const EditRoom = ({ room, isOpen, onClose }: EditRoomProps) => {
       <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
         <ModalOverlay />
         <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
-          <ModalHeader>Edit Room</ModalHeader>
+          <ModalHeader>{t("editRoom.title")}</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <FormControl mt={4} isInvalid={!!errors.name_room}>
-              <FormLabel htmlFor="name_room">Name Room</FormLabel>
-              <Input id="name_room" {...register("name_room")} placeholder="Room name" />
+              <FormLabel htmlFor="name_room">{t("editRoom.name")}</FormLabel>
+              <Input id="name_room" {...register("name_room")} placeholder={t("editRoom.namePlaceholder")} />
               {errors.name_room && <FormErrorMessage>{errors.name_room.message}</FormErrorMessage>}
             </FormControl>
 
             <FormControl mt={4} isInvalid={!!errors.description}>
-              <FormLabel htmlFor="description">Description</FormLabel>
-              <Input id="description" {...register("description")} placeholder="Description" />
+              <FormLabel htmlFor="description">{t("editRoom.description")}</FormLabel>
+              <Input id="description" {...register("description")} placeholder={t("editRoom.descriptionPlaceholder")} />
               {errors.description && <FormErrorMessage>{errors.description.message}</FormErrorMessage>}
             </FormControl>
 
             {/* Завантаження нового зображення */}
             <FormControl mt={4}>
-              <FormLabel htmlFor="image">Image</FormLabel>
+              <FormLabel htmlFor="image">{t("editRoom.image")}</FormLabel>
               <Input
                   ref={fileInputRef}
                   id="image"
@@ -206,7 +208,7 @@ const EditRoom = ({ room, isOpen, onClose }: EditRoomProps) => {
                   disabled={isSubmitting}
               />
               <Button colorScheme="teal" variant="outline" onClick={() => fileInputRef.current?.click()} mt={2}>
-                Upload Image
+                {t("editRoom.upload")}
               </Button>
 
               {/* Перегляд нового файлу */}
@@ -228,7 +230,7 @@ const EditRoom = ({ room, isOpen, onClose }: EditRoomProps) => {
             {/* Перегляд поточного зображення */}
             {existingImage && (
                 <Box mt={4}>
-                  <FormLabel>Current Image</FormLabel>
+                  <FormLabel>{t("editRoom.currentImage")}</FormLabel>
                   <Box position="relative">
                     <img src={existingImage} alt="Current" width="100" height="100" style={{ borderRadius: "5px" }} />
                     <IconButton
@@ -247,7 +249,7 @@ const EditRoom = ({ room, isOpen, onClose }: EditRoomProps) => {
             <FormControl mt={4} isInvalid={!!errors.status}>
               <FormLabel htmlFor="status" display="flex" alignItems="center" gap={2}>
                 <Box width="12px" height="12px" borderRadius="full" bg={watch("status") ? "green.500" : "red.500"} />
-                Status
+                {t("editRoom.status")}
               </FormLabel>
               <Switch id="status" {...register("status")} colorScheme="teal" />
             </FormControl>
@@ -255,10 +257,10 @@ const EditRoom = ({ room, isOpen, onClose }: EditRoomProps) => {
 
           <ModalFooter>
             <Button type="submit" variant="primary" isLoading={isSubmitting} isDisabled={!isDirty && !file}>
-              Save
+              {t("editRoom.save")}
             </Button>
             <Button onClick={onClose} ml={3}>
-              Cancel
+              {t("editRoom.cancel")}
             </Button>
           </ModalFooter>
         </ModalContent>

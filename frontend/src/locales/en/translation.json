@@ -40,6 +40,36 @@
     "channel": "Channel",
     "reviews": "reviews"
   },
+  "addRoom": {
+    "title": "Add Room",
+    "name": "Room Name",
+    "namePlaceholder": "Room Name",
+    "description": "Description",
+    "descriptionPlaceholder": "Description",
+    "image": "Image",
+    "upload": "Upload Image",
+    "status": "Status",
+    "isChannel": "Channel?",
+    "save": "Save",
+    "cancel": "Cancel",
+    "success": "Room created successfully",
+    "imageUploadError": "Could not upload image"
+  },
+  "editRoom": {
+    "title": "Edit Room",
+    "name": "Room Name",
+    "namePlaceholder": "Room Name",
+    "description": "Description",
+    "descriptionPlaceholder": "Description",
+    "image": "Image",
+    "upload": "Upload Image",
+    "currentImage": "Current Image",
+    "status": "Status",
+    "save": "Save",
+    "cancel": "Cancel",
+    "success": "Room updated successfully",
+    "imageUploadError": "Could not upload image"
+  },
   "items": {
     "heading": "Items Management",
     "loadingLanguages": "Loading languages...",
@@ -131,15 +161,49 @@
     "buttonUser": "User",
     "buttonAdd": "Add"
   },
-    "settings": {
-        "heading": "User Settings",
-        "tabs": {
-          "profile": "My profile",
-          "password": "Password",
-          "appearance": "Appearance",
-          "danger": "Danger Zone"
-      }
-    },
+  "addUser": {
+    "title": "Add User",
+    "email": "Email",
+    "emailPlaceholder": "Email",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Full Name",
+    "acronym": "Acronym",
+    "acronymPlaceholder": "ACRONYM",
+    "password": "password",
+    "passwordPlaceholder": "Password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Password",
+    "isSuperUser": "Superuser",
+    "isAdmin": "Admin",
+    "isActive": "Active",
+    "save": "Save",
+    "cancel": "Cancel",
+    "success": "User created successfully",
+    "errors": {
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
+      "passwordMin": "Password must be at least 8 characters",
+      "confirmRequired": "Confirm password",
+      "passwordMismatch": "Passwords do not match"
+    }
+  },
+  "settings": {
+      "heading": "User Settings",
+      "tabs": {
+        "profile": "My profile",
+        "password": "Password",
+        "appearance": "Appearance",
+        "danger": "Danger Zone"
+    }
+  },
+  "actionsMenu": {
+    "delete": "Delete {{type}}",
+    "types": {
+      "User": "user",
+      "Item": "item",
+      "Post": "post"
+    }
+  },
   "userInfo": {
     "heading": "User Info",
     "fullName": "Full Name",

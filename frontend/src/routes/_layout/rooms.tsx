@@ -154,9 +154,9 @@ function RoomCard({ room, onDelete, onEdit }: { room: RoomType; onDelete: () => 
                         size="sm"
                     />
                     <MenuList>
-                        <MenuItem onClick={onEdit} isDisabled={!isOwner}>Update Room</MenuItem>
+                        <MenuItem onClick={onEdit} isDisabled={!isOwner}>{t("rooms.update")}</MenuItem>
                         <MenuItem onClick={onDelete} isDisabled={!isOwner} color="red.500">
-                            Delete Room
+                            {t("rooms.delete")}
                         </MenuItem>
                     </MenuList>
                 </Menu>

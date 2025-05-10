@@ -8,6 +8,8 @@ import {
 } from "@chakra-ui/react"
 import { BsThreeDotsVertical } from "react-icons/bs"
 import { FiTrash } from "react-icons/fi"
+import { useTranslation } from "react-i18next"
+
 
 import type { ItemPublic, PostPublic, UserPublic } from "../../client"
 import EditUser from "../Admin/EditUser"
@@ -23,6 +25,7 @@ interface ActionsMenuProps {
 }
 
 const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
+  const { t } = useTranslation()
   const editModal = useDisclosure()
   const deleteModal = useDisclosure()
   const { user } = useAuth()
@@ -31,6 +34,8 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
 
   // Дозволяємо дію, якщо користувач — власник або суперюзер
   const isAllowed = user?.isSuperUser || user?.ID === ownerId
+  const translatedType = t(`actionsMenu.types.${type}`)
+
 
   return (
       <>
@@ -48,7 +53,7 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
                 color="red.500"
                 isDisabled={!isAllowed}
             >
-              Delete {type}
+              {t("actionsMenu.delete", { type: translatedType })}
             </MenuItem>
           </MenuList>
         </Menu>

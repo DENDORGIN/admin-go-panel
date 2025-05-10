@@ -41,7 +41,36 @@
     "channel": "Channel.",
     "reviews": " recenzje"
   },
-
+  "addRoom": {
+    "title": "Dodaj czat",
+    "name": "Nazwa czatu",
+    "namePlaceholder": "Nazwa czatu",
+    "description": "Opis",
+    "descriptionPlaceholder": "Opis",
+    "image": "Obraz",
+    "upload": "Prześlij obraz",
+    "status": "Status",
+    "isChannel": "Kanal?",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "success": "Czat został pomyślnie utworzony",
+    "imageUploadError": "Nie można przesłać obrazu"
+  },
+  "editRoom": {
+    "title": "Edytuj czat",
+    "name": "Nazwa czatu",
+    "namePlaceholder": "Nazwa czatu",
+    "description": "Opis",
+    "descriptionPlaceholder": "Opis",
+    "image": "Obraz",
+    "upload": "Prześlij obraz",
+    "currentImage": "Obraz",
+    "status": "Status",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "success": "Czat został pomyślnie zaktualizowany",
+    "imageUploadError": "Nie można przesłać obrazu"
+  },
   "items": {
     "heading": "Zarządzanie przedmiotami",
     "loadingLanguages": "Ładowanie języków...",
@@ -134,15 +163,49 @@
     "buttonUser": "Użytkownika",
     "buttonAdd": "Dodaj"
   },
-    "settings": {
-      "heading": "Ustawienia użytkownika",
-      "tabs": {
-        "profile": "Mój profil",
-        "password": "Hasło",
-        "appearance": "Wygląd",
-        "danger": "Niebezpieczna strefa"
-      }
-    },
+  "addUser": {
+    "title": "Dodaj użytkownika",
+    "email": "E-mail",
+    "emailPlaceholder": "Email",
+    "fullName": "Imię i nazwisko",
+    "fullNamePlaceholder": "Imię i nazwisko",
+    "acronym": "Akronim",
+    "acronymPlaceholder": "AKRONIM",
+    "password": "Hasło",
+    "passwordPlaceholder": "Hasło",
+    "confirmPassword": "Potwierdź hasło",
+    "confirmPasswordPlaceholder": "Hasło",
+    "isSuperUser": "Superużytkownik",
+    "isAdmin": "Administrator",
+    "isActive": "Aktywny",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "success": "Użytkownik został pomyślnie utworzony",
+    "errors": {
+      "emailRequired": "Email jest wymagany",
+      "passwordRequired": "Hasło jest wymagane",
+      "passwordMin": "Hasło musi mieć co najmniej 8 znaków",
+      "confirmRequired": "Potwierdź hasło",
+      "passwordMismatch": "Hasła nie pasują"
+    }
+  },
+  "settings": {
+    "heading": "Ustawienia użytkownika",
+    "tabs": {
+      "profile": "Mój profil",
+      "password": "Hasło",
+      "appearance": "Wygląd",
+      "danger": "Niebezpieczna strefa"
+    }
+  },
+  "actionsMenu": {
+    "delete": "Usuń {{type}}",
+    "types": {
+      "User": "użytkownika",
+      "Item": "produkt",
+      "Post": "post"
+    }
+  },
   "userInfo": {
     "heading": "Mój profil",
     "fullName": "Imię i nazwisko",
