@@ -25,6 +25,7 @@ import { type SubmitHandler, useForm } from "react-hook-form";
 import { type ApiError, RoomService, MediaService, type RoomCreate } from "../../client";
 import useCustomToast from "../../hooks/useCustomToast";
 import { handleError } from "../../utils";
+import { useTranslation } from "react-i18next"
 
 interface FileDetail {
   name: string;
@@ -43,6 +44,7 @@ interface AddRoomProps {
 }
 
 const AddRoom = ({ isOpen, onClose }: AddRoomProps) => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const showToast = useCustomToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -103,7 +105,7 @@ const AddRoom = ({ isOpen, onClose }: AddRoomProps) => {
       await RoomService.createRoom(jsonPayload);
     },
     onSuccess: () => {
-      showToast("Success!", "Room created successfully.", "success");
+      showToast("Success!", t("addRoom.success"), "success");
       reset();
       setFile(null);
       onClose();
@@ -129,7 +131,7 @@ const AddRoom = ({ isOpen, onClose }: AddRoomProps) => {
       try {
         imageUrl = await uploadImage(file.file);
       } catch (error) {
-        showToast("Error", "Failed to upload image", "error");
+        showToast("Error", t("addRoom.imageUploadError"), "error");
         return;
       }
     }
@@ -149,23 +151,23 @@ const AddRoom = ({ isOpen, onClose }: AddRoomProps) => {
       <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered>
         <ModalOverlay />
         <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
-          <ModalHeader>Add Room</ModalHeader>
+          <ModalHeader>{t("addRoom.title")}</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <FormControl mt={4} isInvalid={!!errors.name_room}>
-              <FormLabel htmlFor="name_room">Name Room</FormLabel>
-              <Input id="name_room" {...register("name_room")} placeholder="Room name" />
+              <FormLabel htmlFor="name_room">{t("addRoom.name")}</FormLabel>
+              <Input id="name_room" {...register("name_room")} placeholder={t("addRoom.namePlaceholder")}/>
               {errors.name_room && <FormErrorMessage>{errors.name_room.message}</FormErrorMessage>}
             </FormControl>
 
             <FormControl mt={4} isInvalid={!!errors.description}>
-              <FormLabel htmlFor="description">Description</FormLabel>
-              <Input id="description" {...register("description")} placeholder="Description" />
+              <FormLabel htmlFor="description">{t("addRoom.description")}</FormLabel>
+              <Input id="description" {...register("description")} placeholder={t("addRoom.descriptionPlaceholder")} />
               {errors.description && <FormErrorMessage>{errors.description.message}</FormErrorMessage>}
             </FormControl>
 
             <FormControl mt={4}>
-              <FormLabel htmlFor="image">Image</FormLabel>
+              <FormLabel htmlFor="image">{t("addRoom.image")}</FormLabel>
               <Input
                   ref={fileInputRef}
                   id="image"
@@ -176,7 +178,7 @@ const AddRoom = ({ isOpen, onClose }: AddRoomProps) => {
                   disabled={isSubmitting}
               />
               <Button colorScheme="teal" variant="outline" onClick={handleFileButtonClick} mt={2} isLoading={isSubmitting}>
-                Upload Image
+                {t("addRoom.upload")}
               </Button>
               <Card>
                 {file && (
@@ -196,7 +198,7 @@ const AddRoom = ({ isOpen, onClose }: AddRoomProps) => {
             <FormControl mt={4} isInvalid={!!errors.status}>
               <FormLabel htmlFor="status" display="flex" alignItems="center" gap={2}>
                 <Box width="12px" height="12px" borderRadius="full" bg={watch("status") ? "green.500" : "red.500"} />
-                Status
+                {t("addRoom.status")}
               </FormLabel>
               <Switch id="status" {...register("status")} colorScheme="teal" />
             </FormControl>
@@ -204,7 +206,7 @@ const AddRoom = ({ isOpen, onClose }: AddRoomProps) => {
             <FormControl mt={4}>
               <FormLabel htmlFor="status" display="flex" alignItems="center" gap={2}>
                 <Box width="12px" height="12px" borderRadius="full" bg={watch("is_channel")? "green.500" : "red.500"} />
-                Is Channel
+                {t("addRoom.isChannel")}
               </FormLabel>
               <Switch id="is_channel" {...register("is_channel")} colorScheme="teal" />
             </FormControl>
@@ -216,9 +218,9 @@ const AddRoom = ({ isOpen, onClose }: AddRoomProps) => {
 
           <ModalFooter gap={3}>
             <Button variant="primary" type="submit" isLoading={isSubmitting}>
-              Save
+              {t("addRoom.save")}
             </Button>
-            <Button onClick={onClose}>Cancel</Button>
+            <Button onClick={onClose}>{t("addRoom.cancel")}</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

@@ -1,7 +1,6 @@
 import {
   Button,
   Checkbox,
-  Flex,
   FormControl,
   FormErrorMessage,
   FormLabel,
@@ -13,9 +12,11 @@ import {
   ModalFooter,
   ModalHeader,
   ModalOverlay,
+  SimpleGrid
 } from "@chakra-ui/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { type SubmitHandler, useForm } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 
 import { type UserCreate, UsersService } from "../../client"
 import type { ApiError } from "../../client"
@@ -32,6 +33,7 @@ interface UserCreateForm extends UserCreate {
 }
 
 const AddUser = ({ isOpen, onClose }: AddUserProps) => {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const showToast = useCustomToast()
   const {
@@ -60,7 +62,7 @@ const AddUser = ({ isOpen, onClose }: AddUserProps) => {
     mutationFn: (data: UserCreate) =>
       UsersService.createUser({ requestBody: data }),
     onSuccess: () => {
-      showToast("Success!", "User created successfully.", "success")
+      showToast("Success!", t("addUser.success"), "success")
       reset()
       onClose()
     },
@@ -86,18 +88,18 @@ const AddUser = ({ isOpen, onClose }: AddUserProps) => {
       >
         <ModalOverlay />
         <ModalContent as="form" onSubmit={handleSubmit(onSubmit)}>
-          <ModalHeader>Add User</ModalHeader>
+          <ModalHeader>{t("addUser.title")}</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <FormControl isRequired isInvalid={!!errors.email}>
-              <FormLabel htmlFor="email">Email</FormLabel>
+              <FormLabel htmlFor="email">{t("addUser.email")}</FormLabel>
               <Input
                 id="email"
                 {...register("email", {
-                  required: "Email is required",
+                  required: t("addUser.errors.emailRequired"),
                   pattern: emailPattern,
                 })}
-                placeholder="Email"
+                placeholder={t("addUser.emailPlaceholder")}
                 type="email"
               />
               {errors.email && (
@@ -105,11 +107,11 @@ const AddUser = ({ isOpen, onClose }: AddUserProps) => {
               )}
             </FormControl>
             <FormControl mt={4} isRequired isInvalid={!!errors.fullName}>
-              <FormLabel htmlFor="name">Full name</FormLabel>
+              <FormLabel htmlFor="name">{t("addUser.fullName")}</FormLabel>
               <Input
                 id="name"
                 {...register("fullName")}
-                placeholder="Full name"
+                placeholder={t("addUser.fullNamePlaceholder")}
                 type="text"
               />
               {errors.fullName && (
@@ -117,11 +119,11 @@ const AddUser = ({ isOpen, onClose }: AddUserProps) => {
               )}
             </FormControl>
             <FormControl mt={4} isRequired isInvalid={!!errors.acronym}>
-              <FormLabel htmlFor="name">Acronym</FormLabel>
+              <FormLabel htmlFor="name">{t("addUser.acronym")}</FormLabel>
               <Input
                   id="name"
                   {...register("acronym")}
-                  placeholder="ACRONYM"
+                  placeholder={t("addUser.acronymPlaceholder")}
                   type="text"
                   textTransform="uppercase"
                   {...register("acronym", {
@@ -133,17 +135,17 @@ const AddUser = ({ isOpen, onClose }: AddUserProps) => {
               )}
             </FormControl>
             <FormControl mt={4} isRequired isInvalid={!!errors.password}>
-              <FormLabel htmlFor="password">Set Password</FormLabel>
+              <FormLabel htmlFor="password">{t("addUser.password")}</FormLabel>
               <Input
                 id="password"
                 {...register("password", {
-                  required: "Password is required",
+                  required: t("addUser.errors.passwordRequired"),
                   minLength: {
                     value: 8,
-                    message: "Password must be at least 8 characters",
+                    message: t("addUser.errors.passwordMin"),
                   },
                 })}
-                placeholder="Password"
+                placeholder={t("addUser.passwordPlaceholder")}
                 type="password"
               />
               {errors.password && (
@@ -155,16 +157,16 @@ const AddUser = ({ isOpen, onClose }: AddUserProps) => {
               isRequired
               isInvalid={!!errors.confirm_password}
             >
-              <FormLabel htmlFor="confirm_password">Confirm Password</FormLabel>
+              <FormLabel htmlFor="confirm_password">{t("addUser.confirmPassword")}</FormLabel>
               <Input
                 id="confirm_password"
                 {...register("confirm_password", {
-                  required: "Please confirm your password",
+                  required: t("addUser.errors.confirmRequired"),
                   validate: (value) =>
                     value === getValues().password ||
-                    "The passwords do not match",
+                      t("addUser.errors.passwordMismatch"),
                 })}
-                placeholder="Password"
+                placeholder={t("addUser.confirmPasswordPlaceholder")}
                 type="password"
               />
               {errors.confirm_password && (
@@ -173,27 +175,27 @@ const AddUser = ({ isOpen, onClose }: AddUserProps) => {
                 </FormErrorMessage>
               )}
             </FormControl>
-            <Flex mt={4}>
+            <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={4} mt={5}>
               <FormControl>
-                <Checkbox {...register("isSuperUser")} colorScheme="teal">
-                  Is superuser?
+                <Checkbox {...register("isSuperUser")} colorScheme="orange">
+                  {t("addUser.isSuperUser")}
                 </Checkbox>
               </FormControl>
               <FormControl>
-                <Checkbox {...register("isAdmin")} colorScheme="teal">
-                  Is admin?
+                <Checkbox {...register("isAdmin")} colorScheme="orange">
+                  {t("addUser.isAdmin")}
                 </Checkbox>
               </FormControl>
               <FormControl>
-                <Checkbox {...register("isActive")} colorScheme="teal">
-                  Is active?
+                <Checkbox {...register("isActive")} colorScheme="orange">
+                  {t("addUser.isActive")}
                 </Checkbox>
               </FormControl>
-            </Flex>
+            </SimpleGrid>
           </ModalBody>
           <ModalFooter gap={3}>
             <Button variant="primary" type="submit" isLoading={isSubmitting}>
-              Save
+              {t("addUser.save")}
             </Button>
             <Button onClick={onClose}>Cancel</Button>
           </ModalFooter>

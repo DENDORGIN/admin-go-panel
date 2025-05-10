@@ -40,6 +40,36 @@
     "channel": "Канал",
     "reviews": " відгуків"
   },
+  "addRoom": {
+    "title": "Додати кімнату",
+    "name": "Назва кімнати",
+    "namePlaceholder": "Назва кімнати",
+    "description": "Опис",
+    "descriptionPlaceholder": "Опис",
+    "image": "Зображення",
+    "upload": "Завантажити зображення",
+    "status": "Статус",
+    "isChannel": "Канал?",
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "success": "Кімнату успішно створено",
+    "imageUploadError": "Не вдалося завантажити зображення"
+  },
+  "editRoom": {
+    "title": "Редагування кімнати",
+    "name": "Назва кімнати",
+    "namePlaceholder": "Назва кімнати",
+    "description": "Опис",
+    "descriptionPlaceholder": "Опис",
+    "image": "Зображення",
+    "upload": "Завантажити зображення",
+    "currentImage": "Поточне зображення",
+    "status": "Статус",
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "success": "Кімната оновлена успішно",
+    "imageUploadError": "Не вдалося завантажити зображення"
+  },
   "items": {
     "heading": "Керування товарами",
     "loadingLanguages": "Завантаження мов...",
@@ -131,6 +161,32 @@
     "buttonUser": "Користувачa",
     "buttonAdd": "Додати"
   },
+  "addUser": {
+    "title": "Додати користувача",
+    "email": "Електронна пошта",
+    "emailPlaceholder": "Email",
+    "fullName": "Повне ім’я",
+    "fullNamePlaceholder": "Повне ім’я",
+    "acronym": "Акронім",
+    "acronymPlaceholder": "АКРОНІМ",
+    "password": "Пароль",
+    "passwordPlaceholder": "Пароль",
+    "confirmPassword": "Підтвердження пароля",
+    "confirmPasswordPlaceholder": "Пароль",
+    "isSuperUser": "Суперкористувач",
+    "isAdmin": "Адмін",
+    "isActive": "Активний",
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "success": "Користувача створено успішно",
+    "errors": {
+      "emailRequired": "Email обов’язковий",
+      "passwordRequired": "Пароль обов’язковий",
+      "passwordMin": "Пароль має містити щонайменше 8 символів",
+      "confirmRequired": "Підтвердіть пароль",
+      "passwordMismatch": "Паролі не співпадають"
+    }
+  },
   "settings": {
     "heading": "Налаштування користувача",
     "tabs": {
@@ -138,6 +194,14 @@
       "password": "Пароль",
       "appearance": "Зовнішній вигляд",
       "danger": "Небезпечна зона"
+    }
+  },
+  "actionsMenu": {
+    "delete": "Видалити {{type}}",
+    "types": {
+      "User": "користувача",
+      "Item": "товар",
+      "Post": "пост"
     }
   },
   "userInfo": {
