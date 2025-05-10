@@ -84,6 +84,8 @@ function UsersTable() {
             <Thead>
               <Tr>
                 <Th width="20%">{t("admin.fullName")}</Th>
+                <Th width="20%" isTruncated>
+                  {t("admin.acronym")}</Th>
                 <Th width="50%">{t("admin.email")}</Th>
                 <Th width="10%">{t("admin.role")}</Th>
                 <Th width="10%">{t("admin.status")}</Th>
@@ -127,6 +129,10 @@ function UsersTable() {
                               </Badge>
                           )}
                         </Td>
+                        <Td isTruncated maxWidth="150px">
+                          {user.acronym}
+                        </Td>
+
                         <Td isTruncated maxWidth="150px">
                           {user.email}
                         </Td>
