@@ -9,22 +9,30 @@ import {
   Stack,
   Input,
   FormControl,
+  Button,
+  IconButton,
 } from "@chakra-ui/react"
-import { ArrowBackIcon } from "@chakra-ui/icons"
+import { ArrowBackIcon, EditIcon } from "@chakra-ui/icons"
 import { createFileRoute } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   type ApiError,
   EmployeeService,
-  type UserPublic,
+  type UserEmployeePublic,
 } from "../../../client"
 import { useNavigate } from "@tanstack/react-router"
-import { useState, useRef } from "react"
-import { useForm } from "react-hook-form"
+import { useState, useRef, useEffect } from "react"
 import useAuth from "../../../hooks/useAuth.ts"
 import useCustomToast from "../../../hooks/useCustomToast.ts"
 import { handleError } from "../../../utils.ts"
 import { uploadImage } from "../../../utils/uploadImage.ts"
+
+type EditableUserFields = {
+  fullName?: string
+  email?: string
+  phone_number_1?: string
+  phone_number_2?: string
+}
 
 export const Route = createFileRoute("/_layout/user/$userId")({
   component: UserDetails,
@@ -37,44 +45,67 @@ function UserDetails() {
   const [file, setFile] = useState<{ file: File; preview: string } | null>(null)
   const showToast = useCustomToast()
   const { user: currentUser } = useAuth()
+  const isSuperUser = currentUser?.isSuperUser
   const queryClient = useQueryClient()
 
-  const { data: user, isLoading, error } = useQuery({
+  const { data: user, isLoading, error } = useQuery<UserEmployeePublic>({
     queryKey: ["user", userId],
     queryFn: () => EmployeeService.readEmployeeById({ userId }),
     enabled: !!userId,
   })
 
-  const {
-    formState: { isSubmitting },
-  } = useForm<UserPublic>({
-    mode: "onBlur",
-    criteriaMode: "all",
-    defaultValues: {
-      fullName: currentUser?.fullName,
-      email: currentUser?.email,
-      avatar: currentUser?.avatar,
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedUser, setEditedUser] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    if (user) {
+      setEditedUser({
+        fullName: user.fullName ?? "",
+        email: user.email,
+        phone_number_1: user.phone_number_1 ?? "",
+        phone_number_2: user.phone_number_2 ?? "",
+      })
+    }
+  }, [user])
+
+  const updateMutation = useMutation({
+    mutationFn: (data: EditableUserFields) =>
+        EmployeeService.updateEmployeeById({
+          id: userId,
+          requestBody: data as any,
+        }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user", userId] })
+      showToast("Success!", "User info updated", "success")
+      setIsEditing(false)
+    },
+    onError: (err) => {
+      handleError(err as ApiError, showToast)
     },
   })
 
+
+  const handleEditChange = (key: string, value: string) => {
+    setEditedUser((prev) => ({ ...prev, [key]: value }))
+  }
+
   const avatarMutation = useMutation({
     mutationFn: async (file: File) => {
-      if (!currentUser?.isSuperUser) {
+      if (!isSuperUser) {
         throw new Error("Permission denied")
       }
 
       const url = await uploadImage(file)
+      if (!url) {
+        throw new Error("Upload failed")
+      }
 
       await EmployeeService.updateEmployeeById({
         id: userId,
         requestBody: {
-          avatar: url,
-
+          avatar: url, // тепер точно string
         },
       })
-      console.log("Sending PATCH", { id: userId, avatar: url })
-
-
 
       return url
     },
@@ -87,7 +118,6 @@ function UserDetails() {
         showToast("Permission denied", "Only superusers can update avatar", "error")
         return
       }
-
       if ("status" in err) {
         handleError(err as ApiError, showToast)
       } else {
@@ -96,28 +126,24 @@ function UserDetails() {
     },
   })
 
+
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0) return
-
-    if (!currentUser?.isSuperUser) {
+    if (!isSuperUser) {
       showToast("Permission denied", "Only superusers can update avatar", "error")
       return
     }
-
     const selectedFile = event.target.files[0]
     const newFile = {
-      name: selectedFile.name,
-      size: `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
       file: selectedFile,
       preview: URL.createObjectURL(selectedFile),
     }
-
     setFile(newFile)
     avatarMutation.mutate(selectedFile)
   }
 
   function handleFileButtonClick() {
-    if (currentUser?.isSuperUser && fileInputRef.current) {
+    if (isSuperUser && fileInputRef.current) {
       fileInputRef.current.click()
     }
   }
@@ -133,6 +159,8 @@ function UserDetails() {
   if (!user || error) {
     return <Text textAlign="center">Користувача не знайдено або сталася помилка.</Text>
   }
+
+  const avatarSrc = file?.preview || user?.avatar || "https://via.placeholder.com/100x100?text=Avatar"
 
   return (
       <Container maxW="4xl" py={8}>
@@ -160,26 +188,21 @@ function UserDetails() {
                     accept="image/*"
                     onChange={onFileChange}
                     hidden
-                    disabled={isSubmitting}
+                    disabled={avatarMutation.isPending}
                 />
-
                 <Box
                     w="100px"
                     h="100px"
                     borderRadius="full"
                     overflow="hidden"
-                    cursor={currentUser?.isSuperUser ? "pointer" : "not-allowed"}
+                    cursor={isSuperUser ? "pointer" : "not-allowed"}
                     border="2px solid"
                     borderColor="gray.200"
-                    _hover={{ opacity: currentUser?.isSuperUser ? 0.8 : 1 }}
+                    _hover={{ opacity: isSuperUser ? 0.8 : 1 }}
                     onClick={handleFileButtonClick}
                 >
                   <img
-                      src={
-                          file?.preview ??
-                          user?.avatar ??
-                          "https://via.placeholder.com/100x100?text=Avatar"
-                      }
+                      src={avatarSrc}
                       alt="Avatar"
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
@@ -187,6 +210,77 @@ function UserDetails() {
               </FormControl>
             </Section>
           </Box>
+
+          <Section title="User Information">
+            <Flex justify="flex-end" align="center">
+              {!isEditing ? (
+                  <IconButton
+                      icon={<EditIcon />}
+                      aria-label="Edit"
+                      size="sm"
+                      onClick={() => setIsEditing(true)}
+                  />
+              ) : (
+                  <Flex gap={2}>
+                    <Button
+                        size="sm"
+                        colorScheme="orange"
+                        onClick={() => updateMutation.mutate(editedUser)}
+                        isLoading={updateMutation.isPending}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditedUser({
+                            fullName: user.fullName ?? "",
+                            email: user.email,
+                            phone_number_1: user.phone_number_1 ?? "",
+                            phone_number_2: user.phone_number_2 ?? "",
+                          })
+                          setIsEditing(false)
+                        }}
+                    >
+                      Cancel
+                    </Button>
+                  </Flex>
+              )}
+            </Flex>
+
+            {!isEditing ? (
+                <>
+                  <Text><strong>Full name:</strong> {user.fullName ?? "-"}</Text>
+                  <Text><strong>Email:</strong> {user.email}</Text>
+                  <Text><strong>Phone 1:</strong> {user.phone_number_1 ?? "-"}</Text>
+                  <Text><strong>Phone 2:</strong> {user.phone_number_2 ?? "-"}</Text>
+                </>
+            ) : (
+                <Stack spacing={3} mt={4}>
+                  <Input
+                      placeholder="Full name"
+                      value={editedUser.fullName || ""}
+                      onChange={(e) => handleEditChange("fullName", e.target.value)}
+                  />
+                  <Input
+                      placeholder="Email"
+                      value={editedUser.email || ""}
+                      onChange={(e) => handleEditChange("email", e.target.value)}
+                  />
+                  <Input
+                      placeholder="Phone 1"
+                      value={editedUser.phone_number_1 || ""}
+                      onChange={(e) => handleEditChange("phone_number_1", e.target.value)}
+                  />
+                  <Input
+                      placeholder="Phone 2"
+                      value={editedUser.phone_number_2 || ""}
+                      onChange={(e) => handleEditChange("phone_number_2", e.target.value)}
+                  />
+                </Stack>
+            )}
+          </Section>
         </Stack>
       </Container>
   )
