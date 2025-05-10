@@ -18,7 +18,6 @@ import {
   EmployeeService,
   type UserPublic,
   UsersService,
-  type UserUpdateMe
 } from "../../../client"
 import { useNavigate } from "@tanstack/react-router"
 import { useState, useRef } from "react"
@@ -26,6 +25,7 @@ import { useForm } from "react-hook-form"
 import useAuth from "../../../hooks/useAuth.ts"
 import useCustomToast from "../../../hooks/useCustomToast.ts"
 import { handleError } from "../../../utils.ts"
+import { uploadImage } from "../../../utils/uploadImage.ts"
 
 export const Route = createFileRoute("/_layout/user/$userId")({
   component: UserDetails,
@@ -35,7 +35,7 @@ function UserDetails() {
   const { userId } = Route.useParams()
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [file, setFile] = useState<{ file: File, preview: string } | null>(null)
+  const [file, setFile] = useState<{ file: File; preview: string } | null>(null)
   const showToast = useCustomToast()
   const { user: currentUser } = useAuth()
   const queryClient = useQueryClient()
@@ -43,11 +43,10 @@ function UserDetails() {
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["user", userId],
     queryFn: () => EmployeeService.readEmployeeById({ userId }),
-    enabled: !!userId
+    enabled: !!userId,
   })
 
   const {
-    getValues,
     formState: { isSubmitting },
   } = useForm<UserPublic>({
     mode: "onBlur",
@@ -55,7 +54,7 @@ function UserDetails() {
     defaultValues: {
       fullName: currentUser?.fullName,
       email: currentUser?.email,
-      avatar: currentUser?.avatar
+      avatar: currentUser?.avatar,
     },
   })
 
@@ -66,12 +65,17 @@ function UserDetails() {
       }
 
       const url = await uploadImage(file)
-      await UsersService.updateUserMe({ requestBody: { avatar: url } })
+
+      await UsersService.updateUser({
+        userId,
+        requestBody: { avatar: url },
+      })
+
       return url
     },
     onSuccess: () => {
       showToast("Success!", "Avatar updated", "success")
-      queryClient.invalidateQueries()
+      queryClient.invalidateQueries({ queryKey: ["user", userId] })
     },
     onError: (err: ApiError | Error) => {
       if (err instanceof Error && err.message === "Permission denied") {
@@ -79,12 +83,12 @@ function UserDetails() {
         return
       }
 
-      if ('status' in err) {
+      if ("status" in err) {
         handleError(err as ApiError, showToast)
       } else {
         showToast("Error", err.message || "Unknown error", "error")
       }
-    }
+    },
   })
 
   const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,7 +112,7 @@ function UserDetails() {
   }
 
   function handleFileButtonClick() {
-    if (user?.isSuperUser && fileInputRef.current) {
+    if (currentUser?.isSuperUser && fileInputRef.current) {
       fileInputRef.current.click()
     }
   }
@@ -159,17 +163,16 @@ function UserDetails() {
                     h="100px"
                     borderRadius="full"
                     overflow="hidden"
-                    cursor={user?.isSuperUser ? "pointer" : "not-allowed"}
+                    cursor={currentUser?.isSuperUser ? "pointer" : "not-allowed"}
                     border="2px solid"
                     borderColor="gray.200"
-                    _hover={{ opacity: user?.isSuperUser ? 0.8 : 1 }}
+                    _hover={{ opacity: currentUser?.isSuperUser ? 0.8 : 1 }}
                     onClick={handleFileButtonClick}
                 >
                   <img
                       src={
-                          file?.preview ||
-                          getValues("avatar") ||
-                          user?.avatar ||
+                          file?.preview ??
+                          user?.avatar ??
                           "https://via.placeholder.com/100x100?text=Avatar"
                       }
                       alt="Avatar"
@@ -186,25 +189,20 @@ function UserDetails() {
 
 function Section({
                    title,
-                   children
+                   children,
                  }: {
-  title: string,
+  title: string
   children: React.ReactNode
 }) {
   return (
       <Box>
         <Box position="relative" mb={2}>
-          <Text fontWeight="bold" fontSize="lg" mb={1}>{title}</Text>
+          <Text fontWeight="bold" fontSize="lg" mb={1}>
+            {title}
+          </Text>
           <Divider />
         </Box>
-        <Stack spacing={3}>
-          {children}
-        </Stack>
+        <Stack spacing={3}>{children}</Stack>
       </Box>
   )
-}
-
-async function uploadImage(file: File): Promise<string> {
-  // TODO: Реалізуй логіку завантаження зображення на сервер або B2
-  return Promise.resolve("https://fake-uploaded-url.com/avatar.jpg")
 }
