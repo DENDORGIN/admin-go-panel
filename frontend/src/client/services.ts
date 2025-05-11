@@ -21,7 +21,7 @@ import {
   UserRegister,
   UserUpdate,
   UserUpdateMe,
-  UsersPublic, Properties, RoomPublic, RoomsPublic, PreviewDto, UpdatePropertiesType, UserEmployeePublic
+  UsersPublic, Properties, RoomPublic, RoomsPublic, PreviewDto, UpdatePropertiesType, UserEmployeePublic, DirectChat
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -900,6 +900,10 @@ export class RoomService {
   }
 }
 
+
+export type CreateDirectChatPayload = {
+  user_id: string;
+};
 export class DirectService {
     public static readUsers(): CancelablePromise<UserPublic[]> {
         return __request(OpenAPI, {
@@ -907,6 +911,19 @@ export class DirectService {
         url: "/v1/direct/users",
         })
     }
+
+  public static getOrPostChats(
+      data: CreateDirectChatPayload
+  ): CancelablePromise<DirectChat> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/v1/direct/chats",
+      body: data,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+  }
 
     public static readMessages(userId: string): CancelablePromise<Message[]> {
         return __request(OpenAPI, {

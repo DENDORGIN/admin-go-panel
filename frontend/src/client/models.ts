@@ -161,6 +161,7 @@ export type UserCreate = {
 }
 
 export type UserPublic = {
+  ID: string
   email: string
   isActive?: boolean
   isSuperUser?: boolean
@@ -168,7 +169,7 @@ export type UserPublic = {
   fullName?: string | null
   acronym?: string | null
   avatar?: string | null
-  ID: string
+
 }
 
 export type UserRegister = {
@@ -318,4 +319,11 @@ export interface MessageType {
   reactions?: Reaction[];
 }
 
+export type DirectChat = {
+  ID: string;
+  userAID: string;
+  userBID: string;
+  createdAt: string;
+  updatedAt: string;
 
+}

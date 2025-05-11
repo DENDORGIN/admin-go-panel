@@ -19,6 +19,6 @@ func RegisterRoutes(r *gin.RouterGroup) {
 
 		directGroup.DELETE("/chats/:chatId/messages/:messageId", handlers.DeleteDirectMessage)
 
-		directGroup.GET("/ws/chats/:chatId", handlers.DirectChatWebSocket)
+		//directGroup.GET("/ws/chats/:chatId", handlers.DirectChatWebSocket)
 	}
 }

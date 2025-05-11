@@ -8,6 +8,7 @@ import (
 	directRepoository "backend/modules/direct/repository"
 	"backend/modules/direct/utils"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -30,7 +31,19 @@ func DirectChatWebSocket(ctx *gin.Context) {
 		return
 	}
 
-	userID := ctx.MustGet("id").(uuid.UUID)
+	token := ctx.Query("token")
+	user, err := internal.ParseJWTToken(token)
+	if err != nil {
+		log.Println("❌ Невалідний токен:", err)
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	fmt.Println("token:", token)
+	fmt.Println("user:", user)
+
+	userID := user.ID
+	//ctx.Set("id", userID) // якщо треба далі по коду
+
 	chatID, err := uuid.Parse(ctx.Param("chatId"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid chat ID"})
