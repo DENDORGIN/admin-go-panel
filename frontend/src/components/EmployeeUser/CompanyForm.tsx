@@ -27,6 +27,9 @@ interface Props {
         date_end: string | null
         created_at: string
         updated_at: string
+        whu_created_by_acron: string
+        whu_updated_by_acron: string | null
+        extra_data: JSON
     }
 }
 
@@ -81,6 +84,8 @@ export default function CompanyForm({
                     <Text><strong>Date end:</strong> {user.date_end ?? "-"}</Text>
                     <Text><strong>Created at:</strong> {user.created_at}</Text>
                     <Text><strong>Updated at:</strong> {user.updated_at}</Text>
+                    <Text><strong>Who created:</strong> {user.whu_created_by_acron}</Text>
+                    <Text><strong>Updated at:</strong> {user.whu_updated_by_acron}</Text>
                 </>
             ) : (
                 <Stack spacing={3} mt={4}>

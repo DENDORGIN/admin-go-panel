@@ -23,6 +23,7 @@ import { useAvatarUpload } from "../../../components/EmployeeUser/AvatarUploader
 import UserAvatar from "../../../components/EmployeeUser/UserAvatar.tsx"
 import UserForm from "../../../components/EmployeeUser/UserForm.tsx"
 import CompanyForm from "../../../components/EmployeeUser/CompanyForm.tsx"
+import ExtraDataForm from "../../../components/EmployeeUser/ExtraDataForm.tsx"
 
 export const Route = createFileRoute("/_layout/user/$userId")({
   component: UserDetails,
@@ -66,6 +67,9 @@ function UserDetails() {
         position: user.position ?? "",
         condition_type: user.condition_type ?? "",
         salary: user.salary ?? "",
+        date_start: user.date_start ?? "",
+        date_end: user.date_end ?? "",
+        extra_data: (user.extra_data ?? {}) as unknown as Record<string, string>,
       })
     }
   }, [user])
@@ -89,6 +93,7 @@ function UserDetails() {
       phone_number_1: user.phone_number_1 ?? "",
       phone_number_2: user.phone_number_2 ?? "",
       address: user.address ?? "",
+      extra_data: (user.extra_data ?? {}) as unknown as Record<string, string>,
     }))
     setIsEditingUserInfo(false)
   }
@@ -106,8 +111,8 @@ function UserDetails() {
       position: user.position ?? "",
       condition_type: user.condition_type ?? "",
       salary: user.salary ?? "",
-      date_start:user.date_start ?? "",
-      date_end:user.date_end ?? "",
+      date_start: user.date_start ?? "",
+      date_end: user.date_end ?? "",
     }))
     setIsEditingCompanyInfo(false)
   }
@@ -121,7 +126,7 @@ function UserDetails() {
   }
 
   if (!user || error) {
-    return <Text textAlign="center">Користувача не знайдено або сталася помилка.</Text>
+    return <Text textAlign="center">User not found or an error occurred.</Text>
   }
 
   const avatarSrc = file?.preview || user.avatar || "https://via.placeholder.com/100x100?text=Avatar"
@@ -178,6 +183,18 @@ function UserDetails() {
                 onCancel={handleCancelCompanyInfo}
                 isSaving={updateMutation.isPending}
                 user={user}
+            />
+          </Section>
+
+          <Section title="Additional data">
+            <ExtraDataForm
+                extraData={editedUser.extra_data}
+                onChange={(newExtraData) =>
+                    setEditedUser((prev) => ({
+                      ...prev,
+                      extra_data: newExtraData,
+                    }))
+                }
             />
           </Section>
         </Stack>

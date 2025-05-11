@@ -18,7 +18,7 @@ export type EditableUserFields = Partial<{
     salary: string
     date_start:string | null
     date_end:string | null
-
+    extra_data?: Record<string, string>
 
 }>
 
