@@ -2,11 +2,9 @@ package handlers
 
 import (
 	internal "backend/internal/services/utils"
-	"backend/modules/chat/messages/repository"
 	direct "backend/modules/direct/client"
 	"backend/modules/direct/models"
 	directRepoository "backend/modules/direct/repository"
-	"backend/modules/direct/utils"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -42,7 +40,6 @@ func DirectChatWebSocket(ctx *gin.Context) {
 	fmt.Println("user:", user)
 
 	userID := user.ID
-	//ctx.Set("id", userID) // якщо треба далі по коду
 
 	chatID, err := uuid.Parse(ctx.Param("chatId"))
 	if err != nil {
@@ -73,7 +70,7 @@ func DirectChatWebSocket(ctx *gin.Context) {
 
 	log.Printf("✅ WebSocket connected user %s chat %s\n", userID, chatID)
 
-	if history, err := utils.LoadRecentDirectMessages(db, chatID, 30); err == nil {
+	if history, err := directRepoository.GetDirectMessagesPaginated(db, chatID, 30, nil); err == nil {
 		if historyData, err := json.Marshal(history); err == nil {
 			err := conn.WriteMessage(websocket.TextMessage, historyData)
 			if err != nil {
@@ -93,21 +90,21 @@ func DirectChatWebSocket(ctx *gin.Context) {
 
 }
 
-func processDirectEvent(msg map[string]interface{}, userID, chatID uuid.UUID, conn *websocket.Conn, db *gorm.DB, sender *direct.Client) {
+func processDirectEvent(msg map[string]interface{}, SenderID, chatID uuid.UUID, conn *websocket.Conn, db *gorm.DB, sender *direct.Client) {
 	switch msg["type"] {
 	case "new_message":
 		content, _ := msg["message"].(string)
 		emoji := getString(msg, "reaction")
 
-		//contentURL, _ := msg["content_url"].(string)
+		//ContentURL, _ := msg["ContentUrl"].(string)
 
-		message := models.DirectMessage{
+		message := models.DirectMessagePayload{
 			ID:       uuid.New(),
 			ChatID:   chatID,
-			SenderID: userID,
+			SenderID: SenderID,
 			Message:  content,
 			Reaction: emoji,
-			//ContentURL: contentURL,
+			//ContentURL: []ContentURL,
 			CreatedAt: time.Now(),
 		}
 		_ = db.Create(&message)
@@ -126,7 +123,7 @@ func processDirectEvent(msg map[string]interface{}, userID, chatID uuid.UUID, co
 		}
 
 		newText := getString(msg, "message")
-		edited, err := directRepoository.EditMessageByID(db, messageID, userID, &models.EditMessage{Message: newText})
+		edited, err := directRepoository.EditMessageByID(db, messageID, SenderID, &models.EditMessage{Message: newText})
 		if err != nil {
 			log.Println("❌ Edit failed:", err)
 			return
@@ -145,7 +142,7 @@ func processDirectEvent(msg map[string]interface{}, userID, chatID uuid.UUID, co
 			return
 		}
 
-		err = directRepoository.DeleteMessageByID(db, messageID, userID)
+		err = directRepoository.DeleteMessageByID(db, messageID, SenderID)
 		if err != nil {
 			log.Println("❌ Delete failed:", err)
 			return
@@ -181,7 +178,7 @@ func processDirectEvent(msg map[string]interface{}, userID, chatID uuid.UUID, co
 		beforeID, _ := uuid.Parse(msg["before"].(string))
 		limit := int(msg["limit"].(float64))
 
-		messages, err := repository.GetMessagesPaginated(db, chatID, limit, &beforeID)
+		messages, err := directRepoository.GetDirectMessagesPaginated(db, chatID, limit, &beforeID) // &beforeID
 		if err == nil {
 			err := conn.WriteJSON(map[string]interface{}{
 				"type":     "messages_batch",
@@ -195,7 +192,7 @@ func processDirectEvent(msg map[string]interface{}, userID, chatID uuid.UUID, co
 	case "user_typing":
 		typingPayload := map[string]interface{}{
 			"type":    "user_typing",
-			"user_id": userID,
+			"user_id": SenderID,
 			"chat_id": chatID,
 		}
 		direct.Manager.Broadcast(chatID, typingPayload, sender)
