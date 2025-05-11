@@ -19,9 +19,10 @@ import { useNavigate } from "@tanstack/react-router"
 import { useState, useEffect } from "react"
 import useAuth from "../../../hooks/useAuth.ts"
 import { useUpdateUser, EditableUserFields } from "../../../components/EmployeeUser/useUpdateUser.ts"
-import { useAvatarUpload} from "../../../components/EmployeeUser/AvatarUploader.ts";
+import { useAvatarUpload } from "../../../components/EmployeeUser/AvatarUploader.ts"
 import UserAvatar from "../../../components/EmployeeUser/UserAvatar.tsx"
 import UserForm from "../../../components/EmployeeUser/UserForm.tsx"
+import CompanyForm from "../../../components/EmployeeUser/CompanyForm.tsx"
 
 export const Route = createFileRoute("/_layout/user/$userId")({
   component: UserDetails,
@@ -48,7 +49,8 @@ function UserDetails() {
     enabled: !!userId,
   })
 
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditingUserInfo, setIsEditingUserInfo] = useState(false)
+  const [isEditingCompanyInfo, setIsEditingCompanyInfo] = useState(false)
   const [editedUser, setEditedUser] = useState<EditableUserFields>({})
 
   useEffect(() => {
@@ -60,6 +62,10 @@ function UserDetails() {
         phone_number_1: user.phone_number_1 ?? "",
         phone_number_2: user.phone_number_2 ?? "",
         address: user.address ?? "",
+        company: user.company ?? "",
+        position: user.position ?? "",
+        condition_type: user.condition_type ?? "",
+        salary: user.salary ?? "",
       })
     }
   }, [user])
@@ -68,22 +74,42 @@ function UserDetails() {
     setEditedUser((prev) => ({ ...prev, [key]: value }))
   }
 
-  const handleSave = () => {
+  const handleSaveUserInfo = () => {
     updateMutation.mutate(editedUser)
-    setIsEditing(false)
+    setIsEditingUserInfo(false)
   }
 
-  const handleCancel = () => {
+  const handleCancelUserInfo = () => {
     if (!user) return
-    setEditedUser({
+    setEditedUser((prev) => ({
+      ...prev,
       fullName: user.fullName ?? "",
       acronym: user.acronym ?? "",
       email: user.email,
       phone_number_1: user.phone_number_1 ?? "",
       phone_number_2: user.phone_number_2 ?? "",
       address: user.address ?? "",
-    })
-    setIsEditing(false)
+    }))
+    setIsEditingUserInfo(false)
+  }
+
+  const handleSaveCompanyInfo = () => {
+    updateMutation.mutate(editedUser)
+    setIsEditingCompanyInfo(false)
+  }
+
+  const handleCancelCompanyInfo = () => {
+    if (!user) return
+    setEditedUser((prev) => ({
+      ...prev,
+      company: user.company ?? "",
+      position: user.position ?? "",
+      condition_type: user.condition_type ?? "",
+      salary: user.salary ?? "",
+      date_start:user.date_start ?? "",
+      date_end:user.date_end ?? "",
+    }))
+    setIsEditingCompanyInfo(false)
   }
 
   if (isLoading) {
@@ -129,13 +155,27 @@ function UserDetails() {
 
           <Section title="User Information">
             <UserForm
-                isEditing={isEditing}
-                setIsEditing={setIsEditing}
+                isEditing={isEditingUserInfo}
+                setIsEditing={setIsEditingUserInfo}
                 editedUser={editedUser}
                 setEditedUser={setEditedUser}
                 onChange={handleEditChange}
-                onSave={handleSave}
-                onCancel={handleCancel}
+                onSave={handleSaveUserInfo}
+                onCancel={handleCancelUserInfo}
+                isSaving={updateMutation.isPending}
+                user={user}
+            />
+          </Section>
+
+          <Section title="Company Information">
+            <CompanyForm
+                isEditing={isEditingCompanyInfo}
+                setIsEditing={setIsEditingCompanyInfo}
+                editedUser={editedUser}
+                setEditedUser={setEditedUser}
+                onChange={handleEditChange}
+                onSave={handleSaveCompanyInfo}
+                onCancel={handleCancelCompanyInfo}
                 isSaving={updateMutation.isPending}
                 user={user}
             />

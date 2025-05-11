@@ -11,6 +11,15 @@ export type EditableUserFields = Partial<{
     phone_number_2: string
     address: string
     acronym: string
+
+    company: string
+    position: string
+    condition_type: string
+    salary: string
+    date_start:string | null
+    date_end:string | null
+
+
 }>
 
 export function useUpdateUser() {
