@@ -7,24 +7,21 @@ import {
   Box,
   Divider,
   Stack,
-  Input,
-  FormControl,
 } from "@chakra-ui/react"
 import { ArrowBackIcon } from "@chakra-ui/icons"
 import { createFileRoute } from "@tanstack/react-router"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import {
-  type ApiError,
+  type UserEmployeePublic,
   EmployeeService,
-  type UserPublic,
 } from "../../../client"
 import { useNavigate } from "@tanstack/react-router"
-import { useState, useRef } from "react"
-import { useForm } from "react-hook-form"
+import { useState, useEffect } from "react"
 import useAuth from "../../../hooks/useAuth.ts"
-import useCustomToast from "../../../hooks/useCustomToast.ts"
-import { handleError } from "../../../utils.ts"
-import { uploadImage } from "../../../utils/uploadImage.ts"
+import { useUpdateUser, EditableUserFields } from "../../../components/EmployeeUser/useUpdateUser.ts"
+import { useAvatarUpload} from "../../../components/EmployeeUser/AvatarUploader.ts";
+import UserAvatar from "../../../components/EmployeeUser/UserAvatar.tsx"
+import UserForm from "../../../components/EmployeeUser/UserForm.tsx"
 
 export const Route = createFileRoute("/_layout/user/$userId")({
   component: UserDetails,
@@ -33,93 +30,60 @@ export const Route = createFileRoute("/_layout/user/$userId")({
 function UserDetails() {
   const { userId } = Route.useParams()
   const navigate = useNavigate()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [file, setFile] = useState<{ file: File; preview: string } | null>(null)
-  const showToast = useCustomToast()
   const { user: currentUser } = useAuth()
-  const queryClient = useQueryClient()
+  const isSuperUser = !!currentUser?.isSuperUser
+  const updateMutation = useUpdateUser()
 
-  const { data: user, isLoading, error } = useQuery({
+  const {
+    file,
+    fileInputRef,
+    onFileChange,
+    handleFileButtonClick,
+    isUploading,
+  } = useAvatarUpload(userId, isSuperUser)
+
+  const { data: user, isLoading, error } = useQuery<UserEmployeePublic>({
     queryKey: ["user", userId],
     queryFn: () => EmployeeService.readEmployeeById({ userId }),
     enabled: !!userId,
   })
 
-  const {
-    formState: { isSubmitting },
-  } = useForm<UserPublic>({
-    mode: "onBlur",
-    criteriaMode: "all",
-    defaultValues: {
-      fullName: currentUser?.fullName,
-      email: currentUser?.email,
-      avatar: currentUser?.avatar,
-    },
-  })
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedUser, setEditedUser] = useState<EditableUserFields>({})
 
-  const avatarMutation = useMutation({
-    mutationFn: async (file: File) => {
-      if (!currentUser?.isSuperUser) {
-        throw new Error("Permission denied")
-      }
-
-      const url = await uploadImage(file)
-
-      await EmployeeService.updateEmployeeById({
-        id: userId,
-        requestBody: {
-          avatar: url,
-
-        },
+  useEffect(() => {
+    if (user) {
+      setEditedUser({
+        fullName: user.fullName ?? "",
+        acronym: user.acronym ?? "",
+        email: user.email,
+        phone_number_1: user.phone_number_1 ?? "",
+        phone_number_2: user.phone_number_2 ?? "",
+        address: user.address ?? "",
       })
-      console.log("Sending PATCH", { id: userId, avatar: url })
-
-
-
-      return url
-    },
-    onSuccess: () => {
-      showToast("Success!", "Avatar updated", "success")
-      queryClient.invalidateQueries({ queryKey: ["user", userId] })
-    },
-    onError: (err: ApiError | Error) => {
-      if (err instanceof Error && err.message === "Permission denied") {
-        showToast("Permission denied", "Only superusers can update avatar", "error")
-        return
-      }
-
-      if ("status" in err) {
-        handleError(err as ApiError, showToast)
-      } else {
-        showToast("Error", err.message || "Unknown error", "error")
-      }
-    },
-  })
-
-  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files || event.target.files.length === 0) return
-
-    if (!currentUser?.isSuperUser) {
-      showToast("Permission denied", "Only superusers can update avatar", "error")
-      return
     }
+  }, [user])
 
-    const selectedFile = event.target.files[0]
-    const newFile = {
-      name: selectedFile.name,
-      size: `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
-      file: selectedFile,
-      preview: URL.createObjectURL(selectedFile),
-    }
-
-    setFile(newFile)
-    avatarMutation.mutate(selectedFile)
+  const handleEditChange = (key: keyof EditableUserFields, value: string) => {
+    setEditedUser((prev) => ({ ...prev, [key]: value }))
   }
 
-  function handleFileButtonClick() {
-    if (currentUser?.isSuperUser && fileInputRef.current) {
-      fileInputRef.current.click()
-    }
+  const handleSave = () => {
+    updateMutation.mutate(editedUser)
+    setIsEditing(false)
+  }
+
+  const handleCancel = () => {
+    if (!user) return
+    setEditedUser({
+      fullName: user.fullName ?? "",
+      acronym: user.acronym ?? "",
+      email: user.email,
+      phone_number_1: user.phone_number_1 ?? "",
+      phone_number_2: user.phone_number_2 ?? "",
+      address: user.address ?? "",
+    })
+    setIsEditing(false)
   }
 
   if (isLoading) {
@@ -133,6 +97,8 @@ function UserDetails() {
   if (!user || error) {
     return <Text textAlign="center">Користувача не знайдено або сталася помилка.</Text>
   }
+
+  const avatarSrc = file?.preview || user.avatar || "https://via.placeholder.com/100x100?text=Avatar"
 
   return (
       <Container maxW="4xl" py={8}>
@@ -150,43 +116,30 @@ function UserDetails() {
         </Link>
 
         <Stack spacing={6}>
-          <Box>
-            <Section title="Avatar">
-              <FormControl mt={4}>
-                <Input
-                    ref={fileInputRef}
-                    id="avatar"
-                    type="file"
-                    accept="image/*"
-                    onChange={onFileChange}
-                    hidden
-                    disabled={isSubmitting}
-                />
+          <Section title="Avatar">
+            <UserAvatar
+                fileInputRef={fileInputRef}
+                avatarSrc={avatarSrc}
+                isUploading={isUploading}
+                isSuperUser={isSuperUser}
+                onFileChange={onFileChange}
+                onClick={handleFileButtonClick}
+            />
+          </Section>
 
-                <Box
-                    w="100px"
-                    h="100px"
-                    borderRadius="full"
-                    overflow="hidden"
-                    cursor={currentUser?.isSuperUser ? "pointer" : "not-allowed"}
-                    border="2px solid"
-                    borderColor="gray.200"
-                    _hover={{ opacity: currentUser?.isSuperUser ? 0.8 : 1 }}
-                    onClick={handleFileButtonClick}
-                >
-                  <img
-                      src={
-                          file?.preview ??
-                          user?.avatar ??
-                          "https://via.placeholder.com/100x100?text=Avatar"
-                      }
-                      alt="Avatar"
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                </Box>
-              </FormControl>
-            </Section>
-          </Box>
+          <Section title="User Information">
+            <UserForm
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}
+                editedUser={editedUser}
+                setEditedUser={setEditedUser}
+                onChange={handleEditChange}
+                onSave={handleSave}
+                onCancel={handleCancel}
+                isSaving={updateMutation.isPending}
+                user={user}
+            />
+          </Section>
         </Stack>
       </Container>
   )
