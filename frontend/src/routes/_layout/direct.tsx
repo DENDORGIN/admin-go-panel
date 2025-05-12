@@ -40,7 +40,10 @@ function DirectPage() {
     const [selectedUser, setSelectedUser] = useState<UserPublic | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
+    const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
     const socketRef = useRef<WebSocket | null>(null);
+    const inputRef = useRef<HTMLTextAreaElement | null>(null);
+
     const {user} = useAuth();
 
     useEffect(() => {
@@ -74,13 +77,21 @@ function DirectPage() {
                 } else if (data.type === "new_message") {
                     setMessages((prev) => [...prev, data.message]);
                 } else if (data.type === "update_message") {
-                    setMessages((prev) => prev.map(m =>
-                        m.ID === data.id ? { ...m, ContentUrl: data.content_url, isLoading: false } : m
-                    ));
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.ID === data.id ? {...m, ContentUrl: data.content_url, isLoading: false} : m
+                        )
+                    );
                 } else if (data.type === "message_reactions_updated") {
                     setMessages((prev) =>
                         prev.map((m) =>
-                            m.ID === data.message.ID ? { ...m, Reaction: data.message.Reaction } : m
+                            m.ID === data.message.ID ? {...m, Reaction: data.message.Reaction} : m
+                        )
+                    );
+                } else if (data.type === "message_edited") {
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.ID === data.message.ID ? {...m, Message: data.message.Message, EditedAt: data.message.EditedAt} : m
                         )
                     );
                 }
@@ -93,11 +104,21 @@ function DirectPage() {
         }
     };
 
+
     const handleSend = () => {
         if (!input.trim() || !socketRef.current) return;
-        socketRef.current.send(
-            JSON.stringify({type: "new_message", message: input.trim()})
-        );
+
+        if (editingMessageId) {
+            socketRef.current.send(
+                JSON.stringify({type: "edit_message", id: editingMessageId, message: input.trim()})
+            );
+            setEditingMessageId(null);
+        } else {
+            socketRef.current.send(
+                JSON.stringify({type: "new_message", message: input.trim()})
+            );
+        }
+
         setInput("");
     };
 
@@ -109,32 +130,39 @@ function DirectPage() {
         const formData = new FormData();
         Array.from(files).forEach(file => formData.append("files", file));
 
+        // 👉 крок 1: надіслати повідомлення на сервер
+        // socketRef.current?.send(JSON.stringify(placeholderMessage));
+
+
+        // 👉 крок 2: локально показати плейсхолдер
         const placeholderMessage: Message = {
             ID: messageId,
             SenderID: user.ID,
-            ChatID: "", // optional, not critical for placeholder
+            ChatID: "",
             Message: input,
             CreatedAt: new Date().toISOString(),
             Reaction: "",
             ContentUrl: [],
             isLoading: true,
         };
-
         setMessages(prev => [...prev, placeholderMessage]);
-        socketRef.current.send(JSON.stringify(placeholderMessage));
+
+        socketRef.current?.send(JSON.stringify(placeholderMessage));
 
         try {
             const res = await MediaService.downloadImages(messageId, formData);
             const fileUrls = res.map((f: { url: string }) => f.url);
+
             socketRef.current.send(JSON.stringify({
                 type: "update_message",
                 id: messageId,
-                content_url: fileUrls
+                content_url: fileUrls,
             }));
         } catch (err) {
             console.error("Upload error:", err);
         }
     };
+
 
     return (
         <Flex h="100vh" w="full" maxW="1920px" overflow="hidden">
@@ -195,7 +223,10 @@ function DirectPage() {
                                     msg={msg}
                                     isMe={msg.SenderID === user?.ID}
                                     isLast={idx === messages.length - 1}
-                                    onEdit={() => console.log("Edit", msg.ID)}
+                                    onEdit={() => {
+                                        setEditingMessageId(msg.ID);
+                                        setInput(msg.Message);
+                                    }}
                                     onDelete={(id) => console.log("Delete", id)}
                                     onReact={(id, emoji) => {
                                         socketRef.current?.send(
@@ -209,12 +240,27 @@ function DirectPage() {
 
                         <Box px={4} pt={2} pb={4} flexShrink={0} borderTop="1px solid" borderColor="gray.200">
                             <DirectInputBar
+                                ref={inputRef}
                                 value={input}
                                 onChange={setInput}
                                 onSend={handleSend}
                                 onFileSelect={handleFileUpload}
                                 disabled={!selectedUser || !user}
                             />
+                            {editingMessageId && (
+                                <Text color="teal.500" fontSize="sm" mt={1} px={2}>
+                                    ✏️ Ви редагуєте повідомлення
+                                    <span
+                                        style={{cursor: "pointer", marginLeft: 10, color: "red"}}
+                                        onClick={() => {
+                                            setEditingMessageId(null);
+                                            setInput("");
+                                        }}
+                                    >
+                                        Скасувати
+                                    </span>
+                                </Text>
+                            )}
                         </Box>
                     </>
                 ) : (
@@ -228,3 +274,4 @@ function DirectPage() {
         </Flex>
     );
 }
+
