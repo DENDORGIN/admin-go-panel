@@ -8,16 +8,26 @@ import {
     Text,
 } from "@chakra-ui/react"
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons"
-import { FC, useState } from "react"
+import { FC, useEffect, useState } from "react"
+
+const LOCAL_STORAGE_KEY = "extraData"
 
 type Props = {
     extraData?: Record<string, string>
-    onChange: (data: Record<string, string>) => void
+    onChange?: (data: Record<string, string>) => void
 }
 
-const ExtraDataForm: FC<Props> = ({ extraData = {}, onChange }) => {
+const ExtraDataForm: FC<Props> = () => {
     const [isEditing, setIsEditing] = useState(false)
+    const [extraData, setExtraData] = useState<Record<string, string>>({})
     const [localEntries, setLocalEntries] = useState<[string, string][]>([])
+
+    useEffect(() => {
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY)
+        if (saved) {
+            setExtraData(JSON.parse(saved))
+        }
+    }, [])
 
     const startEditing = () => {
         setLocalEntries(Object.entries(extraData))
@@ -31,10 +41,9 @@ const ExtraDataForm: FC<Props> = ({ extraData = {}, onChange }) => {
     }
 
     const handleAdd = () => {
-        if (localEntries.length >= 10) return // максимум 10 полів
+        if (localEntries.length >= 10) return
         setLocalEntries([...localEntries, ["", ""]])
     }
-
 
     const handleRemove = (index: number) => {
         setLocalEntries(localEntries.filter((_, i) => i !== index))
@@ -46,7 +55,9 @@ const ExtraDataForm: FC<Props> = ({ extraData = {}, onChange }) => {
 
     const handleSave = () => {
         const cleaned = localEntries.filter(([k]) => k.trim())
-        onChange(Object.fromEntries(cleaned))
+        const updated = Object.fromEntries(cleaned)
+        setExtraData(updated)
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated))
         setIsEditing(false)
     }
 
@@ -114,7 +125,12 @@ const ExtraDataForm: FC<Props> = ({ extraData = {}, onChange }) => {
                         </Flex>
                     ))}
                     <Box>
-                        <Button size="sm" onClick={handleAdd} leftIcon={<AddIcon />}>
+                        <Button
+                            size="sm"
+                            onClick={handleAdd}
+                            leftIcon={<AddIcon />}
+                            isDisabled={localEntries.length >= 10}
+                        >
                             Add field
                         </Button>
                     </Box>
@@ -123,6 +139,5 @@ const ExtraDataForm: FC<Props> = ({ extraData = {}, onChange }) => {
         </>
     )
 }
-
 
 export default ExtraDataForm
