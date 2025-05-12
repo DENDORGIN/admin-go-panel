@@ -98,13 +98,13 @@ func processDirectEvent(msg map[string]interface{}, SenderID, chatID uuid.UUID, 
 
 		//ContentURL, _ := msg["ContentUrl"].(string)
 
-		message := models.DirectMessagePayload{
+		message := models.DirectMessage{
 			ID:       uuid.New(),
 			ChatID:   chatID,
 			SenderID: SenderID,
 			Message:  content,
 			Reaction: emoji,
-			//ContentURL: []ContentURL,
+			//ContentURL: []string{ContentURL},
 			CreatedAt: time.Now(),
 		}
 		_ = db.Create(&message)
@@ -169,7 +169,7 @@ func processDirectEvent(msg map[string]interface{}, SenderID, chatID uuid.UUID, 
 		}
 
 		payload := map[string]interface{}{
-			"type":    "message_reaction_updated",
+			"type":    "message_reactions_updated",
 			"message": updated,
 		}
 		direct.Manager.Broadcast(chatID, payload, nil)

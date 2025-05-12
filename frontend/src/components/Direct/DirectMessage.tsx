@@ -36,8 +36,8 @@ interface DirectMessageProps {
     msg: {
         type?: string;
         ID: string;
-        SenderId: string;
-        ChatId: string;
+        SenderID: string;
+        ChatID: string;
         Message: string;
         CreatedAt: string;
         EditedAt?: string | null;

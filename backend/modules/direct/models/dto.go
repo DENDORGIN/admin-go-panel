@@ -8,13 +8,13 @@ import (
 type DirectMessagePayload struct {
 	Type       string     `json:"type"` // "new_message", "edit_message", etc.
 	ID         uuid.UUID  `json:"ID"`   // для оновлень/видалень
-	ChatID     uuid.UUID  `json:"ChatId"`
-	SenderID   uuid.UUID  `json:"SenderId"`
+	ChatID     uuid.UUID  `json:"ChatID"`
+	SenderID   uuid.UUID  `json:"SenderID"`
 	Message    string     `json:"Message"`
 	ContentURL []string   `json:"ContentUrl"`
 	Reaction   string     `json:"Reaction"`
-	EditedAt   *time.Time `json:"edited_at,omitempty"`
-	CreatedAt  time.Time  `json:"created_at"`
+	EditedAt   *time.Time `json:"EditedAt,omitempty"`
+	CreatedAt  time.Time  `json:"CreatedAt"`
 }
 
 type EditMessage struct {

@@ -20,8 +20,8 @@ import DirectInputBar from "../../components/Direct/DirectInputBar";
 type Message = {
     type?: string;
     ID: string;
-    SenderId: string;
-    ChatId: string;
+    SenderID: string;
+    ChatID: string;
     Message: string;
     CreatedAt: string;
     EditedAt?: string | null;
@@ -45,7 +45,13 @@ function DirectPage() {
 
     useEffect(() => {
         const cancelable = DirectService.readUsers();
-        cancelable.then(setUsers).finally(() => setLoading(false));
+        cancelable
+            .then(setUsers)
+            .catch((err) => {
+                if (err.name !== "CancelError") console.error("❌ readUsers error", err);
+            })
+            .finally(() => setLoading(false));
+
         return () => cancelable.cancel?.();
     }, []);
 
@@ -71,6 +77,12 @@ function DirectPage() {
                     setMessages((prev) => prev.map(m =>
                         m.ID === data.id ? { ...m, ContentUrl: data.content_url, isLoading: false } : m
                     ));
+                } else if (data.type === "message_reactions_updated") {
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.ID === data.message.ID ? { ...m, Reaction: data.message.Reaction } : m
+                        )
+                    );
                 }
             };
 
@@ -99,8 +111,8 @@ function DirectPage() {
 
         const placeholderMessage: Message = {
             ID: messageId,
-            SenderId: user.ID,
-            ChatId: "", // optional, not critical for placeholder
+            SenderID: user.ID,
+            ChatID: "", // optional, not critical for placeholder
             Message: input,
             CreatedAt: new Date().toISOString(),
             Reaction: "",
@@ -156,7 +168,7 @@ function DirectPage() {
                                         <Badge colorScheme={
                                             user.isSuperUser ? "green" : user.isAdmin ? "blue" : user.isActive ? "yellow" : "red"
                                         }>
-                                            {user.isSuperUser ? "Супер" : user.isAdmin ? "Адмін" : user.isActive ? "Активний" : "Неактивний"}
+                                            {user.isSuperUser ? "SuperUser" : user.isAdmin ? "Admin" : user.isActive ? "Active" : "Inactive"}
                                         </Badge>
                                     </Flex>
                                     <Text fontSize="sm" color="gray.500">{user.email}</Text>
@@ -181,7 +193,7 @@ function DirectPage() {
                                 <DirectMessageBubble
                                     key={msg.ID}
                                     msg={msg}
-                                    isMe={msg.SenderId === user?.ID}
+                                    isMe={msg.SenderID === user?.ID}
                                     isLast={idx === messages.length - 1}
                                     onEdit={() => console.log("Edit", msg.ID)}
                                     onDelete={(id) => console.log("Delete", id)}
