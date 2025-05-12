@@ -17,24 +17,27 @@ type Props = {
 
 const ExtraDataForm: FC<Props> = ({ extraData = {}, onChange }) => {
     const [isEditing, setIsEditing] = useState(false)
+    const [localEntries, setLocalEntries] = useState<[string, string][]>([])
 
-    const entries = Object.entries(extraData).length
-        ? Object.entries(extraData)
-        : [["", ""]]
+    const startEditing = () => {
+        setLocalEntries(Object.entries(extraData))
+        setIsEditing(true)
+    }
 
     const handleChange = (index: number, key: string, value: string) => {
-        const updated = [...entries]
+        const updated = [...localEntries]
         updated[index] = [key, value]
-        onChange(Object.fromEntries(updated.filter(([k]) => k.trim())))
+        setLocalEntries(updated)
     }
 
     const handleAdd = () => {
-        onChange({ ...extraData, "": "" })
+        if (localEntries.length >= 10) return // максимум 10 полів
+        setLocalEntries([...localEntries, ["", ""]])
     }
 
+
     const handleRemove = (index: number) => {
-        const updated = entries.filter((_, i) => i !== index)
-        onChange(Object.fromEntries(updated))
+        setLocalEntries(localEntries.filter((_, i) => i !== index))
     }
 
     const handleCancel = () => {
@@ -42,8 +45,16 @@ const ExtraDataForm: FC<Props> = ({ extraData = {}, onChange }) => {
     }
 
     const handleSave = () => {
+        const cleaned = localEntries.filter(([k]) => k.trim())
+        onChange(Object.fromEntries(cleaned))
         setIsEditing(false)
     }
+
+    const entries = isEditing
+        ? localEntries
+        : Object.entries(extraData).length
+            ? Object.entries(extraData)
+            : []
 
     return (
         <>
@@ -53,7 +64,7 @@ const ExtraDataForm: FC<Props> = ({ extraData = {}, onChange }) => {
                         icon={<EditIcon />}
                         aria-label="Edit"
                         size="sm"
-                        onClick={() => setIsEditing(true)}
+                        onClick={startEditing}
                     />
                 ) : (
                     <Flex gap={2}>
@@ -112,5 +123,6 @@ const ExtraDataForm: FC<Props> = ({ extraData = {}, onChange }) => {
         </>
     )
 }
+
 
 export default ExtraDataForm
