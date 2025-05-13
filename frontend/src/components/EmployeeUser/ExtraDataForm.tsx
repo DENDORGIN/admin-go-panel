@@ -10,29 +10,19 @@ import {
 import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons"
 import { FC, useEffect, useState } from "react"
 
-const LOCAL_STORAGE_KEY = "extraData"
-
 type Props = {
     extraData?: Record<string, string>
-    onChange?: (data: Record<string, string>) => void
+    onChange: (data: Record<string, string>) => void
 }
 
-const ExtraDataForm: FC<Props> = () => {
+const ExtraDataForm: FC<Props> = ({ extraData = {}, onChange }) => {
     const [isEditing, setIsEditing] = useState(false)
-    const [extraData, setExtraData] = useState<Record<string, string>>({})
     const [localEntries, setLocalEntries] = useState<[string, string][]>([])
 
+    // коли extraData змінюється — оновлюємо локальні entry
     useEffect(() => {
-        const saved = localStorage.getItem(LOCAL_STORAGE_KEY)
-        if (saved) {
-            setExtraData(JSON.parse(saved))
-        }
-    }, [])
-
-    const startEditing = () => {
         setLocalEntries(Object.entries(extraData))
-        setIsEditing(true)
-    }
+    }, [extraData])
 
     const handleChange = (index: number, key: string, value: string) => {
         const updated = [...localEntries]
@@ -50,16 +40,16 @@ const ExtraDataForm: FC<Props> = () => {
     }
 
     const handleCancel = () => {
-        setIsEditing(false)
+        setIsEditing(       false)
+        setLocalEntries(Object.entries(extraData)) // скидаємо до початкового
     }
 
     const handleSave = () => {
         const cleaned = localEntries.filter(([k]) => k.trim())
-        const updated = Object.fromEntries(cleaned)
-        setExtraData(updated)
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated))
+        onChange(Object.fromEntries(cleaned)) // <- тут усе правильно
         setIsEditing(false)
     }
+
 
     const entries = isEditing
         ? localEntries
@@ -75,7 +65,7 @@ const ExtraDataForm: FC<Props> = () => {
                         icon={<EditIcon />}
                         aria-label="Edit"
                         size="sm"
-                        onClick={startEditing}
+                        onClick={() => setIsEditing(true)}
                     />
                 ) : (
                     <Flex gap={2}>

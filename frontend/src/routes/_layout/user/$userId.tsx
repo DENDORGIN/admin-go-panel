@@ -15,6 +15,7 @@ import {
   type UserEmployeePublic,
   EmployeeService,
 } from "../../../client"
+import { USER_INFO_FIELDS } from "../../../components/EmployeeUser/userFieldGroups"
 import { useNavigate } from "@tanstack/react-router"
 import { useState, useEffect } from "react"
 import useAuth from "../../../hooks/useAuth.ts"
@@ -22,8 +23,6 @@ import { useUpdateUser, EditableUserFields } from "../../../components/EmployeeU
 import { useAvatarUpload } from "../../../components/EmployeeUser/AvatarUploader.ts"
 import UserAvatar from "../../../components/EmployeeUser/UserAvatar.tsx"
 import UserForm from "../../../components/EmployeeUser/UserForm.tsx"
-import CompanyForm from "../../../components/EmployeeUser/CompanyForm.tsx"
-import ExtraDataForm from "../../../components/EmployeeUser/ExtraDataForm.tsx"
 
 export const Route = createFileRoute("/_layout/user/$userId")({
   component: UserDetails,
@@ -47,11 +46,9 @@ function UserDetails() {
   const { data: user, isLoading, error } = useQuery<UserEmployeePublic>({
     queryKey: ["user", userId],
     queryFn: () => EmployeeService.readEmployeeById({ userId }),
-    enabled: !!userId,
   })
 
   const [isEditingUserInfo, setIsEditingUserInfo] = useState(false)
-  const [isEditingCompanyInfo, setIsEditingCompanyInfo] = useState(false)
   const [editedUser, setEditedUser] = useState<EditableUserFields>({})
 
   useEffect(() => {
@@ -69,7 +66,6 @@ function UserDetails() {
         salary: user.salary ?? "",
         date_start: user.date_start ?? "",
         date_end: user.date_end ?? "",
-        extra_data: (user.extra_data ?? {}) as unknown as Record<string, string>,
       })
     }
   }, [user])
@@ -79,9 +75,29 @@ function UserDetails() {
   }
 
   const handleSaveUserInfo = () => {
-    updateMutation.mutate(editedUser)
+    if (!user) return
+
+    const updatedFields: Partial<EditableUserFields> = {}
+
+    USER_INFO_FIELDS.forEach((key) => {
+      const originalRaw = user[key as keyof UserEmployeePublic]
+      const originalValue = typeof originalRaw === "string" ? originalRaw : ""
+
+      const editedRaw = editedUser[key]
+      const editedValue = typeof editedRaw === "string" ? editedRaw : ""
+
+      if (originalValue !== editedValue) {
+        updatedFields[key] = editedValue
+      }
+    })
+
+
+
+    updateMutation.mutate(updatedFields)
     setIsEditingUserInfo(false)
   }
+
+
 
   const handleCancelUserInfo = () => {
     if (!user) return
@@ -93,28 +109,8 @@ function UserDetails() {
       phone_number_1: user.phone_number_1 ?? "",
       phone_number_2: user.phone_number_2 ?? "",
       address: user.address ?? "",
-      extra_data: (user.extra_data ?? {}) as unknown as Record<string, string>,
     }))
     setIsEditingUserInfo(false)
-  }
-
-  const handleSaveCompanyInfo = () => {
-    updateMutation.mutate(editedUser)
-    setIsEditingCompanyInfo(false)
-  }
-
-  const handleCancelCompanyInfo = () => {
-    if (!user) return
-    setEditedUser((prev) => ({
-      ...prev,
-      company: user.company ?? "",
-      position: user.position ?? "",
-      condition_type: user.condition_type ?? "",
-      salary: user.salary ?? "",
-      date_start: user.date_start ?? "",
-      date_end: user.date_end ?? "",
-    }))
-    setIsEditingCompanyInfo(false)
   }
 
   if (isLoading) {
@@ -172,31 +168,13 @@ function UserDetails() {
             />
           </Section>
 
-          <Section title="Company Information">
-            <CompanyForm
-                isEditing={isEditingCompanyInfo}
-                setIsEditing={setIsEditingCompanyInfo}
-                editedUser={editedUser}
-                setEditedUser={setEditedUser}
-                onChange={handleEditChange}
-                onSave={handleSaveCompanyInfo}
-                onCancel={handleCancelCompanyInfo}
-                isSaving={updateMutation.isPending}
-                user={user}
-            />
-          </Section>
+          {/* <Section title="Company Information">
+          <CompanyForm ... />
+        </Section>
 
-          <Section title="Additional data">
-            <ExtraDataForm
-                extraData={editedUser.extra_data}
-                onChange={(newExtraData) =>
-                    setEditedUser((prev) => ({
-                      ...prev,
-                      extra_data: newExtraData,
-                    }))
-                }
-            />
-          </Section>
+        <Section title="Additional data">
+          <ExtraDataForm ... />
+        </Section> */}
         </Stack>
       </Container>
   )

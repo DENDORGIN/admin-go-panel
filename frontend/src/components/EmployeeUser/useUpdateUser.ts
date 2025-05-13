@@ -28,11 +28,13 @@ export function useUpdateUser() {
     const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: (data: EditableUserFields) =>
+        mutationFn: (data: Partial<EditableUserFields>) =>
             EmployeeService.updateEmployeeById({
                 id: userId,
                 requestBody: data as any,
             }),
+
+
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["user", userId] })
             showToast("Success!", "User info updated", "success")
