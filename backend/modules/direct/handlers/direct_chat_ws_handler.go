@@ -116,7 +116,7 @@ func processDirectEvent(msg map[string]interface{}, SenderID, chatID uuid.UUID, 
 		direct.Manager.Broadcast(chatID, out, nil)
 
 	case "edit_message":
-		messageID, err := uuid.Parse(getString(msg, "id"))
+		messageID, err := uuid.Parse(getString(msg, "ID"))
 		if err != nil {
 			log.Println("❌ Invalid message ID")
 			return
@@ -136,7 +136,7 @@ func processDirectEvent(msg map[string]interface{}, SenderID, chatID uuid.UUID, 
 		direct.Manager.Broadcast(chatID, payload, nil)
 
 	case "delete_message":
-		messageID, err := uuid.Parse(getString(msg, "id"))
+		messageID, err := uuid.Parse(getString(msg, "ID"))
 		if err != nil {
 			log.Println("❌ Invalid message ID")
 			return
@@ -150,9 +150,10 @@ func processDirectEvent(msg map[string]interface{}, SenderID, chatID uuid.UUID, 
 
 		payload := map[string]interface{}{
 			"type": "message_deleted",
-			"id":   messageID,
+			"ID":   messageID,
 		}
 		direct.Manager.Broadcast(chatID, payload, nil)
+		log.Println("✅ Message deleted:", messageID)
 
 	case "add_reaction":
 		messageID, err := uuid.Parse(getString(msg, "message_id"))

@@ -327,3 +327,15 @@ export type DirectChat = {
   updatedAt: string;
 
 }
+export type DirectMessage = {
+  type?: string;
+  ID: string;
+  SenderID: string;
+  ChatID: string;
+  Message: string;
+  CreatedAt: string;
+  EditedAt?: string | null;
+  Reaction?: string;
+  ContentUrl?: string[];
+  isLoading?: boolean;
+};

@@ -30,6 +30,7 @@ import {
 } from "react-icons/fc";
 import AudioPlayer from "../Chat/AudioPlayer";
 import LinkPreview from "../Modals/LinkPreviewModal";
+import React from "react"
 
 
 interface DirectMessageProps {
@@ -326,4 +327,4 @@ const DirectMessageBubble: React.FC<DirectMessageProps> = ({
     );
 };
 
-export default DirectMessageBubble;
+export default React.memo(DirectMessageBubble);

@@ -170,4 +170,4 @@ const DirectInputBar = forwardRef<HTMLTextAreaElement, DirectInputBarProps>(({
     );
 });
 
-export default DirectInputBar;
+export default React.memo(DirectInputBar);

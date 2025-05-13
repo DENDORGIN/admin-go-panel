@@ -132,7 +132,7 @@ const MessageBubble: React.FC<MessageProps> = React.memo(({ msg, isMe, user, isL
         onOpen: onPopoverOpen,
         onClose: onPopoverClose
     } = useDisclosure();
-    console.log("🔁 render", msg.id);
+    // console.log("🔁 render", msg.id);
 
 
     return (
