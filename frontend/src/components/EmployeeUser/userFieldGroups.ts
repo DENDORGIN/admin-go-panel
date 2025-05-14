@@ -19,5 +19,5 @@ export const COMPANY_INFO_FIELDS: (keyof EditableUserFields)[] = [
 ]
 
 export const EXTRA_DATA_FIELDS: (keyof EditableUserFields)[] = [
-    "extra_data", // якщо це весь об'єкт додаткових полів
+    "extra_data", // якщо це весь об'єкт додаткових полів commit for commit comments
 ]
