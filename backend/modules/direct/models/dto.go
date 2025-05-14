@@ -11,7 +11,7 @@ type DirectMessagePayload struct {
 	ChatID     uuid.UUID  `json:"ChatID"`
 	SenderID   uuid.UUID  `json:"SenderID"`
 	Message    string     `json:"Message"`
-	ContentURL []string   `json:"ContentUrl"`
+	ContentURL []string   `json:"content_url"`
 	Reaction   string     `json:"Reaction"`
 	EditedAt   *time.Time `json:"EditedAt,omitempty"`
 	CreatedAt  time.Time  `json:"CreatedAt"`

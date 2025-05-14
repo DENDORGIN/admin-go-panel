@@ -1,15 +1,17 @@
-// direct.tsx
-import {
-    Avatar, Badge, Box, Flex, Spinner, Text, VStack, useDisclosure
-} from "@chakra-ui/react";
+import { Flex, useBreakpointValue } from "@chakra-ui/react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { DirectService, MediaService, type UserPublic, CancelError } from "../../client";
+import { useEffect, useState } from "react";
+import {
+    DirectService,
+    MediaService,
+    type UserPublic,
+    CancelError,
+    DirectMessage,
+} from "../../client";
 import { useDirectSocket } from "../../hooks/useDirectSocket";
 import useAuth from "../../hooks/useAuth.ts";
-import DirectMessageBubble from "../../components/Direct/DirectMessage";
-import DirectInputBar from "../../components/Direct/DirectInputBar";
-import FilePreviewModal from "../../components/Modals/FilePreviewModal";
+import UserListSidebar from "../../components/Direct/UserListSidebar";
+import DirectChatView from "../../components/Direct/DirectChatView";
 
 export const Route = createFileRoute("/_layout/direct")({
     component: DirectPage,
@@ -19,20 +21,17 @@ function DirectPage() {
     const [users, setUsers] = useState<UserPublic[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedUser, setSelectedUser] = useState<UserPublic | null>(null);
-    const [messages, setMessages] = useState<any[]>([]);
+    const [messages, setMessages] = useState<DirectMessage[]>([]);
     const [input, setInput] = useState("");
     const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-    const inputRef = useRef<HTMLTextAreaElement | null>(null);
     const [filePreviews, setFilePreviews] = useState<any[]>([]);
     const [files, setFiles] = useState<File[]>([]);
     const [fileMessage, setFileMessage] = useState("");
-
-
-    // @ts-ignore
     const [chatId, setChatId] = useState<string | null>(null);
+    const [isMobileChatView, setIsMobileChatView] = useState(false);
 
-    const { isOpen, onOpen, onClose } = useDisclosure();
     const { user } = useAuth();
+    const isMobile = useBreakpointValue({ base: true, md: false });
 
     const socketRef = useDirectSocket({
         user,
@@ -47,35 +46,31 @@ function DirectPage() {
         setChatId,
     });
 
-
     useEffect(() => {
         const cancelable = DirectService.readUsers();
-
         cancelable
             .then(setUsers)
             .catch((err) => {
-                // ❗ Перевіряємо не лише err.name, а й instanceof для безпеки
                 if (!(err instanceof CancelError) && err?.name !== "CancelError") {
                     console.error("❌ readUsers error", err);
                 }
             })
             .finally(() => setLoading(false));
-
         return () => cancelable.cancel?.();
     }, []);
 
-
-
     const handleSend = () => {
         if (!input.trim() || !socketRef.current) return;
-
         if (editingMessageId) {
-            socketRef.current.send(JSON.stringify({ type: "edit_message", ID: editingMessageId, message: input.trim() }));
+            socketRef.current.send(
+                JSON.stringify({ type: "edit_message", ID: editingMessageId, message: input.trim() })
+            );
             setEditingMessageId(null);
         } else {
-            socketRef.current.send(JSON.stringify({ type: "new_message", message: input.trim() }));
+            socketRef.current.send(
+                JSON.stringify({ type: "new_message", message: input.trim() })
+            );
         }
-
         setInput("");
     };
 
@@ -90,35 +85,37 @@ function DirectPage() {
         }));
         setFilePreviews(previews);
         setFiles(selectedFiles);
-        onOpen();
     };
 
     const uploadSelectedFiles = async () => {
         if (!files.length || !user) return;
-
         const messageId = crypto.randomUUID();
         const formData = new FormData();
-        files.forEach(file => formData.append("files", file));
+        files.forEach((file) => formData.append("files", file));
 
         const placeholderMessage = {
             ID: messageId,
             SenderID: user.ID,
-            ChatID: "temp",
-            Message: input,
+            ChatID: chatId || "",
+            Message: fileMessage,
             CreatedAt: new Date().toISOString(),
             Reaction: "",
-            ContentUrl: [],
+            content_url: [],
             isLoading: true,
         };
 
-        setMessages(prev => [...prev, placeholderMessage]);
+        setMessages((prev) => [...prev, placeholderMessage]);
         socketRef.current?.send(JSON.stringify({ placeholderMessage }));
-        onClose();
 
         try {
             const res = await MediaService.downloadImages(messageId, formData);
-            const urls = res.map((f: { url: string }) => f.url);
-            socketRef.current?.send(JSON.stringify({ type: "update_message", id: messageId, content_url: urls }));
+            const fileUrls = res.map((f: { url: string }) => f.url);
+            const updateMessage = {
+                type: "update_message",
+                id: messageId,
+                content_url: fileUrls,
+            };
+            socketRef.current?.send(JSON.stringify(updateMessage));
             setFiles([]);
             setFilePreviews([]);
             setFileMessage("");
@@ -129,108 +126,71 @@ function DirectPage() {
 
     return (
         <Flex h="100vh" w="full">
-            <Box w="320px" bg="gray.100" borderRight="1px" borderColor="gray.300" px={4} py={6} overflowY="auto">
-                <Text fontSize="lg" fontWeight="semibold" mb={4} pt={8}>Користувачі</Text>
-                {loading ? <Flex justify="center" mt={4}><Spinner size="sm" /></Flex> : (
-                    <VStack align="stretch" spacing={2}>
-                        {users.map((u) => (
-                            <Flex key={u.ID} align="center" gap={3} p={2} borderRadius="md" _hover={{ bg: "gray.200" }} cursor="pointer" onClick={() => setSelectedUser(u)}>
-                                <Avatar size="sm" name={u.fullName ?? u.email} src={u.avatar ?? undefined} />
-                                <Box>
-                                    <Flex align="center" gap={2}>
-                                        <Text fontWeight="medium">{u.fullName ?? u.email}</Text>
-                                        <Badge colorScheme={u.isSuperUser ? "green" : u.isAdmin ? "blue" : u.isActive ? "yellow" : "red"}>
-                                            {u.isSuperUser ? "SuperUser" : u.isAdmin ? "Admin" : u.isActive ? "Active" : "Inactive"}
-                                        </Badge>
-                                    </Flex>
-                                    <Text fontSize="sm" color="gray.500">{u.email}</Text>
-                                </Box>
-                            </Flex>
-                        ))}
-                    </VStack>
-                )}
-            </Box>
+            {(!isMobile || !isMobileChatView) && (
+                <UserListSidebar
+                    users={users}
+                    loading={loading}
+                    onSelect={(user) => {
+                        setSelectedUser(user);
+                        if (isMobile) setIsMobileChatView(true);
+                    }}
+                />
+            )}
 
-            <Flex direction="column" flex="1" h="full" px={4} py={6}>
-                {selectedUser ? (
-                    <>
-                        <Box flexShrink={0} pt={8} px={4}>
-                            <Text fontSize="xl" fontWeight="bold">Чат з {selectedUser.fullName ?? selectedUser.email}</Text>
-                        </Box>
-
-                        <VStack spacing={3} align="stretch" px={4} flex="1" overflowY="auto">
-                            {messages.map((msg, idx) => (
-                                <DirectMessageBubble
-                                    key={msg.ID}
-                                    msg={msg}
-                                    isMe={msg.SenderID === user?.ID}
-                                    isLast={idx === messages.length - 1}
-                                    onEdit={() => { setEditingMessageId(msg.ID); setInput(msg.Message); }}
-                                    onDelete={(ID) => {
-                                        socketRef.current?.send(JSON.stringify({ type: "delete_message", ID }));
-                                        setMessages(prev => prev.filter(m => m.ID !== ID));
-                                    }}
-                                    onReact={(id, emoji) => {
-                                        socketRef.current?.send(JSON.stringify({ type: "add_reaction", message_id: id, reaction: emoji }));
-                                    }}
-                                    onImageClick={(url) => console.log("Image click:", url)}
-                                />
-                            ))}
-                        </VStack>
-
-                        <Box px={4} pt={2} pb={4} borderTop="1px solid" borderColor="gray.200">
-                            <DirectInputBar
-                                ref={inputRef}
-                                value={input}
-                                onChange={setInput}
-                                onSend={handleSend}
-                                onFileSelect={handleFileSelect}
-                                disabled={!selectedUser || !user}
-                            />
-                            {editingMessageId && (
-                                <Text color="teal.500" fontSize="sm" mt={1} px={2}>
-                                    ✏️ Ви редагуєте повідомлення
-                                    <span
-                                        style={{ cursor: "pointer", marginLeft: 10, color: "red" }}
-                                        onClick={() => { setEditingMessageId(null); setInput(""); }}
-                                    >
-                                    Скасувати
-                                  </span>
-                                </Text>
-                            )}
-                            <FilePreviewModal
-                                isOpen={isOpen}
-                                onClose={onClose}
-                                files={filePreviews}
-                                onRemove={(i) => {
-                                    const updated = [...filePreviews];
-                                    URL.revokeObjectURL(updated[i].preview);
-                                    updated.splice(i, 1);
-                                    setFilePreviews(updated);
-                                    setFiles(updated.map(f => f.file));
-                                }}
-                                onUpload={uploadSelectedFiles}
-                                message={fileMessage}
-                                onMessageChange={setFileMessage}
-                                onAddFiles={(newFiles) => {
-                                    const newPreviews = newFiles.map((file) => ({
-                                        name: file.name,
-                                        size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
-                                        preview: URL.createObjectURL(file),
-                                        file,
-                                    }));
-                                    setFilePreviews((prev) => [...prev, ...newPreviews]);
-                                    setFiles((prev) => [...prev, ...newFiles]);
-                                }}
-                            />
-                        </Box>
-                    </>
-                ) : (
-                    <Flex align="center" justify="center" flex="1">
-                        <Text color="gray.500" fontSize="lg">Виберіть співрозмовника, щоб почати чат</Text>
-                    </Flex>
-                )}
-            </Flex>
+            {user && selectedUser && (!isMobile || isMobileChatView) && (
+                <DirectChatView
+                    user={user}
+                    selectedUser={selectedUser}
+                    messages={messages}
+                    input={input}
+                    onChangeInput={setInput}
+                    onSend={handleSend}
+                    onEdit={(id, msg) => {
+                        setEditingMessageId(id);
+                        setInput(msg);
+                    }}
+                    onDelete={(id) => {
+                        socketRef.current?.send(JSON.stringify({ type: "delete_message", ID: id }));
+                        setMessages((prev) => prev.filter((m) => m.ID !== id));
+                    }}
+                    onReact={(id, emoji) =>
+                        socketRef.current?.send(
+                            JSON.stringify({ type: "add_reaction", message_id: id, reaction: emoji })
+                        )
+                    }
+                    onImageClick={(url) => console.log("Image click:", url)}
+                    editingMessageId={editingMessageId}
+                    onCancelEdit={() => {
+                        setEditingMessageId(null);
+                        setInput("");
+                    }}
+                    onFileSelect={handleFileSelect}
+                    filePreviews={filePreviews}
+                    files={files}
+                    fileMessage={fileMessage}
+                    onUpload={uploadSelectedFiles}
+                    onMessageChange={setFileMessage}
+                    onRemoveFile={(i) => {
+                        const updated = [...filePreviews];
+                        URL.revokeObjectURL(updated[i].preview);
+                        updated.splice(i, 1);
+                        setFilePreviews(updated);
+                        setFiles(updated.map((f) => f.file));
+                    }}
+                    onAddFiles={(newFiles) => {
+                        const newPreviews = newFiles.map((file) => ({
+                            name: file.name,
+                            size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+                            preview: URL.createObjectURL(file),
+                            file,
+                        }));
+                        setFilePreviews((prev) => [...prev, ...newPreviews]);
+                        setFiles((prev) => [...prev, ...newFiles]);
+                    }}
+                    isMobile={isMobile}
+                    onBack={() => setIsMobileChatView(false)}
+                />
+            )}
         </Flex>
     );
 }

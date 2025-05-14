@@ -336,6 +336,6 @@ export type DirectMessage = {
   CreatedAt: string;
   EditedAt?: string | null;
   Reaction?: string;
-  ContentUrl?: string[];
+  content_url?: string[];
   isLoading?: boolean;
 };

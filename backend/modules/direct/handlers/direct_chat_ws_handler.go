@@ -175,6 +175,23 @@ func processDirectEvent(msg map[string]interface{}, SenderID, chatID uuid.UUID, 
 		}
 		direct.Manager.Broadcast(chatID, payload, nil)
 
+	case "update_message":
+		messageID, err := uuid.Parse(getString(msg, "ID"))
+		if err != nil {
+			log.Println("❌ Invalid message ID", messageID)
+			return
+		}
+		updatedMessages, err := directRepoository.GetDirectMessagesPaginated(db, chatID, 30, nil)
+		if err != nil {
+			log.Println("❌ Error fetching messages:", err)
+			return
+		}
+		payload := map[string]interface{}{
+			"type":    "update_message",
+			"message": updatedMessages,
+		}
+		direct.Manager.Broadcast(chatID, payload, nil)
+
 	case "load_more_messages":
 		beforeID, _ := uuid.Parse(msg["before"].(string))
 		limit := int(msg["limit"].(float64))
