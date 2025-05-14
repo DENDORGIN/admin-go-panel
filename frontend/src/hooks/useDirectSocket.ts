@@ -75,10 +75,10 @@ export function useDirectSocket({
             }
         };
 
-        connect();
+        connect().then(() => console.log("✅ Підключено до WebSocket з чату", selectedUser?.fullName));
 
         return () => {
-            socketRef.current?.close();
+            socketRef.current?.close() || console.log("❌ Відключено від WebSocket з чату", selectedUser?.fullName);
         };
     }, [selectedUser, user]);
 
