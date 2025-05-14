@@ -2,16 +2,82 @@ package repository
 
 import (
 	"backend/internal/repository"
+
 	"backend/modules/direct/models"
 	mediaModel "backend/modules/media/models"
 	"backend/modules/media/service"
+
 	userModel "backend/modules/user/models"
 	"fmt"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"log"
 	"time"
 )
+
+func GetDirectMessagesPaginated(db *gorm.DB, chatId uuid.UUID, limit int, beforeID *uuid.UUID) ([]models.DirectMessagePayload, error) {
+	var response []models.DirectMessagePayload
+	var messages []models.DirectMessage
+
+	query := db.Where("chat_id = ?", chatId).Order("created_at DESC")
+
+	if beforeID != nil {
+		var beforeMessage models.DirectMessage
+		if err := db.Select("created_at").Where("id = ?", *beforeID).First(&beforeMessage).Error; err != nil {
+			return nil, err
+		}
+		query = query.Where("created_at < ?", beforeMessage.CreatedAt)
+	}
+
+	if err := query.Limit(limit).Find(&messages).Error; err != nil {
+		return nil, err
+	}
+
+	if len(messages) == 0 {
+		return []models.DirectMessagePayload{}, nil
+	}
+
+	// отримання ID повідомлень
+	messageIDs := make([]uuid.UUID, len(messages))
+	for i, m := range messages {
+		messageIDs[i] = m.ID
+	}
+
+	// Отримуємо реакції для повідомлень
+	var reactions []models.Reaction
+	if err := db.Where("message_id IN ?", messageIDs).Find(&reactions).Error; err != nil {
+		return nil, err
+	}
+
+	// Отримуємо медіафайли для повідомлень
+	var media []mediaModel.Media
+	if err := db.Where("content_id IN ?", messageIDs).Find(&media).Error; err != nil {
+		return nil, err
+	}
+
+	mediaMap := make(map[uuid.UUID][]string)
+	for _, m := range media {
+		mediaMap[m.ContentId] = append(mediaMap[m.ContentId], m.Url)
+	}
+
+	// Формуємо відповідь (перевертаємо для правильного порядку в чаті)
+	for i := len(messages) - 1; i >= 0; i-- {
+		msg := messages[i]
+		response = append(response, models.DirectMessagePayload{
+			ID:         msg.ID,
+			SenderID:   msg.SenderID,
+			ChatID:     msg.ChatID,
+			Message:    msg.Message,
+			ContentURL: getOrEmpty(mediaMap, msg.ID),
+			CreatedAt:  msg.CreatedAt,
+			EditedAt:   msg.EditedAt,
+			Reaction:   msg.Reaction,
+		})
+	}
+
+	return response, nil
+}
 
 func GetMessageById(db *gorm.DB, messageID uuid.UUID) (*models.DirectMessagePayload, error) {
 	var message models.DirectMessage
@@ -41,7 +107,7 @@ func GetMessageById(db *gorm.DB, messageID uuid.UUID) (*models.DirectMessagePayl
 	return &models.DirectMessagePayload{
 		ID:         message.ID,
 		ChatID:     message.ChatID,
-		UserID:     message.SenderID,
+		SenderID:   message.SenderID,
 		Message:    message.Message,
 		ContentURL: getOrEmpty(mediaMap, message.ID),
 		Reaction:   message.Reaction,

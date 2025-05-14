@@ -24,6 +24,7 @@ export const useChatSocket = ({
                                   onMessagesUpdate,
                                   onNewMessage,
                                   onMessageUpdate,
+                                  onMessageDelete,
                                   onBatchMessages,
                               }: UseChatSocketProps) => {
     const ws = useRef<WebSocket | null>(null);
@@ -33,43 +34,49 @@ export const useChatSocket = ({
     const connect = () => {
         if (!token || !user?.ID) return;
 
+        if (ws.current && (ws.current.readyState === WebSocket.CONNECTING || ws.current.readyState === WebSocket.OPEN)) {
+            console.log("⚠️ WebSocket already connecting or open");
+            return;
+        }
+
         const wsUrl = getWsUrl("chat", { token, room_id: roomId });
         const socket = new WebSocket(wsUrl);
         ws.current = socket;
-
-        console.log("🌐 Підключення до WebSocket:", wsUrl);
 
         socket.onopen = () => {
             console.log("✅ WebSocket відкрито");
         };
 
         socket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
+            queueMicrotask(() => {
+                try {
+                    const data = JSON.parse(event.data);
 
-                if (Array.isArray(data)) {
-                    onMessagesUpdate(data);
-                } else if (data?.type === "messages_batch") {
-                    onBatchMessages?.(data.messages); // ✅ ОБРОБНИК ПАГІНАЦІЇ
-                } else if (data?.type === "update_message") {
-                    onMessageUpdate(data);
-                } else if (data?.type === "message_reactions_updated") {
-                    const { message_id, reactions } = data;
-                    onMessageUpdate({ id: message_id, reactions });
-                } else if (data?.type === "message_edited") {
-                    onMessageUpdate(data.message);
-                } else if (data.message !== undefined) {
-                    onNewMessage({ ...data, isLoading: false });
+                    if (Array.isArray(data)) {
+                        onMessagesUpdate(data);
+                    } else if (data?.type === "messages_batch") {
+                        onBatchMessages?.(data.messages);
+                    } else if (data?.type === "update_message") {
+                        onMessageUpdate(data);
+                    } else if (data?.type === "message_reactions_updated") {
+                        const { message_id, reactions } = data;
+                        onMessageUpdate({ id: message_id, reactions });
+                    } else if (data?.type === "message_edited") {
+                        onMessageUpdate(data.message);
+                    } else if (data?.type === "delete_message") {
+                        onMessageDelete?.(data.id);
+                    } else if (data.message !== undefined) {
+                        onNewMessage({ ...data, isLoading: false });
+                    }
+                } catch (err) {
+                    console.error("❌ WS error:", err);
                 }
-            } catch (err) {
-                console.error("❌ WS error:", err);
-            }
+            });
         };
-
 
         socket.onclose = (event) => {
             console.warn("❌ WebSocket закрито. Код:", event.code, "Причина:", event.reason);
-            if (!isUnmounted.current) {
+            if (!isUnmounted.current && socket.readyState !== WebSocket.CONNECTING) {
                 reconnectTimer.current = setTimeout(() => {
                     console.log("🔄 Спроба повторного підключення...");
                     connect();
@@ -84,11 +91,12 @@ export const useChatSocket = ({
 
     useEffect(() => {
         isUnmounted.current = false;
-        connect();
+        const delayConnect = setTimeout(connect, 100);
 
         return () => {
             isUnmounted.current = true;
             if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+            clearTimeout(delayConnect);
             ws.current?.close();
             ws.current = null;
         };

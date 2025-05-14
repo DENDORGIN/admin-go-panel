@@ -40,6 +40,9 @@ const UserList: React.FC<Props> = ({ users, onlineIds }) => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const isMobile = useBreakpointValue({ base: true, md: false });
 
+    const hoverBg = useColorModeValue("gray.100", "gray.700");
+
+
     const {
         isOpen: isProfileOpen,
         onOpen: openProfile,
@@ -71,10 +74,7 @@ const UserList: React.FC<Props> = ({ users, onlineIds }) => {
                     key={user.id}
                     spacing={3}
                     cursor="pointer"
-                    _hover={{
-                        bg: useColorModeValue("gray.100", "gray.700"),
-                        borderRadius: "md",
-                    }}
+                    _hover={{ bg: hoverBg, borderRadius: "md" }}
                     p={2}
                     onClick={() => handleUserClick(user)}
                 >

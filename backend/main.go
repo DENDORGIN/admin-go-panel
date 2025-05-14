@@ -9,6 +9,7 @@ import (
 	"backend/modules/chat/messages"
 	"backend/modules/chat/rooms"
 	"backend/modules/direct"
+	directWS "backend/modules/direct/handlers"
 	"backend/modules/employees"
 	"backend/modules/item"
 	"backend/modules/media"
@@ -90,6 +91,7 @@ func main() {
 
 	// Chat routes
 	r.GET("/ws/chat", messages.HandleWebSocket)
+	r.GET("/ws/direct/chats/:chatId", directWS.DirectChatWebSocket)
 
 	//Direct messages
 
