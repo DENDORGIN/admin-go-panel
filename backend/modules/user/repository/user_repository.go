@@ -81,6 +81,7 @@ func GetUserById(db *gorm.DB, id uuid.UUID) (*models.UserResponse, error) {
 		IsSuperUser: user.IsSuperUser,
 		IsAdmin:     user.IsAdmin,
 		Acronym:     user.Acronym,
+		LastSeenAt:  user.LastSeenAt,
 	}
 	return UserResponse, nil
 }
@@ -140,6 +141,7 @@ func UpdateUserById(db *gorm.DB, id uuid.UUID, updateUser *models.UpdateUser) (*
 		IsSuperUser: user.IsSuperUser,
 		IsAdmin:     user.IsAdmin,
 		Acronym:     user.Acronym,
+		LastSeenAt:  user.LastSeenAt,
 	}, nil
 }
 

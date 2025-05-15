@@ -16,8 +16,11 @@ type User struct {
 	IsAdmin     bool      `gorm:"default:false" json:"isAdmin"`
 	IsSuperUser bool      `gorm:"default:false" json:"isSuperUser"`
 	Acronym     string    `gorm:"unique;default:null" json:"acronym"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+
+	LastSeenAt *time.Time `gorm:"default:null" json:"lastSeenAt,omitempty"`
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func (user *User) BeforeCreate(*gorm.DB) error {

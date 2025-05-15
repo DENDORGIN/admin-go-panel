@@ -32,6 +32,7 @@ function DirectPage() {
 
     const { user } = useAuth();
     const isMobile = useBreakpointValue({ base: true, md: false });
+    
 
     const socketRef = useDirectSocket({
         user,

@@ -49,6 +49,7 @@ interface MessageProps {
         user_id: string;
         avatar: string;
         full_name: string;
+        acronym: string;
         message?: string;
         content_url?: string[];
         created_at: string;
@@ -109,6 +110,7 @@ const MessageBubble: React.FC<MessageProps> = React.memo(({ msg, isMe, user, isL
         user_id: string;
         full_name: string;
         avatar: string;
+        acronym: string;
     }>(null);
 
     const extractFirstLink = (text: string | null | undefined) => {
@@ -149,6 +151,7 @@ const MessageBubble: React.FC<MessageProps> = React.memo(({ msg, isMe, user, isL
                                 user_id: msg.user_id,
                                 full_name: msg.full_name,
                                 avatar: msg.avatar,
+                                acronym: msg.acronym,
                             });
                             onOpen();
                         }}

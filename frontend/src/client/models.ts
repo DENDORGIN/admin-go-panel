@@ -169,6 +169,7 @@ export type UserPublic = {
   fullName?: string | null
   acronym?: string | null
   avatar?: string | null
+  lastSeenAt?: string | null
 
 }
 
