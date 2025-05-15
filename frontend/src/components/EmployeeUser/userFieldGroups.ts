@@ -1,6 +1,10 @@
 import { EditableUserFields } from "./useUpdateUser"
 
-export const USER_INFO_FIELDS: (keyof EditableUserFields)[] = [
+// USER_INFO_FIELDS — лише string-поля
+export const USER_INFO_FIELDS: (keyof Pick<
+    EditableUserFields,
+    "fullName" | "acronym" | "email" | "phone_number_1" | "phone_number_2" | "address"
+>)[] = [
     "fullName",
     "acronym",
     "email",
@@ -9,7 +13,11 @@ export const USER_INFO_FIELDS: (keyof EditableUserFields)[] = [
     "address",
 ]
 
-export const COMPANY_INFO_FIELDS: (keyof EditableUserFields)[] = [
+// COMPANY_INFO_FIELDS — для майбутньої секції Company
+export const COMPANY_INFO_FIELDS: (keyof Pick<
+    EditableUserFields,
+    "company" | "position" | "condition_type" | "salary" | "date_start" | "date_end"
+>)[] = [
     "company",
     "position",
     "condition_type",
@@ -18,6 +26,8 @@ export const COMPANY_INFO_FIELDS: (keyof EditableUserFields)[] = [
     "date_end",
 ]
 
-export const EXTRA_DATA_FIELDS: (keyof EditableUserFields)[] = [
-    "extra_data", // якщо це весь об'єкт додаткових полів commit for commit comments
-]
+// EXTRA_DATA_FIELDS — тільки ключ для об’єкта
+export const EXTRA_DATA_FIELDS: (keyof Pick<
+    EditableUserFields,
+    "extra_data"
+>)[] = ["extra_data"]

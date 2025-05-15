@@ -80,36 +80,35 @@ function UserDetails() {
     const updatedFields: Partial<EditableUserFields> = {}
 
     USER_INFO_FIELDS.forEach((key) => {
-      const originalRaw = user[key as keyof UserEmployeePublic]
-      const originalValue = typeof originalRaw === "string" ? originalRaw : ""
+      const typedKey = key as keyof EditableUserFields
 
-      const editedRaw = editedUser[key]
-      const editedValue = typeof editedRaw === "string" ? editedRaw : ""
+      const originalValue = user?.[typedKey]
+      const editedValue = editedUser[typedKey]
 
-      if (originalValue !== editedValue) {
-        updatedFields[key] = editedValue
+      if (
+          typeof originalValue === "string" &&
+          typeof editedValue === "string" &&
+          originalValue !== editedValue
+      ) {
+        (updatedFields as Record<string, string>)[typedKey] = editedValue
       }
     })
-
-
 
     updateMutation.mutate(updatedFields)
     setIsEditingUserInfo(false)
   }
 
 
-
   const handleCancelUserInfo = () => {
     if (!user) return
-    setEditedUser((prev) => ({
-      ...prev,
+    setEditedUser({
       fullName: user.fullName ?? "",
       acronym: user.acronym ?? "",
       email: user.email,
       phone_number_1: user.phone_number_1 ?? "",
       phone_number_2: user.phone_number_2 ?? "",
       address: user.address ?? "",
-    }))
+    })
     setIsEditingUserInfo(false)
   }
 
@@ -125,7 +124,8 @@ function UserDetails() {
     return <Text textAlign="center">User not found or an error occurred.</Text>
   }
 
-  const avatarSrc = file?.preview || user.avatar || "https://via.placeholder.com/100x100?text=Avatar"
+  const avatarSrc =
+      file?.preview || user.avatar || "https://via.placeholder.com/100x100?text=Avatar"
 
   return (
       <Container maxW="4xl" py={8}>
@@ -167,14 +167,6 @@ function UserDetails() {
                 user={user}
             />
           </Section>
-
-          {/* <Section title="Company Information">
-          <CompanyForm ... />
-        </Section>
-
-        <Section title="Additional data">
-          <ExtraDataForm ... />
-        </Section> */}
         </Stack>
       </Container>
   )
