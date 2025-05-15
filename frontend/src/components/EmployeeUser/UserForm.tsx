@@ -9,8 +9,6 @@ import {
 import { EditIcon } from "@chakra-ui/icons"
 import { EditableUserFields } from "./useUpdateUser"
 
-
-
 interface Props {
     isEditing: boolean
     setIsEditing: (val: boolean) => void
@@ -82,38 +80,57 @@ export default function UserForm({
                 </>
             ) : (
                 <Stack spacing={3} mt={4}>
-                    <Input
-                        placeholder="Full name"
+                    <FormInput
+                        label="Full name"
                         value={editedUser.fullName || ""}
                         onChange={(e) => onChange("fullName", e.target.value)}
                     />
-                    <Input
-                        placeholder="Acronym"
+                    <FormInput
+                        label="Acronym"
                         value={editedUser.acronym || ""}
                         onChange={(e) => onChange("acronym", e.target.value)}
                     />
-                    <Input
-                        placeholder="Email"
+                    <FormInput
+                        label="Email"
                         value={editedUser.email || ""}
                         onChange={(e) => onChange("email", e.target.value)}
                     />
-                    <Input
-                        placeholder="Phone 1"
+                    <FormInput
+                        label="Phone 1"
                         value={editedUser.phone_number_1 || ""}
                         onChange={(e) => onChange("phone_number_1", e.target.value)}
                     />
-                    <Input
-                        placeholder="Phone 2"
+                    <FormInput
+                        label="Phone 2"
                         value={editedUser.phone_number_2 || ""}
                         onChange={(e) => onChange("phone_number_2", e.target.value)}
                     />
-                    <Input
-                        placeholder="Address"
+                    <FormInput
+                        label="Address"
                         value={editedUser.address || ""}
                         onChange={(e) => onChange("address", e.target.value)}
                     />
                 </Stack>
             )}
         </>
+    )
+}
+
+function FormInput({
+                       label,
+                       value,
+                       onChange,
+                   }: {
+    label: string
+    value: string
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+}) {
+    return (
+        <Flex direction="column">
+            <Text fontSize="sm" fontWeight="medium" mb={1}>
+                {label}
+            </Text>
+            <Input placeholder={label} value={value} onChange={onChange} />
+        </Flex>
     )
 }
