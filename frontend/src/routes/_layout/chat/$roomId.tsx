@@ -235,6 +235,7 @@ function ChatRoom() {
                     avatar: user.avatar ?? "",
                     room_id: roomId,
                     message: input,
+                    isRead: false,
                     content_url: [],
                     created_at: new Date().toISOString(),
                 };
@@ -272,6 +273,7 @@ function ChatRoom() {
             avatar: user.avatar ?? "",
             room_id: roomId,
             message: fileMessage,
+            isRead: false,
             content_url: [],
             created_at: new Date().toISOString(),
             isLoading: true,

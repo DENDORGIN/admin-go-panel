@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func GetDirectMessagesPaginated(db *gorm.DB, chatId uuid.UUID, limit int, beforeID *uuid.UUID) ([]models.DirectMessagePayload, error) {
+func GetDirectMessagesPaginated(db *gorm.DB, chatId uuid.UUID, userId uuid.UUID, limit int, beforeID *uuid.UUID) ([]models.DirectMessagePayload, error) {
 	var response []models.DirectMessagePayload
 	var messages []models.DirectMessage
 
@@ -73,6 +73,7 @@ func GetDirectMessagesPaginated(db *gorm.DB, chatId uuid.UUID, limit int, before
 			CreatedAt:  msg.CreatedAt,
 			EditedAt:   msg.EditedAt,
 			Reaction:   msg.Reaction,
+			IsRead:     msg.IsRead,
 		})
 	}
 
@@ -219,4 +220,12 @@ func DeleteMessageByID(db *gorm.DB, messageID, userID uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func MarkRecentMessagesAsRead(db *gorm.DB, chatID, userID uuid.UUID, limit int) error {
+	return db.Model(&models.DirectMessage{}).
+		Where("chat_id = ? AND sender_id != ? AND is_read = false", chatID, userID).
+		Order("created_at desc").
+		Limit(limit).
+		Update("is_read", true).Error
 }

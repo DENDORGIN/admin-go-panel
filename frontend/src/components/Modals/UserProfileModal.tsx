@@ -12,6 +12,8 @@ import {
     VStack,
     Button
 } from "@chakra-ui/react";
+import { useNavigate } from "@tanstack/react-router";
+import { DirectService} from "../../client";
 
 interface UserProfileModalProps {
     isOpen: boolean;
@@ -21,13 +23,13 @@ interface UserProfileModalProps {
         avatar: string;
         user_id: string;
     } | null;
-    onStartPrivateChat?: (userId: string) => void;
 }
 
-const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, user, onStartPrivateChat }) => {
+const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, user }) => {
     if (!user) return null;
 
     const bg = useColorModeValue("white", "gray.800");
+    const navigate = useNavigate();
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -40,21 +42,30 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, us
                         <Avatar size="xl" src={user.avatar} />
                         <Box textAlign="center">
                             <Text fontWeight="bold">{user.full_name}</Text>
-                            <Text fontSize="sm" color="gray.500">
-                                ID: {user.user_id}
-                            </Text>
+                        {/*    <Text fontSize="sm" color="gray.500">*/}
+                        {/*        ACRONYM: {user.acronym}*/}
+                        {/*    </Text>*/}
                         </Box>
 
                         <Button
                             colorScheme="teal"
-                            onClick={() => {
-                                onStartPrivateChat?.(user.user_id);
-                                onClose();
+                            onClick={async () => {
+                                if (!user?.user_id) return;
+
+                                try {
+                                    await DirectService.getOrPostChats({ user_id: user.user_id });
+                                    // ✅ Перенаправлення по userId або chatId
+                                    await navigate({ to: "/direct", search: { userId: user.user_id } });
+                                    onClose();
+                                } catch (err) {
+                                    console.error("❌ Не вдалося створити чат:", err);
+                                }
                             }}
                             w="100%"
                         >
                             Написати повідомлення
                         </Button>
+
                     </VStack>
                 </ModalBody>
             </ModalContent>

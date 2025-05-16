@@ -24,3 +24,19 @@ func (message *Messages) BeforeCreate(*gorm.DB) error {
 	}
 	return nil
 }
+
+type MessageRead struct {
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
+	UserID    uuid.UUID `gorm:"not null;index:idx_user_msg,unique"`
+	MessageID uuid.UUID `gorm:"not null;index:idx_user_msg,unique"`
+	ReadAt    time.Time `gorm:"not null"`
+
+	CreatedAt time.Time
+}
+
+func (r *MessageRead) BeforeCreate(*gorm.DB) (err error) {
+	if r.ID == uuid.Nil {
+		r.ID = uuid.New()
+	}
+	return
+}

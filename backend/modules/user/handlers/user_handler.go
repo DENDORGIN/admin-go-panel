@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func CreateUser(ctx *gin.Context) {
@@ -55,6 +56,11 @@ func ReadUserMe(ctx *gin.Context) {
 	if !ok {
 		return
 	}
+
+	now := time.Now()
+	user.LastSeenAt = &now
+	db.Model(&user).Update("last_seen_at", time.Now())
+
 	response := &models.UserResponse{
 		ID:          user.ID,
 		FullName:    user.FullName,
@@ -64,6 +70,7 @@ func ReadUserMe(ctx *gin.Context) {
 		IsSuperUser: user.IsSuperUser,
 		IsAdmin:     user.IsAdmin,
 		Acronym:     user.Acronym,
+		LastSeenAt:  user.LastSeenAt,
 	}
 	ctx.JSON(http.StatusOK, response)
 }

@@ -61,6 +61,8 @@ func InitDB(ctx *gin.Context) {
 		&chatRooms.ChatRooms{},
 		&messages.Messages{},
 		&directMessage.DirectMessage{},
+		&directMessage.DirectChat{},
+		&messages.MessageRead{},
 		&reactions.Reaction{},
 	)
 	if err != nil {

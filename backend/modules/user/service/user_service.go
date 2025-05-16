@@ -74,6 +74,7 @@ func TransformUsers(users []*models.User) []*models.UserResponse {
 			IsActive:    user.IsActive,
 			IsSuperUser: user.IsSuperUser,
 			IsAdmin:     user.IsAdmin,
+			LastSeenAt:  user.LastSeenAt,
 		}
 		userResponses = append(userResponses, userResponse)
 	}

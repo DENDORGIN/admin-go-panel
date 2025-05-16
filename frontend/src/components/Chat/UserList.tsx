@@ -168,9 +168,6 @@ const UserList: React.FC<Props> = ({ users, onlineIds }) => {
                 isOpen={isProfileOpen}
                 onClose={closeProfile}
                 user={selectedUser}
-                onStartPrivateChat={(userId) => {
-                    console.log("🟢 Старт приватного чату з:", userId);
-                }}
             />
         </>
     );

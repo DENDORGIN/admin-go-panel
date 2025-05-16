@@ -46,6 +46,8 @@ func GetDirectChatUsersByUserID(db *gorm.DB, userID uuid.UUID) ([]userModel.User
 			IsActive:    u.IsActive,
 			IsSuperUser: u.IsSuperUser,
 			Acronym:     u.Acronym,
+			IsAdmin:     u.IsAdmin,
+			LastSeenAt:  u.LastSeenAt,
 		})
 	}
 

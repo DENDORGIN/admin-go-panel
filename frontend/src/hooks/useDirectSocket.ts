@@ -57,6 +57,12 @@ export function useDirectSocket({
                                 m.ID === data.message.ID ? { ...m, Reaction: data.message.Reaction } : m
                             )
                         );
+                    } else if (data.type === "message_read_update") {
+                        setMessages((prev) =>
+                            prev.map((m) =>
+                                m.ID === data.message_id ? { ...m, isRead: true } : m
+                            )
+                        );
                     } else if (data.type === "message_edited") {
                         setMessages((prev) =>
                             prev.map((m) =>

@@ -33,6 +33,7 @@ function DirectPage() {
     const { user } = useAuth();
     const isMobile = useBreakpointValue({ base: true, md: false });
 
+
     const socketRef = useDirectSocket({
         user,
         selectedUser,
@@ -58,6 +59,22 @@ function DirectPage() {
             .finally(() => setLoading(false));
         return () => cancelable.cancel?.();
     }, []);
+
+    useEffect(() => {
+        if (!user || !selectedUser || !messages.length || !socketRef.current) return;
+
+        const lastMessage = messages[messages.length - 1];
+
+        // Надсилай тільки якщо це не твоє повідомлення
+        if (lastMessage.SenderID !== user.ID) {
+            socketRef.current.send(JSON.stringify({
+                type: "message_read",
+                message_id: lastMessage.ID,
+            }));
+        }
+    }, [messages, selectedUser, user]);
+
+
 
     const handleSend = () => {
         if (!input.trim() || !socketRef.current) return;

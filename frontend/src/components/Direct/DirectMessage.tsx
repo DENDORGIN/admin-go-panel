@@ -21,7 +21,8 @@ import {
 } from "@chakra-ui/react";
 import { useDisclosure } from "@chakra-ui/react";
 import { useEffect, useRef } from "react";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { FiEdit, FiTrash2} from "react-icons/fi";
+import { LiaCheckSolid,  LiaCheckDoubleSolid} from "react-icons/lia";
 import { TiHeartOutline } from "react-icons/ti";
 import {
     FcDocument,
@@ -45,6 +46,7 @@ interface DirectMessageProps {
         Reaction?: string;
         ContentUrl?: string[];
         isLoading?: boolean;
+        isRead?: boolean;
     }
     user?: { ID: string } | null;
     isMe: boolean;
@@ -275,19 +277,8 @@ const DirectMessageBubble: React.FC<DirectMessageProps> = ({
                 )}
 
 
+
                 <Flex align="center" gap={2} mt={2} justify="space-between">
-                    <Text fontSize="sm" color={isMe ? "white" : "gray.600"}>
-                        {new Date(msg.CreatedAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                        })}
-                    </Text>
-                    {msg.EditedAt && (
-                        <Text fontSize="xs" color={isMe ? "whiteAlpha.700" : "gray.400"} fontStyle="italic">
-                            (edited)
-                        </Text>
-                    )}
                     <Popover isOpen={isPopoverOpen} onOpen={onPopoverOpen} onClose={onPopoverClose}>
                         <PopoverTrigger>
                             <IconButton
@@ -321,6 +312,24 @@ const DirectMessageBubble: React.FC<DirectMessageProps> = ({
                             </PopoverContent>
                         </Portal>
                     </Popover>
+                    <Text fontSize="sm" color={isMe ? "white" : "gray.600"}>
+                        {new Date(msg.CreatedAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                        })}
+                    </Text>
+                    {msg.EditedAt && (
+                        <Text fontSize="xs" color={isMe ? "whiteAlpha.700" : "gray.400"} fontStyle="italic">
+                            (edited)
+                        </Text>
+                    )}
+                    {isMe && (
+                        <Text fontSize="md" color={msg.isRead ? "orange.500" : "orange.300"} ml={2}>
+                            {msg.isRead ? <LiaCheckDoubleSolid/> : <LiaCheckSolid/>}
+                        </Text>
+                    )}
+
                 </Flex>
             </Box>
         </Flex>

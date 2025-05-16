@@ -20,6 +20,7 @@ type DirectMessage struct {
 	SenderID  uuid.UUID `gorm:"type:uuid;not null;index"`
 	Message   string    `gorm:"type:text"`
 	Reaction  string    `gorm:"type:text"`
+	IsRead    bool      `gorm:"default:false" json:"isRead"`
 	CreatedAt time.Time
 	EditedAt  *time.Time
 }
