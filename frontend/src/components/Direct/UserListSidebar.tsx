@@ -2,6 +2,7 @@ import {
     Avatar, Badge, Box, Flex, Spinner, Text, VStack, useColorModeValue
 } from "@chakra-ui/react";
 import { type UserPublic } from "../../client";
+import { formatLastSeen } from "../../utils/formatLastSeen";
 
 type Props = {
     users: UserPublic[];
@@ -57,9 +58,7 @@ export default function UserListSidebar({ users, loading, onSelect }: Props) {
                                 <Text fontSize="xs" color={isUserOnline(u.lastSeenAt) ? "green.500" : "gray.500"}>
                                     {isUserOnline(u.lastSeenAt)
                                         ? "Онлайн"
-                                        : u.lastSeenAt
-                                            ? `Був онлайн ${getMinutesAgo(u.lastSeenAt)} хв тому`
-                                            : "Невідомо"}
+                                        : formatLastSeen(u.lastSeenAt)}
                                 </Text>
                             </Box>
                         </Flex>
@@ -75,10 +74,4 @@ function isUserOnline(lastSeenAt?: string | null): boolean {
     if (!lastSeenAt) return false;
     const lastSeen = new Date(lastSeenAt).getTime();
     return Date.now() - lastSeen < 60_000; // 1 хв
-}
-
-function getMinutesAgo(lastSeenAt: string): number {
-    const lastSeen = new Date(lastSeenAt).getTime();
-    const diffMs = Date.now() - lastSeen;
-    return Math.floor(diffMs / 60_000);
 }

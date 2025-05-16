@@ -22,7 +22,6 @@ interface UserProfileModalProps {
         full_name: string;
         avatar: string;
         user_id: string;
-        acronym: string;
     } | null;
 }
 
@@ -43,9 +42,9 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose, us
                         <Avatar size="xl" src={user.avatar} />
                         <Box textAlign="center">
                             <Text fontWeight="bold">{user.full_name}</Text>
-                            <Text fontSize="sm" color="gray.500">
-                                ACRONYM: {user.acronym}
-                            </Text>
+                        {/*    <Text fontSize="sm" color="gray.500">*/}
+                        {/*        ACRONYM: {user.acronym}*/}
+                        {/*    </Text>*/}
                         </Box>
 
                         <Button

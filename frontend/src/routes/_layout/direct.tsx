@@ -32,7 +32,7 @@ function DirectPage() {
 
     const { user } = useAuth();
     const isMobile = useBreakpointValue({ base: true, md: false });
-    
+
 
     const socketRef = useDirectSocket({
         user,
@@ -59,6 +59,7 @@ function DirectPage() {
             .finally(() => setLoading(false));
         return () => cancelable.cancel?.();
     }, []);
+
 
     const handleSend = () => {
         if (!input.trim() || !socketRef.current) return;
