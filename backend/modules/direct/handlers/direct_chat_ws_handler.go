@@ -70,12 +70,16 @@ func DirectChatWebSocket(ctx *gin.Context) {
 
 	log.Printf("✅ WebSocket connected user %s chat %s\n", userID, chatID)
 
-	if history, err := directRepoository.GetDirectMessagesPaginated(db, chatID, 30, nil); err == nil {
+	if history, err := directRepoository.GetDirectMessagesPaginated(db, chatID, userID, 30, nil); err == nil {
 		if historyData, err := json.Marshal(history); err == nil {
-			err := conn.WriteMessage(websocket.TextMessage, historyData)
-			if err != nil {
-				return
-			}
+			_ = conn.WriteMessage(websocket.TextMessage, historyData)
+
+			// ✅ Відмічаємо останні повідомлення як прочитані
+			go func() {
+				if err := directRepoository.MarkRecentMessagesAsRead(db, chatID, userID, 20); err != nil {
+					log.Println("❌ Mark as read error:", err)
+				}
+			}()
 		}
 	}
 
@@ -85,12 +89,12 @@ func DirectChatWebSocket(ctx *gin.Context) {
 			break
 		}
 
-		processDirectEvent(raw, userID, chatID, conn, db, client)
+		processDirectEvent(raw, userID, chatID, userID, conn, db, client)
 	}
 
 }
 
-func processDirectEvent(msg map[string]interface{}, SenderID, chatID uuid.UUID, conn *websocket.Conn, db *gorm.DB, sender *direct.Client) {
+func processDirectEvent(msg map[string]interface{}, SenderID, chatID, userID uuid.UUID, conn *websocket.Conn, db *gorm.DB, sender *direct.Client) {
 	switch msg["type"] {
 	case "new_message":
 		content, _ := msg["message"].(string)
@@ -181,7 +185,7 @@ func processDirectEvent(msg map[string]interface{}, SenderID, chatID uuid.UUID, 
 			log.Println("❌ Invalid message ID", messageID)
 			return
 		}
-		updatedMessages, err := directRepoository.GetDirectMessagesPaginated(db, chatID, 30, nil)
+		updatedMessages, err := directRepoository.GetDirectMessagesPaginated(db, chatID, userID, 30, nil)
 		if err != nil {
 			log.Println("❌ Error fetching messages:", err)
 			return
@@ -192,11 +196,33 @@ func processDirectEvent(msg map[string]interface{}, SenderID, chatID uuid.UUID, 
 		}
 		direct.Manager.Broadcast(chatID, payload, nil)
 
+	case "message_read":
+		messageID, err := uuid.Parse(getString(msg, "message_id"))
+		if err != nil {
+			log.Println("❌ Invalid message_id")
+			return
+		}
+
+		// просто оновлюємо поле
+		err = db.Model(&models.DirectMessage{}).
+			Where("id = ?", messageID).
+			Update("is_read", true).Error
+
+		if err != nil {
+			log.Println("❌ Update is_read error:", err)
+		}
+		payload := map[string]interface{}{
+			"type":       "message_read_update",
+			"message_id": messageID,
+			"reader_id":  SenderID, // можна не використовувати
+		}
+		direct.Manager.Broadcast(chatID, payload, sender) // ❗ не sender
+
 	case "load_more_messages":
 		beforeID, _ := uuid.Parse(msg["before"].(string))
 		limit := int(msg["limit"].(float64))
 
-		messages, err := directRepoository.GetDirectMessagesPaginated(db, chatID, limit, &beforeID) // &beforeID
+		messages, err := directRepoository.GetDirectMessagesPaginated(db, chatID, userID, limit, &beforeID) // &beforeID
 		if err == nil {
 			err := conn.WriteJSON(map[string]interface{}{
 				"type":     "messages_batch",

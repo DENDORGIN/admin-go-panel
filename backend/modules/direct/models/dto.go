@@ -13,6 +13,7 @@ type DirectMessagePayload struct {
 	Message    string     `json:"Message"`
 	ContentURL []string   `json:"content_url"`
 	Reaction   string     `json:"Reaction"`
+	IsRead     bool       `json:"isRead"`
 	EditedAt   *time.Time `json:"EditedAt,omitempty"`
 	CreatedAt  time.Time  `json:"CreatedAt"`
 }

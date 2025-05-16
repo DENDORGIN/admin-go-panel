@@ -314,6 +314,7 @@ export interface MessageType {
   avatar: string;
   room_id: string;
   message: string;
+  isRead: boolean;
   content_url?: string[];
   created_at: string;
   isLoading?: boolean;
