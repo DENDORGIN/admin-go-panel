@@ -3,3 +3,4 @@
 /node_modules/
 qodana.yaml
 deploy.sh
+prune_all.sh
