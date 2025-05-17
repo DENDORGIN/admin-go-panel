@@ -341,3 +341,13 @@ export type DirectMessage = {
   content_url?: string[];
   isLoading?: boolean;
 };
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  sent_at: string;
+  meta?: Record<string, any>;
+  read: boolean;
+}
