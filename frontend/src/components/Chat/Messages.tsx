@@ -19,7 +19,6 @@ import {
 } from "@chakra-ui/react";
 import { useDisclosure } from "@chakra-ui/react";
 import { Popover, PopoverTrigger, PopoverContent, PopoverBody } from "@chakra-ui/react";
-import { DragHandleIcon } from '@chakra-ui/icons'
 
 import UserProfileModal from "../Modals/UserProfileModal";
 import LinkPreview from "../Modals/LinkPreviewModal";
@@ -174,7 +173,7 @@ const MessageBubble: React.FC<MessageProps> = React.memo(({ msg, isMe, user, isL
                     <Menu placement="bottom-end">
                         <MenuButton
                             as={IconButton}
-                            icon={<DragHandleIcon />}
+                            icon={<FiEdit />}
                             variant="ghost"
                             size="sm"
                             aria-label="Options"
