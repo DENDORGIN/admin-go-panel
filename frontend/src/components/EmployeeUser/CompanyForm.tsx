@@ -23,7 +23,7 @@ interface Props {
         updated_at: string
         whu_created_by_acron: string
         whu_updated_by_acron: string | null
-        extra_data: Record<string, string>
+        extra_data: Record<string, string | string[]>
     }>
 }
 
@@ -37,7 +37,7 @@ export default function CompanyForm({
                                         isSaving,
                                         user,
                                     }: Props) {
-    const [extraData, setExtraData] = useState<Record<string, string>>(user.extra_data || {})
+    const [extraData, setExtraData] = useState<Record<string, string | string[]>>(user.extra_data || {})
 
     const handleExtraChange = (key: string, value: string) => {
         setExtraData((prev) => ({ ...prev, [key]: value }))
@@ -105,7 +105,8 @@ export default function CompanyForm({
                         <Stack pl={4} spacing={1}>
                             {Object.entries(user.extra_data).map(([key, value]) => (
                                 <Text key={key}>
-                                    <strong>{key}:</strong> {String(value)}
+                                    <strong>{key}:</strong>{" "}
+                                    {Array.isArray(value) ? value.join(", ") : value}
                                 </Text>
                             ))}
                         </Stack>
@@ -129,7 +130,7 @@ export default function CompanyForm({
                             <Input value={key} isReadOnly flex={1} />
                             <Input
                                 placeholder="Value"
-                                value={value}
+                                value={Array.isArray(value) ? value.join(", ") : value}
                                 onChange={(e) => handleExtraChange(key, e.target.value)}
                                 flex={2}
                             />

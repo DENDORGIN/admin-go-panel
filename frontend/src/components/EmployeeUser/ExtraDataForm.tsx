@@ -11,17 +11,21 @@ import { AddIcon, DeleteIcon, EditIcon } from "@chakra-ui/icons"
 import { FC, useEffect, useState } from "react"
 
 type Props = {
-    extraData?: Record<string, string>
-    onChange: (data: Record<string, string>) => void
+    extraData?: Record<string, string | string[]>
+    onChange: (data: Record<string, string | string[]>) => void
 }
 
 const ExtraDataForm: FC<Props> = ({ extraData = {}, onChange }) => {
     const [isEditing, setIsEditing] = useState(false)
     const [localEntries, setLocalEntries] = useState<[string, string][]>([])
 
-    // коли extraData змінюється — оновлюємо локальні entry
+    // Синхронізація з extraData
     useEffect(() => {
-        setLocalEntries(Object.entries(extraData))
+        const entries = Object.entries(extraData).map(([k, v]) => [
+            k,
+            Array.isArray(v) ? v.join(", ") : v,
+        ]) as [string, string][]
+        setLocalEntries(entries)
     }, [extraData])
 
     const handleChange = (index: number, key: string, value: string) => {
@@ -40,22 +44,32 @@ const ExtraDataForm: FC<Props> = ({ extraData = {}, onChange }) => {
     }
 
     const handleCancel = () => {
-        setIsEditing(       false)
-        setLocalEntries(Object.entries(extraData)) // скидаємо до початкового
+        setIsEditing(false)
+        const entries = Object.entries(extraData).map(([k, v]) => [
+            k,
+            Array.isArray(v) ? v.join(", ") : v,
+        ]) as [string, string][]
+        setLocalEntries(entries)
     }
 
     const handleSave = () => {
         const cleaned = localEntries.filter(([k]) => k.trim())
-        onChange(Object.fromEntries(cleaned)) // <- тут усе правильно
+        const parsed = Object.fromEntries(
+            cleaned.map(([k, v]) => [
+                k,
+                v.includes(",") ? v.split(",").map((s) => s.trim()) : v.trim(),
+            ])
+        )
+        onChange(parsed)
         setIsEditing(false)
     }
 
-
     const entries = isEditing
         ? localEntries
-        : Object.entries(extraData).length
-            ? Object.entries(extraData)
-            : []
+        : (Object.entries(extraData).map(([k, v]) => [
+            k,
+            Array.isArray(v) ? v.join(", ") : v,
+        ]) as [string, string][])
 
     return (
         <>

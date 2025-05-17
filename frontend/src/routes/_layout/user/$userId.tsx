@@ -159,12 +159,9 @@ function UserDetails() {
     updated_at: user.updated_at,
     whu_created_by_acron: user.whu_created_by_acron,
     extra_data: typeof user.extra_data === "object" && user.extra_data !== null
-        ? Object.fromEntries(
-            Object.entries(user.extra_data).filter(
-                ([_, value]) => typeof value === "string"
-            )
-        ) as Record<string, string>
+        ? user.extra_data
         : {},
+
 
   })
 
