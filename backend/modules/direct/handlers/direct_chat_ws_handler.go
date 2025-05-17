@@ -5,7 +5,7 @@ import (
 	direct "backend/modules/direct/client"
 	"backend/modules/direct/models"
 	directRepoository "backend/modules/direct/repository"
-	notificationService "backend/modules/notifications/service"
+	"backend/modules/sse"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -123,19 +123,14 @@ func processDirectEvent(msg map[string]interface{}, SenderID, chatID, userID uui
 
 		// Знаходимо одержувача
 		receiverID, err := directRepoository.GetOtherParticipantID(db, chatID, SenderID)
-		if err != nil {
-			log.Println("❌ Не вдалося знайти іншого учасника чату:", err)
-			return
+		if err == nil {
+			// Надсилаємо через SSE
+			msg := sse.SSEMessage{
+				Event: "new_message_notification",
+				Data:  fmt.Sprintf(`{"chat_id": "%s", "message": "%s"}`, chatID, message.Message),
+			}
+			sse.Manager.SendToUser(receiverID, msg)
 		}
-
-		// Відправляємо сповіщення через глобальний сокет
-		go notificationService.SendNotification(receiverID, notificationService.NotificationPayload{
-			Title:  fullName,
-			Body:   message.Message,
-			Type:   "chat",
-			Meta:   map[string]any{"chat_id": chatID},
-			SentAt: time.Now(),
-		})
 
 	case "edit_message":
 		messageID, err := uuid.Parse(getString(msg, "ID"))

@@ -13,9 +13,9 @@ import (
 	"backend/modules/employees"
 	"backend/modules/item"
 	"backend/modules/media"
-	notifications "backend/modules/notifications/handlers"
 	"backend/modules/property"
 	reacrionsRepository "backend/modules/reaction/repository"
+	sseHandlers "backend/modules/sse/handlers"
 	"backend/modules/user"
 	"backend/modules/user/handlers"
 	"fmt"
@@ -93,7 +93,10 @@ func main() {
 	// Chat routes
 	r.GET("/ws/chat", messages.HandleWebSocket)
 	r.GET("/ws/direct/chats/:chatId", directWS.DirectChatWebSocket)
-	r.GET("/ws/notifications", notifications.NotificationWebSocketHandler)
+	//r.GET("/ws/notifications", notifications.NotificationWebSocketHandler)
+
+	// SSE routes
+	r.GET("/v1/sse/stream", sseHandlers.SSEStreamHandler)
 
 	//Direct messages
 

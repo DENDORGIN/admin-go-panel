@@ -12,6 +12,7 @@ import { useDirectSocket } from "../../hooks/useDirectSocket";
 import useAuth from "../../hooks/useAuth.ts";
 import UserListSidebar from "../../components/Direct/UserListSidebar";
 import DirectChatView from "../../components/Direct/DirectChatView";
+import { setActiveChatId } from "../../utils/chatState";
 
 export const Route = createFileRoute("/_layout/direct")({
     component: DirectPage,
@@ -32,6 +33,8 @@ function DirectPage() {
 
     const { user } = useAuth();
     const isMobile = useBreakpointValue({ base: true, md: false });
+
+    setActiveChatId(chatId);
 
 
     const socketRef = useDirectSocket({

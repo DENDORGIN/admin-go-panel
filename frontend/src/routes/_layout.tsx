@@ -1,10 +1,10 @@
-import { Flex, Spinner, useToast } from "@chakra-ui/react"
+import { Flex, Spinner } from "@chakra-ui/react"
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router"
 
 import Sidebar from "../components/Common/Sidebar"
 import UserMenu from "../components/Common/UserMenu"
 import useAuth, { isLoggedIn } from "../hooks/useAuth"
-import { useNotificationSocket } from "../hooks/useNotificationSocket"
+import { useSSE } from "../hooks/useSSE"
 // import NotificationBell from "../components/Notification/Bell";
 
 export const Route = createFileRoute("/_layout")({
@@ -20,20 +20,7 @@ export const Route = createFileRoute("/_layout")({
 
 function Layout() {
   const { isLoading } = useAuth()
-  const toast = useToast()
-
-  // 🔔 Підключення глобального Notification WebSocket
-  useNotificationSocket((msg) => {
-    toast({
-      position: 'top-right',
-      title: msg.payload.title,
-      description: msg.payload.body,
-      status: "info",
-      duration: 5000,
-      isClosable: true,
-      variant: "left-accent",
-    });
-  });
+  useSSE();
 
 
   return (

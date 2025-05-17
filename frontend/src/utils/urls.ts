@@ -54,3 +54,17 @@ export function getWsUrl(path: string, params: Record<string, string> = {}): str
 }
 
 console.log("Tenant:", getTenantSubdomain())
+
+
+export function getSseUrl(path: string, params: Record<string, string> = {}): string {
+    const base = import.meta.env.VITE_API_DOMAIN; // наприклад, http://localhost:5180 або https://api.domain.com
+    const tenant = getTenantSubdomain();
+
+    const sseBase =
+        tenant === "localhost"
+            ? base // http://localhost:5180
+            : base.replace("://", `://${tenant}.`);
+
+    const query = new URLSearchParams(params).toString();
+    return `${sseBase}/v1/sse/${path}${query ? `?${query}` : ""}`;
+}
