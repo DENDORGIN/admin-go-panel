@@ -17,7 +17,13 @@ interface Props {
     onSave: () => void
     onCancel: () => void
     isSaving: boolean
-    user: Partial<EditableUserFields>
+    user: Partial<EditableUserFields & {
+        created_at: string
+        updated_at: string
+        whu_created_by_acron: string
+        whu_updated_by_acron: string | null
+        extra_data: any
+    }>
 }
 
 export default function CompanyForm({
@@ -69,6 +75,11 @@ export default function CompanyForm({
                     <Text><strong>Salary:</strong> {user.salary ?? "-"}</Text>
                     <Text><strong>Start Date:</strong> {formatDateTime(user.date_start)}</Text>
                     <Text><strong>End Date:</strong> {formatDateTime(user.date_end)}</Text>
+                    <Text><strong>Created at:</strong> {formatDateTime(user.created_at)}</Text>
+                    <Text><strong>Updated at:</strong> {formatDateTime(user.updated_at)}</Text>
+                    <Text><strong>Created by:</strong> {user.whu_created_by_acron ?? "-"}</Text>
+                    <Text><strong>Updated by:</strong> {user.whu_updated_by_acron ?? "-"}</Text>
+                    <Text><strong>Extra data:</strong> {user.extra_data ? JSON.stringify(user.extra_data, null, 2) : "-"}</Text>
                 </>
             ) : (
                 <Stack spacing={3} mt={4}>
@@ -103,7 +114,7 @@ function FormInput({
     )
 }
 
-function formatDateTime(dateStr?: string | null): string {
+function formatDateTime(dateStr?: string | null) {
     if (!dateStr) return "-"
     const date = new Date(dateStr)
     const pad = (n: number) => n.toString().padStart(2, "0")

@@ -148,13 +148,18 @@ function UserDetails() {
 
   const avatarSrc = file?.preview || user.avatar || "https://via.placeholder.com/100x100?text=Avatar"
 
-  const getCompanyEditableFields = (user: UserEmployeePublic): Partial<EditableUserFields> => ({
+  const getCompanyEditableFields = (user: UserEmployeePublic) => ({
     company: user.company ?? undefined,
     position: user.position ?? undefined,
     condition_type: user.condition_type ?? undefined,
     salary: user.salary ?? undefined,
     date_start: user.date_start ?? undefined,
     date_end: user.date_end ?? undefined,
+    created_at: user.created_at,
+    updated_at: user.updated_at,
+    whu_created_by_acron: user.whu_created_by_acron,
+    whu_updated_by_acron: user.whu_updated_by_acron,
+    extra_data: user.extra_data,
   })
 
   return (
