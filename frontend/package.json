@@ -47,7 +47,7 @@
     "yet-another-react-lightbox": "^3.21.7"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.6.1",
+    "@biomejs/biome": "1.9.4",
     "@hey-api/openapi-ts": "^0.67.3",
     "@playwright/test": "^1.52.0",
     "@tanstack/router-devtools": "1.19.1",
