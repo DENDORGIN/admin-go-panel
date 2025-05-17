@@ -26,11 +26,11 @@ func SSEStreamHandler(ctx *gin.Context) {
 	writer.Header().Set("Content-Type", "text/event-stream")
 	writer.Header().Set("Cache-Control", "no-cache")
 	writer.Header().Set("Connection", "keep-alive")
+	ctx.Header("X-Accel-Buffering", "no")
 
 	flusher, ok := ctx.Writer.(http.Flusher)
-	if !ok {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Streaming unsupported"})
-		return
+	if ok {
+		flusher.Flush()
 	}
 
 	userID := user.ID
