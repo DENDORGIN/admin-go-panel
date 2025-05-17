@@ -131,6 +131,7 @@ func processDirectEvent(msg map[string]interface{}, SenderID, chatID, userID uui
 			}
 			sse.Manager.SendToUser(receiverID, msg)
 		}
+		fmt.Printf(`{"chat_id": "%s", "fullName": "%s", "message": "%s"}`, chatID, fullName, message.Message)
 
 	case "edit_message":
 		messageID, err := uuid.Parse(getString(msg, "ID"))
