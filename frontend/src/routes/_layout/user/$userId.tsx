@@ -15,7 +15,7 @@ import {
   type UserEmployeePublic,
   EmployeeService,
 } from "../../../client"
-import { USER_INFO_FIELDS } from "../../../components/EmployeeUser/userFieldGroups"
+import { USER_INFO_FIELDS, COMPANY_INFO_FIELDS } from "../../../components/EmployeeUser/userFieldGroups"
 import { useNavigate } from "@tanstack/react-router"
 import { useState, useEffect } from "react"
 import useAuth from "../../../hooks/useAuth.ts"
@@ -23,6 +23,7 @@ import { useUpdateUser, EditableUserFields } from "../../../components/EmployeeU
 import { useAvatarUpload } from "../../../components/EmployeeUser/AvatarUploader.ts"
 import UserAvatar from "../../../components/EmployeeUser/UserAvatar.tsx"
 import UserForm from "../../../components/EmployeeUser/UserForm.tsx"
+import CompanyForm from "../../../components/EmployeeUser/CompanyForm.tsx"
 
 export const Route = createFileRoute("/_layout/user/$userId")({
   component: UserDetails,
@@ -49,23 +50,24 @@ function UserDetails() {
   })
 
   const [isEditingUserInfo, setIsEditingUserInfo] = useState(false)
+  const [isEditingCompanyInfo, setIsEditingCompanyInfo] = useState(false)
   const [editedUser, setEditedUser] = useState<EditableUserFields>({})
 
   useEffect(() => {
     if (user) {
       setEditedUser({
-        fullName: user.fullName ?? "",
-        acronym: user.acronym ?? "",
+        fullName: user.fullName ?? undefined,
+        acronym: user.acronym ?? undefined,
         email: user.email,
-        phone_number_1: user.phone_number_1 ?? "",
-        phone_number_2: user.phone_number_2 ?? "",
-        address: user.address ?? "",
-        company: user.company ?? "",
-        position: user.position ?? "",
-        condition_type: user.condition_type ?? "",
-        salary: user.salary ?? "",
-        date_start: user.date_start ?? "",
-        date_end: user.date_end ?? "",
+        phone_number_1: user.phone_number_1 ?? undefined,
+        phone_number_2: user.phone_number_2 ?? undefined,
+        address: user.address ?? undefined,
+        company: user.company ?? undefined,
+        position: user.position ?? undefined,
+        condition_type: user.condition_type ?? undefined,
+        salary: user.salary ?? undefined,
+        date_start: user.date_start ?? undefined,
+        date_end: user.date_end ?? undefined,
       })
     }
   }, [user])
@@ -74,42 +76,62 @@ function UserDetails() {
     setEditedUser((prev) => ({ ...prev, [key]: value }))
   }
 
-  const handleSaveUserInfo = () => {
+  const saveFields = (fields: (keyof EditableUserFields)[], done: () => void) => {
     if (!user) return
 
     const updatedFields: Partial<EditableUserFields> = {}
 
-    USER_INFO_FIELDS.forEach((key) => {
-      const typedKey = key as keyof EditableUserFields
-
-      const originalValue = user?.[typedKey]
-      const editedValue = editedUser[typedKey]
+    fields.forEach((key) => {
+      const originalValue = user[key]
+      const editedValue = editedUser[key]
 
       if (
           typeof originalValue === "string" &&
           typeof editedValue === "string" &&
           originalValue !== editedValue
       ) {
-        (updatedFields as Record<string, string>)[typedKey] = editedValue
+        (updatedFields as Record<string, string>)[key] = editedValue
       }
     })
 
     updateMutation.mutate(updatedFields)
-    setIsEditingUserInfo(false)
+    done()
   }
 
+  const handleSaveUserInfo = () => {
+    saveFields(USER_INFO_FIELDS, () => setIsEditingUserInfo(false))
+  }
+
+  const handleSaveCompanyInfo = () => {
+    saveFields(COMPANY_INFO_FIELDS, () => setIsEditingCompanyInfo(false))
+  }
 
   const handleCancelUserInfo = () => {
     if (!user) return
-    setEditedUser({
-      fullName: user.fullName ?? "",
-      acronym: user.acronym ?? "",
+    setEditedUser((prev) => ({
+      ...prev,
+      fullName: user.fullName ?? undefined,
+      acronym: user.acronym ?? undefined,
       email: user.email,
-      phone_number_1: user.phone_number_1 ?? "",
-      phone_number_2: user.phone_number_2 ?? "",
-      address: user.address ?? "",
-    })
+      phone_number_1: user.phone_number_1 ?? undefined,
+      phone_number_2: user.phone_number_2 ?? undefined,
+      address: user.address ?? undefined,
+    }))
     setIsEditingUserInfo(false)
+  }
+
+  const handleCancelCompanyInfo = () => {
+    if (!user) return
+    setEditedUser((prev) => ({
+      ...prev,
+      company: user.company ?? undefined,
+      position: user.position ?? undefined,
+      condition_type: user.condition_type ?? undefined,
+      salary: user.salary ?? undefined,
+      date_start: user.date_start ?? undefined,
+      date_end: user.date_end ?? undefined,
+    }))
+    setIsEditingCompanyInfo(false)
   }
 
   if (isLoading) {
@@ -124,8 +146,16 @@ function UserDetails() {
     return <Text textAlign="center">User not found or an error occurred.</Text>
   }
 
-  const avatarSrc =
-      file?.preview || user.avatar || "https://via.placeholder.com/100x100?text=Avatar"
+  const avatarSrc = file?.preview || user.avatar || "https://via.placeholder.com/100x100?text=Avatar"
+
+  const getCompanyEditableFields = (user: UserEmployeePublic): Partial<EditableUserFields> => ({
+    company: user.company ?? undefined,
+    position: user.position ?? undefined,
+    condition_type: user.condition_type ?? undefined,
+    salary: user.salary ?? undefined,
+    date_start: user.date_start ?? undefined,
+    date_end: user.date_end ?? undefined,
+  })
 
   return (
       <Container maxW="4xl" py={8}>
@@ -165,6 +195,19 @@ function UserDetails() {
                 onCancel={handleCancelUserInfo}
                 isSaving={updateMutation.isPending}
                 user={user}
+            />
+          </Section>
+
+          <Section title="Company Information">
+            <CompanyForm
+                isEditing={isEditingCompanyInfo}
+                setIsEditing={setIsEditingCompanyInfo}
+                editedUser={editedUser}
+                onChange={handleEditChange}
+                onSave={handleSaveCompanyInfo}
+                onCancel={handleCancelCompanyInfo}
+                isSaving={updateMutation.isPending}
+                user={getCompanyEditableFields(user)}
             />
           </Section>
         </Stack>

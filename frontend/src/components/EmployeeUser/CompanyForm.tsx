@@ -13,26 +13,12 @@ interface Props {
     isEditing: boolean
     setIsEditing: (val: boolean) => void
     editedUser: EditableUserFields
-    setEditedUser: (fields: EditableUserFields) => void
     onChange: (key: keyof EditableUserFields, value: string) => void
     onSave: () => void
     onCancel: () => void
     isSaving: boolean
-    user: {
-        company: string | null
-        position: string | null
-        condition_type: string | null
-        salary: string | null
-        date_start: string | null
-        date_end: string | null
-        created_at: string
-        updated_at: string
-        whu_created_by_acron: string
-        whu_updated_by_acron: string | null
-        extra_data: JSON
-    }
+    user: Partial<EditableUserFields>
 }
-//commit for commit comments
 
 export default function CompanyForm({
                                         isEditing,
@@ -79,49 +65,40 @@ export default function CompanyForm({
                 <>
                     <Text><strong>Company:</strong> {user.company ?? "-"}</Text>
                     <Text><strong>Position:</strong> {user.position ?? "-"}</Text>
-                    <Text><strong>Condition type:</strong> {user.condition_type ?? "-"}</Text>
+                    <Text><strong>Condition Type:</strong> {user.condition_type ?? "-"}</Text>
                     <Text><strong>Salary:</strong> {user.salary ?? "-"}</Text>
-                    <Text><strong>Date start:</strong> {user.date_start ?? "-"}</Text>
-                    <Text><strong>Date end:</strong> {user.date_end ?? "-"}</Text>
-                    <Text><strong>Created at:</strong> {user.created_at}</Text>
-                    <Text><strong>Updated at:</strong> {user.updated_at}</Text>
-                    <Text><strong>Who created:</strong> {user.whu_created_by_acron}</Text>
-                    <Text><strong>Updated at:</strong> {user.whu_updated_by_acron}</Text>
+                    <Text><strong>Start Date:</strong> {user.date_start ?? "-"}</Text>
+                    <Text><strong>End Date:</strong> {user.date_end ?? "-"}</Text>
                 </>
             ) : (
                 <Stack spacing={3} mt={4}>
-                    <Input
-                        placeholder="Company"
-                        value={editedUser.company || ""}
-                        onChange={(e) => onChange("company", e.target.value)}
-                    />
-                    <Input
-                        placeholder="Position"
-                        value={editedUser.position || ""}
-                        onChange={(e) => onChange("position", e.target.value)}
-                    />
-                    <Input
-                        placeholder="Condition type"
-                        value={editedUser.condition_type || ""}
-                        onChange={(e) => onChange("condition_type", e.target.value)}
-                    />
-                    <Input
-                        placeholder="Salary"
-                        value={editedUser.salary || ""}
-                        onChange={(e) => onChange("salary", e.target.value)}
-                    />
-                    <Input
-                        placeholder="Date start"
-                        value={editedUser.date_start || ""}
-                        onChange={(e) => onChange("date_start", e.target.value)}
-                    />
-                    <Input
-                        placeholder="Date end"
-                        value={editedUser.date_end || ""}
-                        onChange={(e) => onChange("date_end", e.target.value)}
-                    />
+                    <FormInput label="Company" value={editedUser.company || ""} onChange={(e) => onChange("company", e.target.value)} />
+                    <FormInput label="Position" value={editedUser.position || ""} onChange={(e) => onChange("position", e.target.value)} />
+                    <FormInput label="Condition Type" value={editedUser.condition_type || ""} onChange={(e) => onChange("condition_type", e.target.value)} />
+                    <FormInput label="Salary" value={editedUser.salary || ""} onChange={(e) => onChange("salary", e.target.value)} />
+                    <FormInput label="Start Date" value={editedUser.date_start || ""} onChange={(e) => onChange("date_start", e.target.value)} />
+                    <FormInput label="End Date" value={editedUser.date_end || ""} onChange={(e) => onChange("date_end", e.target.value)} />
                 </Stack>
             )}
         </>
+    )
+}
+
+function FormInput({
+                       label,
+                       value,
+                       onChange,
+                   }: {
+    label: string
+    value: string
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+}) {
+    return (
+        <Flex direction="column">
+            <Text fontSize="sm" fontWeight="medium" mb={1}>
+                {label}
+            </Text>
+            <Input placeholder={label} value={value} onChange={onChange} />
+        </Flex>
     )
 }
