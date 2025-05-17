@@ -6,8 +6,9 @@ import {
     Stack,
     Text,
 } from "@chakra-ui/react"
-import { EditIcon } from "@chakra-ui/icons"
+import { EditIcon, AddIcon, CloseIcon } from "@chakra-ui/icons"
 import { EditableUserFields } from "./useUpdateUser"
+import { useState } from "react"
 
 interface Props {
     isEditing: boolean
@@ -22,7 +23,7 @@ interface Props {
         updated_at: string
         whu_created_by_acron: string
         whu_updated_by_acron: string | null
-        extra_data: any
+        extra_data: Record<string, string>
     }>
 }
 
@@ -36,6 +37,26 @@ export default function CompanyForm({
                                         isSaving,
                                         user,
                                     }: Props) {
+    const [extraData, setExtraData] = useState<Record<string, string>>(user.extra_data || {})
+
+    const handleExtraChange = (key: string, value: string) => {
+        setExtraData((prev) => ({ ...prev, [key]: value }))
+    }
+
+    const handleAddExtra = () => {
+        if (Object.keys(extraData).length >= 10) return
+        const newKey = `key${Object.keys(extraData).length + 1}`
+        setExtraData((prev) => ({ ...prev, [newKey]: "" }))
+    }
+
+    const handleRemoveExtra = (keyToRemove: string) => {
+        setExtraData((prev) => {
+            const newData = { ...prev }
+            delete newData[keyToRemove]
+            return newData
+        })
+    }
+
     return (
         <>
             <Flex justify="flex-end" align="center">
@@ -79,7 +100,18 @@ export default function CompanyForm({
                     <Text><strong>Updated at:</strong> {formatDateTime(user.updated_at)}</Text>
                     <Text><strong>Created by:</strong> {user.whu_created_by_acron ?? "-"}</Text>
                     <Text><strong>Updated by:</strong> {user.whu_updated_by_acron ?? "-"}</Text>
-                    <Text><strong>Extra data:</strong> {user.extra_data ? JSON.stringify(user.extra_data, null, 2) : "-"}</Text>
+                    <Text fontWeight="medium"><strong>Extra data:</strong></Text>
+                    {user.extra_data && typeof user.extra_data === "object" ? (
+                        <Stack pl={4} spacing={1}>
+                            {Object.entries(user.extra_data).map(([key, value]) => (
+                                <Text key={key}>
+                                    <strong>{key}:</strong> {String(value)}
+                                </Text>
+                            ))}
+                        </Stack>
+                    ) : (
+                        <Text pl={4}>-</Text>
+                    )}
                 </>
             ) : (
                 <Stack spacing={3} mt={4}>
@@ -89,6 +121,36 @@ export default function CompanyForm({
                     <FormInput label="Salary" value={editedUser.salary || ""} onChange={(e) => onChange("salary", e.target.value)} />
                     <FormInput label="Start Date" value={editedUser.date_start || ""} onChange={(e) => onChange("date_start", e.target.value)} />
                     <FormInput label="End Date" value={editedUser.date_end || ""} onChange={(e) => onChange("date_end", e.target.value)} />
+
+                    <Text fontWeight="medium">Extra data</Text>
+
+                    {Object.entries(extraData).map(([key, value]) => (
+                        <Flex key={key} gap={2} align="center">
+                            <Input value={key} isReadOnly flex={1} />
+                            <Input
+                                placeholder="Value"
+                                value={value}
+                                onChange={(e) => handleExtraChange(key, e.target.value)}
+                                flex={2}
+                            />
+                            <IconButton
+                                aria-label="Remove field"
+                                icon={<CloseIcon />}
+                                size="sm"
+                                onClick={() => handleRemoveExtra(key)}
+                            />
+                        </Flex>
+                    ))}
+
+                    <Button
+                        onClick={handleAddExtra}
+                        leftIcon={<AddIcon />}
+                        size="sm"
+                        variant="outline"
+                        isDisabled={Object.keys(extraData).length >= 10}
+                    >
+                        Add extra field
+                    </Button>
                 </Stack>
             )}
         </>
