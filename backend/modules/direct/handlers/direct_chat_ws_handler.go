@@ -5,6 +5,7 @@ import (
 	direct "backend/modules/direct/client"
 	"backend/modules/direct/models"
 	directRepoository "backend/modules/direct/repository"
+	notificationService "backend/modules/notifications/service"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -89,12 +90,12 @@ func DirectChatWebSocket(ctx *gin.Context) {
 			break
 		}
 
-		processDirectEvent(raw, userID, chatID, userID, conn, db, client)
+		processDirectEvent(raw, userID, chatID, userID, user.FullName, conn, db, client)
 	}
 
 }
 
-func processDirectEvent(msg map[string]interface{}, SenderID, chatID, userID uuid.UUID, conn *websocket.Conn, db *gorm.DB, sender *direct.Client) {
+func processDirectEvent(msg map[string]interface{}, SenderID, chatID, userID uuid.UUID, fullName string, conn *websocket.Conn, db *gorm.DB, sender *direct.Client) {
 	switch msg["type"] {
 	case "new_message":
 		content, _ := msg["message"].(string)
@@ -108,6 +109,7 @@ func processDirectEvent(msg map[string]interface{}, SenderID, chatID, userID uui
 			SenderID: SenderID,
 			Message:  content,
 			Reaction: emoji,
+			IsRead:   false,
 			//ContentURL: []string{ContentURL},
 			CreatedAt: time.Now(),
 		}
@@ -118,6 +120,22 @@ func processDirectEvent(msg map[string]interface{}, SenderID, chatID, userID uui
 			"message": message,
 		}
 		direct.Manager.Broadcast(chatID, out, nil)
+
+		// Знаходимо одержувача
+		receiverID, err := directRepoository.GetOtherParticipantID(db, chatID, SenderID)
+		if err != nil {
+			log.Println("❌ Не вдалося знайти іншого учасника чату:", err)
+			return
+		}
+
+		// Відправляємо сповіщення через глобальний сокет
+		go notificationService.SendNotification(receiverID, notificationService.NotificationPayload{
+			Title:  fullName,
+			Body:   message.Message,
+			Type:   "chat",
+			Meta:   map[string]any{"chat_id": chatID},
+			SentAt: time.Now(),
+		})
 
 	case "edit_message":
 		messageID, err := uuid.Parse(getString(msg, "ID"))

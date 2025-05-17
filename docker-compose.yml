@@ -2,6 +2,7 @@
 
 services:
   backend:
+    container_name: dbgone-backend
     build:
       context: ./backend
     ports:
@@ -11,6 +12,7 @@ services:
     restart: always
 
   frontend:
+    container_name: dbgone-frontend
     build:
       context: ./frontend
     ports:

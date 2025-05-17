@@ -229,3 +229,15 @@ func MarkRecentMessagesAsRead(db *gorm.DB, chatID, userID uuid.UUID, limit int) 
 		Limit(limit).
 		Update("is_read", true).Error
 }
+
+func GetOtherParticipantID(db *gorm.DB, chatID, currentUserID uuid.UUID) (uuid.UUID, error) {
+	var chat models.DirectChat
+	if err := db.First(&chat, "id = ?", chatID).Error; err != nil {
+		return uuid.Nil, err
+	}
+
+	if chat.UserAID == currentUserID {
+		return chat.UserBID, nil
+	}
+	return chat.UserAID, nil
+}
