@@ -13,7 +13,7 @@ export function useSSE() {
 
         source.addEventListener("new_message_notification", (event) => {
             const payload = JSON.parse(event.data);
-            const { chat_id, message } = payload;
+            const { chat_id, fullName, message } = payload;
 
             // Не показуємо повідомлення, якщо ми в цьому чаті
             const current = getActiveChatId();
@@ -23,7 +23,7 @@ export function useSSE() {
             toast({
                 position: "top",
                 variant: "left-accent",
-                title: "Нове повідомлення",
+                title: fullName,
                 description: message,
                 status: "info",
                 duration: 5000,

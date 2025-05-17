@@ -127,7 +127,7 @@ func processDirectEvent(msg map[string]interface{}, SenderID, chatID, userID uui
 			// Надсилаємо через SSE
 			msg := sse.SSEMessage{
 				Event: "new_message_notification",
-				Data:  fmt.Sprintf(`{"chat_id": "%s", "message": "%s"}`, chatID, message.Message),
+				Data:  fmt.Sprintf(`{"chat_id": "%s", "fullName": "%s", "message": "%s"}`, chatID, fullName, message.Message),
 			}
 			sse.Manager.SendToUser(receiverID, msg)
 		}
