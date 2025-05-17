@@ -3,7 +3,6 @@ package handlers
 import (
 	utils2 "backend/internal/services/utils"
 	"backend/modules/sse"
-	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -53,12 +52,7 @@ func SSEStreamHandler(ctx *gin.Context) {
 		select {
 		case msg := <-clientChan:
 			fmt.Fprintf(writer, "event: %s\n", msg.Event)
-			jsonData, err := json.Marshal(msg.Data)
-			if err != nil {
-				log.Println("❌ Помилка маршалінгу:", err)
-				continue
-			}
-			fmt.Fprintf(writer, "data: %s\n\n", jsonData)
+			fmt.Fprintf(writer, "data: %s\n\n", msg.Data)
 
 			flusher.Flush()
 		case <-request.Context().Done():
