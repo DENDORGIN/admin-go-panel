@@ -67,8 +67,8 @@ export default function CompanyForm({
                     <Text><strong>Position:</strong> {user.position ?? "-"}</Text>
                     <Text><strong>Condition Type:</strong> {user.condition_type ?? "-"}</Text>
                     <Text><strong>Salary:</strong> {user.salary ?? "-"}</Text>
-                    <Text><strong>Start Date:</strong> {user.date_start ?? "-"}</Text>
-                    <Text><strong>End Date:</strong> {user.date_end ?? "-"}</Text>
+                    <Text><strong>Start Date:</strong> {formatDateTime(user.date_start)}</Text>
+                    <Text><strong>End Date:</strong> {formatDateTime(user.date_end)}</Text>
                 </>
             ) : (
                 <Stack spacing={3} mt={4}>
@@ -101,4 +101,11 @@ function FormInput({
             <Input placeholder={label} value={value} onChange={onChange} />
         </Flex>
     )
+}
+
+function formatDateTime(dateStr?: string | null): string {
+    if (!dateStr) return "-"
+    const date = new Date(dateStr)
+    const pad = (n: number) => n.toString().padStart(2, "0")
+    return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}, ${pad(date.getHours())}:${pad(date.getMinutes())}`
 }
