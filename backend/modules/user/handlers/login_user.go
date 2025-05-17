@@ -49,7 +49,7 @@ func LoginHandler(ctx *gin.Context) {
 
 	tenantData := tenant.(entities.Tenant)
 
-	token, err := utils3.GenerateJWTToken(user.Email, user.ID, tenantData.Domain, tenantData.ID)
+	token, err := utils3.GenerateJWTToken(user.Email, user.FullName, user.ID, tenantData.Domain, tenantData.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
 		return

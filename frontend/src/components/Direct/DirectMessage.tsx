@@ -325,7 +325,7 @@ const DirectMessageBubble: React.FC<DirectMessageProps> = ({
                         </Text>
                     )}
                     {isMe && (
-                        <Text fontSize="md" color={msg.isRead ? "orange.500" : "orange.300"} ml={2}>
+                        <Text fontSize="md" color={msg.isRead ? "cyan.200" : "cyan.50"} ml={2}>
                             {msg.isRead ? <LiaCheckDoubleSolid/> : <LiaCheckSolid/>}
                         </Text>
                     )}
